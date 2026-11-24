@@ -18,10 +18,10 @@ First prototype: adapt Matter's compound-body, stacking, and dragging examples t
 
 ## First-person card roguelike
 
-Explore in first person, survive encounters, collect cards, and merge them into new abilities. A separate development branch is researching licensed first-person starters and implementing a small run.
+Explore a cursed library consuming reality. The expanded playable run has eight connected areas, three characters, real-time pursuit and telegraphed spatial attacks. Enemy health and next moves appear above them. Repeatable attack and block support the spell deck; healing is scarce.
 
-Start with one arena, readable enemies, a few explicit crafting recipes, and a death/restart loop. Show which cards a recipe consumes and which ability it produces. Expand run length only after movement, combat, and crafting work together.
+Any pair of owned cards can be recursively forged, including during combat. Both copies are consumed and recipes have bounded powers. Time, corruption, health and combined costs are selectable for playtesting. Saved discoveries retain lineage, not owned cards. The visual direction is in `games/card-roguelike/ART_DIRECTION.md`; the art is physical layered papercraft. Optional server AI adds presentation only and stays disabled without provider credentials and an operator budget decision.
 
 ## Shared constraints
 
-Browser-first, no accounts or API keys, clear controls, and a quick restart. Keep shared code small. Reuse proven game loops, physics, input, and build systems. Proposed hosting is `vihaar.me/games`; it is not live yet.
+Browser-first, clear controls, and a quick restart. Core games need no account or API key. Keep shared code small. Reuse proven game loops, physics, input, and build systems. Games are hosted at `vihaar.me/games`; optional runtime AI requires a separate configured provider.
