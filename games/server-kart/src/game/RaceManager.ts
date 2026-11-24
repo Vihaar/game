@@ -366,7 +366,8 @@ export class RaceManager {
     }
 
     if (!respawn && !s.finished && !s.isFrozen) {
-      const wantsToMove = s.isPlayer ? kart.input.throttle > 0.3 || kart.input.brake > 0.3 : true;
+      const isHuman = s.isPlayer || this.humanSlots?.has(s.id);
+      const wantsToMove = isHuman ? kart.input.throttle > 0.3 || kart.input.brake > 0.3 : true;
       if (Math.abs(s.speed) < STUCK_SPEED && wantsToMove && !s.isSpinning && !s.isSquished) {
         tr.stuckTimer += dt;
         if (tr.stuckTimer >= STUCK_SECONDS) respawn = true;

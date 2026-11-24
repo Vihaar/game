@@ -1,10 +1,11 @@
 import Peer, { type DataConnection, type PeerOptions } from 'peerjs';
 import { MessageRateLimit, RemoteInputBuffer, RoomRoster } from './RoomState';
+import { RemoteMoveStreams } from './MoveStream';
 import {
   generateRoomCode, INPUT_INTERVAL_MS, normalizeRoomCode, parseClientMessage, parseHostMessage,
   parseInput, parseProfile, parseSettings, parseSnapshot, parseStandings, roomPeerId, SNAPSHOT_INTERVAL_MS,
   type ClientMessage, type HostMessage, type PlayerProfile, type RaceSnapshot, type RaceStart,
-  type RoomPlayer, type RoomSettings, type RoomWelcome, type WireInput, type WireStanding,
+  type RoomPlayer, type RoomSettings, type RoomWelcome, type WireInput, type WireStanding, type WireMove,
 } from './protocol';
 
 export type RoomStatus = 'idle' | 'creating' | 'joining' | 'lobby' | 'racing' | 'results' | 'disconnected' | 'error';
@@ -42,12 +43,14 @@ export class RoomTransport {
   raceId = 0;
   roster: RoomPlayer[] = [];
   settings: RoomSettings | null = null;
+  supportsPrediction = false;
 
   private peer: Peer | null = null;
   private hostConnection: DataConnection | null = null;
   private guests = new Map<string, GuestConnection>();
   private hostRoster: RoomRoster | null = null;
   private readonly remoteInputs = new RemoteInputBuffer();
+  private readonly remoteMoves = new RemoteMoveStreams();
   private generation = 0;
   private inputSequence = 0;
   private lastInputAt = -Infinity;
@@ -65,7 +68,7 @@ export class RoomTransport {
 
   async create(profile: PlayerProfile, settings: RoomSettings): Promise<string> {
     if (!this.validProfile(profile) || !this.validSettings(settings)) throw new Error('Choose a valid player and track first.');
-    this.leave(); this.isHost = true; this.settings = { ...settings }; this.setState('creating');
+    this.leave(); this.isHost = true; this.supportsPrediction = true; this.settings = { ...settings }; this.setState('creating');
     for (let attempt = 0; attempt < 4; attempt++) {
       this.roomCode = generateRoomCode();
       try {
@@ -115,6 +118,7 @@ export class RoomTransport {
             if (message.type !== 'welcome' || message.roomCode !== code || !message.roster.some((p) => p.peerId === peer.id && p.slot === message.slot)) return;
             if (!this.validSettings(message.settings) || message.roster.some((p) => !this.validProfile(p))) { finish({ code: 'version', message: 'The host is running a different game version. Reload both tabs.' }); return; }
             this.localSlot = message.slot; this.settings = message.settings; this.roster = message.roster;
+            this.supportsPrediction = message.predictionVersion === 1;
             this.setState('lobby'); this.callbacks.onRoster?.(this.roster, this.settings); this.callbacks.onWelcome?.(message); finish(undefined, message); return;
           }
           this.receiveHost(message);
@@ -174,6 +178,16 @@ export class RoomTransport {
   }
   /** Host physics tick: consume once per guest slot; menu/pause inputs never cross the wire. */
   consumeInput(slot: number, now = performance.now()): WireInput { return this.remoteInputs.consume(slot, now); }
+  hasMoveStream(slot: number): boolean { return this.remoteMoves.active(slot); }
+  consumeMoves(slot: number, dt: number): WireMove[] { return this.remoteMoves.take(slot, dt); }
+  acknowledgeMove(slot: number, sequence: number): void { this.remoteMoves.processed(slot, sequence); }
+  moveStreamStale(slot: number): boolean { return this.remoteMoves.stale(slot); }
+  get inputAcknowledgements(): number[] { return this.remoteMoves.acknowledgements(); }
+  sendMoves(moves: WireMove[], now = performance.now()): boolean {
+    if (this.isHost || !this.supportsPrediction || this.status !== 'racing' || !this.hostConnection || !moves.length || now - this.lastInputAt < INPUT_INTERVAL_MS) return false;
+    const message = parseClientMessage({ v: 1, type: 'moves', raceId: this.raceId, moves }); if (!message || message.type !== 'moves') return false;
+    const sent = this.send(this.hostConnection, message, true); if (sent) this.lastInputAt = now; return sent;
+  }
   broadcastResults(standings: WireStanding[]): void {
     if (!this.isHost || this.status !== 'racing') return;
     const safe = parseStandings(standings); if (!safe) return;
@@ -192,6 +206,7 @@ export class RoomTransport {
     for (const entry of this.guests.values()) clearTimeout(entry.timer);
     this.guests.clear(); this.hostRoster = null; peer?.destroy();
     this.roomCode = ''; this.localSlot = -1; this.isHost = false; this.raceId = 0; this.roster = []; this.settings = null;
+    this.supportsPrediction = false;
     this.currentStart = null; this.latestSnapshot = null; this.readySlots.clear();
     this.resetRacePackets(); this.setState('idle');
   }
@@ -244,7 +259,7 @@ export class RoomTransport {
         if (!added || !this.settings) { this.reject(connection, 'room-full', 'This room already has eight racers.'); this.dropGuest(connection.peer, false); return; }
         clearTimeout(entry.timer);
         this.roster = this.hostRoster!.list();
-        this.send(connection, { v: 1, type: 'welcome', roomCode: this.roomCode, slot: added.slot, settings: this.settings, roster: this.roster }); this.publishRoster();
+        this.send(connection, { v: 1, type: 'welcome', roomCode: this.roomCode, slot: added.slot, settings: this.settings, roster: this.roster, predictionVersion: 1 }); this.publishRoster();
         if (this.status === 'racing' && this.currentStart) {
           this.send(connection, { v: 1, type: 'start', ...this.currentStart, roster: this.roster });
           if (this.latestSnapshot) this.send(connection, { v: 1, type: 'snapshot', snapshot: this.latestSnapshot });
@@ -253,6 +268,7 @@ export class RoomTransport {
       }
       if (message.type === 'profile' && this.status === 'lobby' && this.validProfile(message.profile)) { this.hostRoster!.update(connection.peer, message.profile); this.publishRoster(); }
       if (message.type === 'input' && this.status === 'racing' && message.raceId === this.raceId) this.remoteInputs.put(player.slot, message.sequence, message.input);
+      if (message.type === 'moves' && this.status === 'racing' && message.raceId === this.raceId) this.remoteMoves.put(player.slot, message.moves);
       if (message.type === 'ready' && this.status === 'racing' && message.raceId === this.raceId) this.readySlots.add(player.slot);
     });
     connection.on('close', () => { if (generation === this.generation) this.dropGuest(connection.peer); });
@@ -285,7 +301,7 @@ export class RoomTransport {
     const entry = this.guests.get(peerId); if (!entry) return;
     this.guests.delete(peerId); clearTimeout(entry.timer); if (close) entry.connection.close();
     const player = this.hostRoster?.remove(peerId);
-    if (player) { this.remoteInputs.remove(player.slot); this.readySlots.delete(player.slot); this.publishRoster(); this.callbacks.onPlayerLeft?.(player); }
+    if (player) { this.remoteInputs.remove(player.slot); this.remoteMoves.remove(player.slot); this.readySlots.delete(player.slot); this.publishRoster(); this.callbacks.onPlayerLeft?.(player); }
   }
   private publishRoster(): void {
     if (!this.hostRoster || !this.settings) return;
@@ -304,7 +320,7 @@ export class RoomTransport {
   private reject(connection: DataConnection, code: string, message: string): void { this.send(connection, { v: 1, type: 'reject', code, message }); setTimeout(() => connection.close(), 250); }
   private validProfile(profile: PlayerProfile): boolean { return Boolean(parseProfile(profile)) && (!this.options.allowedCharacterIds || this.options.allowedCharacterIds.includes(profile.characterId)); }
   private validSettings(settings: RoomSettings): boolean { return Boolean(parseSettings(settings)) && (!this.options.allowedTrackIds || this.options.allowedTrackIds.includes(settings.trackId)) && (!this.options.allowedCharacterIds || this.options.allowedCharacterIds.includes(settings.characterId)); }
-  private resetRacePackets(): void { this.remoteInputs.clear(); this.inputSequence = 0; this.queuedItem = false; this.lastInputAt = -Infinity; this.lastSnapshotAt = -Infinity; this.lastSnapshotSequence = -1; }
+  private resetRacePackets(): void { this.remoteInputs.clear(); this.remoteMoves.clear(); this.inputSequence = 0; this.queuedItem = false; this.lastInputAt = -Infinity; this.lastSnapshotAt = -Infinity; this.lastSnapshotSequence = -1; }
   private setState(status: RoomStatus): void { if (this.status !== status) { this.status = status; this.callbacks.onState?.(status); } }
   private fail(code: string, message: string): void { this.leave(); this.setState('error'); this.callbacks.onError?.({ code, message }); }
   private errorCode(error: unknown): string { return error && typeof error === 'object' && 'type' in error ? String(error.type) : 'connection'; }

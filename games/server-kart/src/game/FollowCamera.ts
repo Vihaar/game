@@ -130,7 +130,9 @@ export class FollowCamera {
     this.shakeAmp = Math.max(this.shakeAmp, clamp01(intensity));
   }
 
-  update(dt: number, kart: IKart, lookBack: boolean): void {
+  private readonly predictionOffset = new THREE.Vector3();
+  update(dt: number, kart: IKart, lookBack: boolean, visualOffset?: { x: number; y: number; z: number }): void {
+    this.predictionOffset.set(visualOffset?.x ?? 0, visualOffset?.y ?? 0, visualOffset?.z ?? 0);
     const s = kart.state;
     if (!this.initialised || this.followKartId !== s.id) {
       this.snapTo(kart);
@@ -220,14 +222,14 @@ export class FollowCamera {
     const dist = CHASE_DISTANCE + speedNorm * 0.9 + (s.isBoosting ? 0.45 : 0);
     const height = CHASE_HEIGHT + speedNorm * 0.2;
     // Behind direction for a given yaw (kart forward is (-sin h, 0, -cos h)).
-    outPos.set(Math.sin(yaw) * dist, height, Math.cos(yaw) * dist).add(s.position);
+    outPos.set(Math.sin(yaw) * dist, height, Math.cos(yaw) * dist).add(s.position).add(this.predictionOffset);
 
     // Look target: kart + up + a bit ahead along the kart's real heading (not the
     // damped camera yaw) so drifting shows the kart sliding across frame. The
     // look-back blend slides the target through the kart to behind it.
     const h = s.heading;
     this.forward.set(-Math.sin(h), 0, -Math.cos(h));
-    outLook.copy(s.position).addScaledVector(this.forward, LOOK_AHEAD * (1 - 2 * this.lookBackBlend));
+    outLook.copy(s.position).add(this.predictionOffset).addScaledVector(this.forward, LOOK_AHEAD * (1 - 2 * this.lookBackBlend));
     outLook.y += LOOK_UP;
   }
 
