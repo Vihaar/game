@@ -2,6 +2,10 @@
 
 A cursed library consumes reality. The authored route moves from Intake Hall through Mycelium Stacks, Flooded Index, Glasshouse of Errata, Astral Reading Room, Redaction Press and Shattered Archive to the Last Binding. Clearing each binding opens a physical doorway; rooms remain available for backtracking, and winning permits free exploration.
 
+## Death and progression
+
+Full permadeath is the design rule. Death ends the run: no checkpoints, revives, recovered decks, inherited forged cards, or permanent combat upgrades. A new run starts in Intake Hall with the selected character's baseline health, starter deck, fresh resources, no corruption and every binding locked. The recipe journal may retain knowledge and cosmetic discoveries; it never grants cards, power or progress. New cards and future systems must preserve this boundary.
+
 Follow [ART_DIRECTION.md](ART_DIRECTION.md): paper grain, angular folded-cardstock creatures, layered silhouettes and warm paper labels. Fraunces names cards/rooms; DM Sans carries dense costs and controls. Square atlas cells remain square. No neon, painted engraving or glossy fantasy materials.
 
 The world fills the page. A compact battle chapter leaves room for projected HP and next-move labels. Reusable strike, block and dodge sit above the bottom hand. The forge is a right sheet with scrolling ingredients and a fixed cost/confirm footer. Its world keeps moving. Sheets release pointer capture but retain walking, dodging and closing; selecting a price returns focus to movement.

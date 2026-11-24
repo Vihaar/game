@@ -35,6 +35,8 @@ Every completed forge also consumes both exact copies and 1 ink. Costs apply onl
 
 Keyboard/mouse are supported. Narrow layouts adapt, but touch movement is not implemented. Current runs are not saved. Discovered recipe metadata stays in this browser.
 
+**Full permadeath:** death ends the run. Restart resets the deck, forged cards, health, ink, corruption and area progress. There are no checkpoints or inherited combat upgrades. The discovery journal retains recipe knowledge only; it grants no cards or stats.
+
 ## Foundation and contribution
 
 The controller adapts the MIT-licensed official **Three.js r181 FPS example**, retaining Capsule/Octree collisions and five simulation substeps. Original source/license remain in `vendor/upstream/`. See [RESEARCH.md](RESEARCH.md), [THIRD_PARTY.md](THIRD_PARTY.md), [DESIGN.md](DESIGN.md) and [ART_DIRECTION.md](ART_DIRECTION.md).
