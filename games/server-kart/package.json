@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/game/chaosRules.test.ts src/game/prankRules.test.ts src/net/tests/protocol.test.mjs src/net/tests/transport.test.mjs"
+    "test": "node --import tsx --test src/game/chaosRules.test.ts src/game/prankRules.test.ts src/net/tests/protocol.test.mjs src/net/tests/transport.test.mjs src/net/tests/prediction.test.mjs"
   },
   "dependencies": {
     "peerjs": "^1.5.5",

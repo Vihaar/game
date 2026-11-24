@@ -1,4 +1,5 @@
 /** Plain JSON wire protocol. Only the host sends world state; guests send bounded controls. */
+import { physicsNumbers, type KartPhysicsState } from './PredictionState';
 export const PROTOCOL_VERSION = 1 as const;
 export const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export const MAX_RACERS = 8;
@@ -10,6 +11,7 @@ export interface PlayerProfile { name: string; characterId: string }
 export interface RoomPlayer extends PlayerProfile { slot: number; peerId: string }
 export interface RoomSettings { characterId: string; trackId: string; difficulty: 'easy' | 'normal' | 'hard'; laps: number }
 export interface WireInput { throttle: number; brake: number; steer: number; drift: boolean; useItem: boolean; useItemHeld: boolean; lookBack: boolean }
+export interface WireMove { sequence: number; input: WireInput }
 export interface Vec3 { x: number; y: number; z: number }
 export interface Quat extends Vec3 { w: number }
 export interface WireKartState {
@@ -21,16 +23,18 @@ export interface WireKartState {
   isSpinning: boolean; spinTimer: number; isSquished: boolean; squishTimer: number; isInvincible: boolean; starTimer: number;
   isShrunk: boolean; shrinkTimer: number; isFrozen: boolean;
   item: string; itemCount: number; itemRouletteActive: boolean; surface: string; wheelSpin: number;
+  physics?: KartPhysicsState;
 }
 export interface WireHazard { id: number; type: string; position: Vec3; velocity: Vec3; radius: number; ownerId: number }
-export interface RaceSnapshot { raceId: number; sequence: number; raceTime: number; phase: 'grid' | 'countdown' | 'racing' | 'complete'; karts: WireKartState[]; hazards?: WireHazard[]; activeBoxes?: Vec3[]; countdown?: number; chaos?: { text: string; warning: boolean; reverseSteering: boolean } }
+export interface RaceSnapshot { raceId: number; sequence: number; raceTime: number; phase: 'grid' | 'countdown' | 'racing' | 'complete'; karts: WireKartState[]; hazards?: WireHazard[]; activeBoxes?: Vec3[]; countdown?: number; chaos?: { text: string; warning: boolean; reverseSteering: boolean }; inputAcks?: number[] }
 export interface WireStanding { kartId: number; name: string; color: number; place: number; finishTime: number; isPlayer: boolean }
 export interface RaceStart { raceId: number; seed: number; settings: RoomSettings; roster: RoomPlayer[] }
-export interface RoomWelcome { roomCode: string; slot: number; settings: RoomSettings; roster: RoomPlayer[] }
+export interface RoomWelcome { roomCode: string; slot: number; settings: RoomSettings; roster: RoomPlayer[]; predictionVersion?: 1 }
 export type ClientMessage =
   | { v: 1; type: 'hello'; profile: PlayerProfile }
   | { v: 1; type: 'profile'; profile: PlayerProfile }
   | { v: 1; type: 'ready'; raceId: number }
+  | { v: 1; type: 'moves'; raceId: number; moves: WireMove[] }
   | { v: 1; type: 'input'; raceId: number; sequence: number; input: WireInput };
 export type HostMessage =
   | ({ v: 1; type: 'welcome' } & RoomWelcome)
@@ -83,16 +87,28 @@ export const kartNumbers = ['speed', 'heading', 'steerVisual', 'lap', 'checkpoin
 export const kartBooleans = ['finished', 'wrongWay', 'isDrifting', 'isBoosting', 'isAirborne', 'isHopping', 'isSpinning', 'isSquished', 'isInvincible', 'isShrunk', 'isFrozen', 'itemRouletteActive'] as const;
 const items = new Set(['none', 'banana', 'triple_banana', 'green_shell', 'triple_green_shell', 'red_shell', 'triple_red_shell', 'blue_shell', 'mushroom', 'triple_mushroom', 'golden_mushroom', 'star', 'lightning', 'bob_omb']);
 const vec = (x: unknown): x is Vec3 => object(x) && number(x.x) && number(x.y) && number(x.z);
+// BinaryPack 2.1 corrupts IEEE-754 subnormals. Damped physics can legitimately
+// reach them after standing still. Flush physically insignificant wire noise,
+// not invalid values: NaN/Infinity still fail the validators above.
+export const wireNumber = (n: number): number => Math.abs(n) < 1e-12 ? 0 : n;
+const wireVec = (v: Vec3): Vec3 => ({ x: wireNumber(v.x), y: wireNumber(v.y), z: wireNumber(v.z) });
 function parseKart(x: unknown): WireKartState | null {
   if (!object(x) || !integer(x.id, 0, 7) || !vec(x.position) || !vec(x.velocity) || !vec(x.quaternion) || !number((x.quaternion as unknown as Record<string, unknown>).w, -1, 1)) return null;
   if (!kartNumbers.every((k) => number(x[k])) || !kartBooleans.every((k) => typeof x[k] === 'boolean')) return null;
   if (typeof x.item !== 'string' || !items.has(x.item) || !['road', 'offroad', 'boost', 'wall', 'void'].includes(String(x.surface))) return null;
-  return snapshotKart(x as unknown as WireKartState);
+  const state = snapshotKart(x as unknown as WireKartState);
+  if (x.physics !== undefined) { const physics = parsePhysics(x.physics); if (!physics) return null; state.physics = physics; }
+  return state;
+}
+export function parsePhysics(x: unknown): KartPhysicsState | null {
+  if (!object(x) || !physicsNumbers.every((k) => number(x[k])) || typeof x.hasGroundSample !== 'boolean' || typeof x.prevDriftHeld !== 'boolean' || !vec(x.groundNormal) || !Array.isArray(x.collisionCooldown) || x.collisionCooldown.length !== 32 || !x.collisionCooldown.every((v) => number(v, -1, 60))) return null;
+  const physics: Record<string, unknown> = { hasGroundSample: x.hasGroundSample, prevDriftHeld: x.prevDriftHeld, groundNormal: wireVec(x.groundNormal), collisionCooldown: x.collisionCooldown.map(wireNumber) };
+  for (const k of physicsNumbers) physics[k] = wireNumber(x[k] as number); return physics as unknown as KartPhysicsState;
 }
 /** Copies only protocol fields, never Three.js objects, arbitrary keys, or object references. */
 export function snapshotKart(s: WireKartState): WireKartState {
-  const out: Record<string, unknown> = { id: s.id, position: { x: s.position.x, y: s.position.y, z: s.position.z }, velocity: { x: s.velocity.x, y: s.velocity.y, z: s.velocity.z }, quaternion: { x: s.quaternion.x, y: s.quaternion.y, z: s.quaternion.z, w: s.quaternion.w }, item: s.item, surface: s.surface };
-  for (const k of kartNumbers) out[k] = s[k];
+  const out: Record<string, unknown> = { id: s.id, position: wireVec(s.position), velocity: wireVec(s.velocity), quaternion: { ...wireVec(s.quaternion), w: wireNumber(s.quaternion.w) }, item: s.item, surface: s.surface };
+  for (const k of kartNumbers) out[k] = wireNumber(s[k]);
   for (const k of kartBooleans) out[k] = s[k];
   return out as unknown as WireKartState;
 }
@@ -102,6 +118,7 @@ export function parseSnapshot(x: unknown): RaceSnapshot | null {
   for (const k of x.karts) { const state = parseKart(k); if (!state || karts.some((s) => s.id === state.id)) return null; karts.push(state); }
   const snapshot: RaceSnapshot = { raceId: x.raceId, sequence: x.sequence, raceTime: x.raceTime, phase: x.phase as RaceSnapshot['phase'], karts };
   if (x.countdown !== undefined) { if (!number(x.countdown, 0, 5)) return null; snapshot.countdown = x.countdown; }
+  if (x.inputAcks !== undefined) { if (!Array.isArray(x.inputAcks) || x.inputAcks.length !== 8 || !x.inputAcks.every((n) => integer(n))) return null; snapshot.inputAcks = [...x.inputAcks]; }
   if (x.chaos !== undefined) {
     if (!object(x.chaos) || typeof x.chaos.text !== 'string' || x.chaos.text.length > 180 || /[<>\u0000-\u001f]/.test(x.chaos.text) || typeof x.chaos.warning !== 'boolean' || typeof x.chaos.reverseSteering !== 'boolean') return null;
     snapshot.chaos = { text: x.chaos.text, warning: x.chaos.warning, reverseSteering: x.chaos.reverseSteering };
@@ -117,11 +134,11 @@ export function parseSnapshot(x: unknown): RaceSnapshot | null {
   }
   if (x.activeBoxes !== undefined) {
     if (!Array.isArray(x.activeBoxes) || x.activeBoxes.length > 128 || !x.activeBoxes.every(vec)) return null;
-    snapshot.activeBoxes = x.activeBoxes.map((p) => ({ x: p.x, y: p.y, z: p.z }));
+    snapshot.activeBoxes = x.activeBoxes.map(wireVec);
   }
   return snapshot;
 }
-export function snapshotHazard(h: WireHazard): WireHazard { return { id: h.id, type: h.type, position: { x: h.position.x, y: h.position.y, z: h.position.z }, velocity: { x: h.velocity.x, y: h.velocity.y, z: h.velocity.z }, radius: h.radius, ownerId: h.ownerId }; }
+export function snapshotHazard(h: WireHazard): WireHazard { return { id: h.id, type: h.type, position: wireVec(h.position), velocity: wireVec(h.velocity), radius: wireNumber(h.radius), ownerId: h.ownerId }; }
 export function parseStandings(x: unknown): WireStanding[] | null {
   if (!Array.isArray(x) || x.length < 1 || x.length > MAX_RACERS) return null;
   const rows: WireStanding[] = [];
@@ -135,6 +152,11 @@ export function parseClientMessage(x: unknown): ClientMessage | null {
   if (!object(x) || x.v !== PROTOCOL_VERSION) return null;
   if (x.type === 'hello' || x.type === 'profile') { const profile = parseProfile(x.profile); return profile ? { v: 1, type: x.type, profile } : null; }
   if (x.type === 'ready' && integer(x.raceId, 1)) return { v: 1, type: 'ready', raceId: x.raceId };
+  if (x.type === 'moves' && integer(x.raceId, 1) && Array.isArray(x.moves) && x.moves.length > 0 && x.moves.length <= 24) {
+    const moves: WireMove[] = [];
+    for (const m of x.moves) { if (!object(m) || !integer(m.sequence, 1) || (moves.length && m.sequence <= moves[moves.length - 1].sequence)) return null; const input = parseInput(m.input); if (!input) return null; moves.push({ sequence: m.sequence, input }); }
+    return { v: 1, type: 'moves', raceId: x.raceId, moves };
+  }
   if (x.type === 'input' && integer(x.raceId, 1) && integer(x.sequence)) { const input = parseInput(x.input); return input ? { v: 1, type: 'input', raceId: x.raceId, sequence: x.sequence, input } : null; }
   return null;
 }
@@ -146,7 +168,7 @@ export function parseHostMessage(x: unknown): HostMessage | null {
   const settings = parseSettings(x.settings), roster = parseRoster(x.roster);
   if (!settings || !roster) return null;
   if (x.type === 'roster') return { v: 1, type: 'roster', settings, roster };
-  if (x.type === 'welcome' && typeof x.roomCode === 'string' && normalizeRoomCode(x.roomCode) === x.roomCode && integer(x.slot, 1, 7) && roster.some((p) => p.slot === x.slot)) return { v: 1, type: 'welcome', roomCode: x.roomCode, slot: x.slot, settings, roster };
+  if (x.type === 'welcome' && typeof x.roomCode === 'string' && normalizeRoomCode(x.roomCode) === x.roomCode && integer(x.slot, 1, 7) && roster.some((p) => p.slot === x.slot)) return { v: 1, type: 'welcome', roomCode: x.roomCode, slot: x.slot, settings, roster, ...(x.predictionVersion === 1 ? { predictionVersion: 1 as const } : {}) };
   if (x.type === 'start' && integer(x.raceId, 1) && integer(x.seed, 0, 0xffffffff)) return { v: 1, type: 'start', raceId: x.raceId, seed: x.seed, settings, roster };
   if (x.type === 'restart' && integer(x.raceId, 1)) return { v: 1, type: 'restart', raceId: x.raceId, settings, roster };
   return null;

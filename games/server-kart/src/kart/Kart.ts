@@ -9,6 +9,7 @@
  * naturally when the road curves down faster than gravity.
  */
 import * as THREE from 'three';
+import { physicsNumbers, type KartPhysicsState } from '../net/PredictionState';
 import type {
   BoostSource,
   CharacterDef,
@@ -102,7 +103,8 @@ export class Kart implements IKart {
   readonly object: THREE.Group;
   readonly input: InputState = createEmptyInput();
 
-  private parts: KartModelPartsEx;
+  private parts: KartModelPartsEx | null;
+  private readonly headless: boolean;
   /** Model root; receives visual-only offsets. `object` always equals the physics pose. */
   private visual: THREE.Group;
 
@@ -143,7 +145,8 @@ export class Kart implements IKart {
   private starVisualActive = false;
   private accentStage = -1;
 
-  constructor(id: number, character: CharacterDef, isPlayer: boolean) {
+  constructor(id: number, character: CharacterDef, isPlayer: boolean, options: { visuals?: boolean } = {}) {
+    this.headless = options.visuals === false;
     this.state = {
       id,
       isPlayer,
@@ -187,8 +190,8 @@ export class Kart implements IKart {
       surface: 'road',
       wheelSpin: 0,
     };
-    this.parts = buildKartModel(character);
-    this.visual = this.parts.root;
+    this.parts = this.headless ? null : buildKartModel(character);
+    this.visual = this.parts?.root ?? new THREE.Group();
     this.object = new THREE.Group();
     this.object.name = `kart-${id}-${character.id}`;
     this.object.add(this.visual);
@@ -201,10 +204,20 @@ export class Kart implements IKart {
   /** Change a human/AI seat's appearance without invalidating physics or item references. */
   setCharacter(character: CharacterDef): void {
     if (this.state.character.id === character.id && this.state.character.name === character.name) return;
-    this.visual.removeFromParent(); this.parts.dispose();
-    this.state.character = character; this.parts = buildKartModel(character); this.visual = this.parts.root;
+    this.visual.removeFromParent(); this.parts?.dispose();
+    this.state.character = character; this.parts = this.headless ? null : buildKartModel(character); this.visual = this.parts?.root ?? new THREE.Group();
     this.object.add(this.visual); this.accentStage = -1; this.starVisualActive = false;
     this.updateVisuals(0);
+  }
+  capturePhysics(): KartPhysicsState {
+    return { lateralVel: this.lateralVel, vy: this.vy, freeY: this.freeY, slip: this.slip, groundVy: this.groundVy, lastGroundY: this.lastGroundY, absCharge: this.absCharge, hopTimer: this.hopTimer, padCooldown: this.padCooldown, wallCooldown: this.wallCooldown, frozenThrottleTime: this.frozenThrottleTime, hasGroundSample: this.hasGroundSample, prevDriftHeld: this.prevDriftHeld, groundNormal: { x: this.groundNormal.x, y: this.groundNormal.y, z: this.groundNormal.z }, collisionCooldown: Array.from(this.collisionCooldown) };
+  }
+  /** Only validated authoritative snapshots call this; visual animation remains continuous. */
+  restorePhysics(state: KartPhysicsState): void {
+    for (const key of physicsNumbers) this[key] = state[key];
+    this.hasGroundSample = state.hasGroundSample; this.prevDriftHeld = state.prevDriftHeld;
+    this.groundNormal.set(state.groundNormal.x, state.groundNormal.y, state.groundNormal.z); this.collisionCooldown.set(state.collisionCooldown);
+    this.pendingHop = false; this.pendingLandImpact = 0;
   }
 
   setInput(input: InputState): void {
@@ -289,6 +302,7 @@ export class Kart implements IKart {
     dt = clamp(dt, 0, 0.1);
     const s = this.state;
     const p = this.parts;
+    if (!p) return;
     this.time += dt;
 
     this.object.position.copy(s.position);
@@ -558,7 +572,7 @@ export class Kart implements IKart {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.parts.dispose();
+    this.parts?.dispose();
     this.object.removeFromParent();
   }
 

@@ -63,6 +63,7 @@ export type EventName = keyof GameEvents;
 export type EventHandler<K extends EventName> = (payload: GameEvents[K]) => void;
 
 class EventBus {
+  private mutedDepth = 0;
   private handlers = new Map<EventName, Set<(payload: unknown) => void>>();
 
   on<K extends EventName>(name: K, handler: EventHandler<K>): () => void {
@@ -88,6 +89,7 @@ class EventBus {
   }
 
   emit<K extends EventName>(name: K, payload: GameEvents[K]): void {
+    if (this.mutedDepth > 0) return;
     const set = this.handlers.get(name);
     if (!set) return;
     for (const h of Array.from(set)) {
@@ -102,6 +104,8 @@ class EventBus {
   clear(): void {
     this.handlers.clear();
   }
+  /** Prediction may replay physics many times, but authority owns gameplay/audio events. */
+  withoutEmitting<T>(run: () => T): T { this.mutedDepth++; try { return run(); } finally { this.mutedDepth--; } }
 }
 
 /** The single global event bus. */

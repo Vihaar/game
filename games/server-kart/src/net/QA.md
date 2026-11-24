@@ -1,5 +1,13 @@
 # Multiplayer validation — 2026-11-24
 
+## Prediction follow-up
+
+- Actual headless Kart tests restore its full private drift/hop/ground/velocity state and reproduce continuation to within1e-9 using the same solver. A150msRTT+jitter simulation predicts steering within25ms, reconciles pending commands and settles at the same stopped pose as authority. Separate tests bound host catch-up credit, queued/replayed history, reject forged move timing, retain authoritative hit/lap/item state and suppress replay events.
+- Two isolated muted Chrome contexts ran the integrated Game with75ms artificial delay on guest move sends and75ms on host snapshots. Local heading response was9.9ms and steering visuals16.8ms. A corrected braking/neutral check then stayed at speed0 with zero positional change across800ms of delayed reconciliation.25moves remained normally pending and command acknowledgements advanced. No JavaScript errors were observed.
+- This sustained browser run exposed BinaryPack's subnormal-number bug: a decoded velocity/ground velocity became approximately-1.5967e293 although sender validation passed. Direct installed-codec reproduction confirmed it. Normalizing insignificant wire floats before encoding fixed the rejected-packet stretch without weakening validation; the real delayed browser run then had zero invalid incoming packets.
+- The tests inject latency on the existing WebRTC transport and reuse actual game input/physics. They do not establish performance on every ISP or device. The previous huge-packet/binary-chunking and lobby/AI lifecycle tests remain in the suite.
+- Idle remote humans also now use human intent for the authority's stuck detection; the previous player-0-only check could treat a stopped guest as a stuck AI and respawn it after6s. A regression runs the real RaceManager beyond that interval and confirms bots still get rescue while the idle guest does not. The complete kart suite passes27tests; typecheck/build pass. Both muted QA browsers and the owned preview server are closed.
+
 ## Long-run/busy-state regression follow-up
 
 - Ran 240 simulated seconds of the real Kart/AI/ItemManager/ServerChaos implementation in an isolated muted headless browser. Validated all 4,800 20Hz snapshots: zero invalid states; normal-race sizes ranged from 8,998 to 10,347 JSON bytes with up to five active hazards. Strict finite-field validation was not the observed failure.

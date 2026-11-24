@@ -1,7 +1,8 @@
 /** User-requested avatar captures. Separate from the MIT-licensed code and engine art. */
-export const MIKE_PORTRAIT = import.meta.env.BASE_URL + 'portraits/mike.webp';
+const baseUrl = import.meta.env?.BASE_URL ?? './';
+export const MIKE_PORTRAIT = baseUrl + 'portraits/mike.webp';
 export const PORTRAITS: Record<string,string> = {
-  torin: import.meta.env.BASE_URL + 'portraits/torin.png',
-  jonah: import.meta.env.BASE_URL + 'portraits/jonah.png',
-  grant: import.meta.env.BASE_URL + 'portraits/grant.png',
+  torin: baseUrl + 'portraits/torin.png',
+  jonah: baseUrl + 'portraits/jonah.png',
+  grant: baseUrl + 'portraits/grant.png',
 };

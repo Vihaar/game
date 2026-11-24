@@ -27,6 +27,8 @@ import { COUNTDOWN_STEP_SECONDS, FIXED_DT, KART_COUNT, MAX_FRAME_DT } from '../c
 import { clamp, clamp01, damp, seededRandom } from '../core/math';
 import { RoomTransport, peerOptionsFromEnv, snapshotKart, snapshotHazard, kartNumbers, kartBooleans, emptyWireInput, type RaceStart, type RaceSnapshot, type WireStanding } from '../net';
 import { RemoteItemView } from '../net/RemoteItemView';
+import { createKartPrediction } from '../net/KartPrediction';
+import type { ClientPrediction } from '../net/ClientPrediction';
 import { RoomLobby } from '../ui/RoomLobby';
 
 import { Kart } from '../kart/Kart';
@@ -100,6 +102,7 @@ interface RaceContext {
   resultsTimer: number;
   baseCharacters: CharacterDef[];
   remoteItems: RemoteItemView | null;
+  prediction: ClientPrediction | null;
 }
 
 export class Game {
@@ -490,7 +493,18 @@ export class Game {
     const r = this.race;
     if (!r) return;
     if (this.onlineStart && !this.room.isHost) {
-      this.room.sendInput(input); this.interpolateRemote(dt); return;
+      const predictor = r.prediction;
+      if (predictor) {
+        if (input.useItem) this.pendingUseItem = true;
+        this.accumulator += dt; let steps = 0;
+        while (this.accumulator >= FIXED_DT && steps++ < MAX_STEPS_PER_FRAME) {
+          if (!r.karts[this.room.localSlot].state.finished) predictor.advance({ throttle: input.throttle, brake: input.brake, steer: input.steer, drift: input.drift, useItem: this.pendingUseItem, useItemHeld: input.useItemHeld, lookBack: input.lookBack });
+          this.pendingUseItem = false; this.accumulator -= FIXED_DT;
+        }
+        if (steps >= MAX_STEPS_PER_FRAME) this.accumulator = 0;
+        const moves = predictor.unsent(); if (this.room.sendMoves(moves)) predictor.markSent(moves[moves.length - 1].sequence);
+      } else this.room.sendInput(input);
+      this.interpolateRemote(dt); return;
     }
     if (input.useItem) this.pendingUseItem = true;
     this.accumulator += dt;
@@ -507,7 +521,7 @@ export class Game {
       // Both rate limiters use the same timestamp: slightly different clocks
       // used to intermittently discard a ready update and halve its send rate.
       const sent = this.room.broadcastSnapshot({ raceId: this.room.raceId, sequence: this.snapshotSequence++, raceTime: r.raceManager.raceTime, phase: r.raceManager.currentPhase, countdown: r.raceManager.countdownRemaining,
-        karts: r.karts.map((k) => snapshotKart(k.state)), hazards: r.items.getHazards().map(snapshotHazard), activeBoxes: r.items.getActiveBoxPositions().map((p) => ({ x: p.x, y: p.y, z: p.z })), chaos: r.chaos.networkState }, snapshotNow);
+        karts: r.karts.map((k) => ({ ...snapshotKart(k.state), ...(k instanceof Kart ? { physics: k.capturePhysics() } : {}) })), inputAcks: this.room.inputAcknowledgements, hazards: r.items.getHazards().map(snapshotHazard), activeBoxes: r.items.getActiveBoxPositions().map((p) => ({ x: p.x, y: p.y, z: p.z })), chaos: r.chaos.networkState }, snapshotNow);
       if (sent) this.lastSnapshotSent = snapshotNow;
     }
   }
@@ -515,11 +529,25 @@ export class Game {
   private step(dt: number, r: RaceContext, input: InputState, useItem: boolean): void {
     const { track, karts, items } = r;
     const player = karts[0];
+    const commandDriven = new Set<number>();
 
     if (this.onlineStart) {
       for (const kart of karts) {
         const human = this.room.roster.some((p) => p.slot === kart.state.id);
         if (human && !kart.state.finished) {
+          if (kart.state.id !== 0 && this.room.hasMoveStream(kart.state.id)) {
+            commandDriven.add(kart.state.id);
+            const moves = this.room.consumeMoves(kart.state.id, dt);
+            for (const move of moves) {
+              const controls = move.input;
+              kart.setInput({ ...createEmptyInput(), ...controls, steer: r.chaos.reverseSteering ? -controls.steer : controls.steer });
+              kart.update(FIXED_DT, track, karts);
+              if (controls.useItem && !kart.state.itemRouletteActive && kart.state.item !== 'none') items.requestUse(kart, controls.brake > .5 || controls.lookBack);
+              this.room.acknowledgeMove(kart.state.id, move.sequence);
+            }
+            if (!moves.length && this.room.moveStreamStale(kart.state.id)) { kart.setInput(createEmptyInput()); kart.update(dt, track, karts); }
+            continue;
+          }
           const controls = kart.state.id === 0 ? { ...input, useItem } : this.room.consumeInput(kart.state.id);
           kart.setInput({ ...createEmptyInput(), ...controls, steer: r.chaos.reverseSteering ? -controls.steer : controls.steer, pause: false });
         } else {
@@ -558,11 +586,12 @@ export class Game {
     }
 
     for (let i = 0; i < karts.length; i++) {
-      karts[i].update(dt, track, karts);
+      if (!commandDriven.has(karts[i].state.id)) karts[i].update(dt, track, karts);
     }
 
     for (let i = 0; i < karts.length; i++) {
       const k = karts[i];
+      if (commandDriven.has(k.state.id)) continue;
       const inp = k.input;
       if (inp.useItem && !k.state.itemRouletteActive && k.state.item !== 'none') {
         items.requestUse(k, inp.brake > 0.5 || inp.lookBack);
@@ -583,8 +612,10 @@ export class Game {
     const player = r.karts[this.onlineStart ? Math.max(0, this.room.localSlot) : 0];
     if (this.onlineStart && !this.room.isHost) r.remoteItems?.update(dt, this.latestSnapshot?.hazards, this.latestSnapshot?.activeBoxes);
     for (let i = 0; i < r.karts.length; i++) r.karts[i].updateVisuals(dt);
+    const correction = r.prediction?.decayVisualOffset(dt);
+    if (correction) player.object.position.add(correction as THREE.Vector3);
     r.track.update(dt, this.elapsed);
-    r.followCamera.update(dt, player, lookBack);
+    r.followCamera.update(dt, player, lookBack, correction);
     this.updateSun(r, player);
     this.particles.update(dt, r.karts, this.camera);
     this.audio.update(dt, r.karts, player.state.id, this.camera);
@@ -835,6 +866,7 @@ export class Game {
       resultsTimer: 0,
       baseCharacters,
       remoteItems: this.onlineStart && !this.room.isHost ? new RemoteItemView(items, track) : null,
+      prediction: this.onlineStart && !this.room.isHost && this.room.supportsPrediction ? createKartPrediction(karts[this.room.localSlot] as Kart, track, () => Boolean(this.latestSnapshot?.chaos?.reverseSteering)) : null,
     };
     this.race = r;
     this.accumulator = 0;
@@ -1048,6 +1080,9 @@ export class Game {
     for (const wire of snapshot.karts) {
       const kart = r.karts[wire.id]; if (!kart) continue;
       const state = kart.state; const oldLap = state.lap; const oldFinished = state.finished; const oldSpin = state.isSpinning;
+      const predicted = wire.id === this.room.localSlot && r.prediction && snapshot.inputAcks && wire.physics;
+      if (predicted) r.prediction!.reconcile(wire, snapshot.inputAcks![wire.id]);
+      else {
       const target = state as unknown as Record<string, unknown>;
       // Explicit, versioned field allowlists: arbitrary remote fields never touch game objects.
       for (const field of kartNumbers) target[field] = wire[field];
@@ -1056,6 +1091,7 @@ export class Game {
       state.velocity.set(wire.velocity.x, wire.velocity.y, wire.velocity.z);
       if (!this.receivedPose || state.position.distanceToSquared(wire.position as THREE.Vector3) > 2500) {
         state.position.set(wire.position.x, wire.position.y, wire.position.z); state.quaternion.set(wire.quaternion.x, wire.quaternion.y, wire.quaternion.z, wire.quaternion.w);
+      }
       }
       if (wire.id === this.room.localSlot) {
         if (state.lap > oldLap && !state.finished) events.emit('race:lap', { kartId: wire.id, lap: state.lap, totalLaps: r.settings.laps, isPlayer: true, isFinalLap: state.lap === r.settings.laps });
@@ -1080,6 +1116,7 @@ export class Game {
     const alpha = 1 - Math.exp(-24 * dt);
     for (const wire of snapshot.karts) {
       const state = r.karts[wire.id]?.state; if (!state) continue;
+      if (wire.id === this.room.localSlot && r.prediction?.ready && !state.finished) continue;
       // Bridge ordinary packet gaps, but never let a disconnected kart run away.
       const ahead = Math.min(.1, Math.max(0, (performance.now() - this.lastSnapshotReceivedAt) / 1000));
       this.tmpA.set(wire.position.x + wire.velocity.x * ahead, wire.position.y + wire.velocity.y * ahead, wire.position.z + wire.velocity.z * ahead); state.position.lerp(this.tmpA, alpha);
