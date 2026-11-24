@@ -20,6 +20,8 @@ Open **Play with friends**, choose a racer/name, and host a room. Share its link
 
 PeerJS supplies existing WebRTC transport and public cloud signaling. The host runs the race; guests send controls and receive validated state. Some restrictive networks require a TURN relay. A failed connection shows an error rather than pretending to have joined. See [networking notes](src/net/README.md) for configurable signaling/ICE and protocol tests.
 
+Graphics start in **Smooth** mode: no dynamic shadows or screen effects, with a capped drawing resolution. Use the bottom-right button to enable **Fancy** on a faster computer. During an online race, the bottom bar lists connected friends and local FPS. A red warning means no position updates have arrived for 1.5 seconds; reconnect to the room if it persists. The minimap shows racers who have driven out of view. Guests still depend on the host's connection and simulation; local input prediction and host migration are not implemented.
+
 ## The nonsense
 
 - Cheese tax, mic-check bounces, a brief announced steering reversal, and temporary admin powers.

@@ -114,6 +114,14 @@ export class Game {
   private readonly particles: IParticleSystem;
   private readonly postfx: IPostFX;
   private postfxOk = true;
+  private fancyGraphics = false;
+  private readonly graphicsButton: HTMLButtonElement;
+  private readonly connectionInfo: HTMLElement;
+  private lastSnapshotReceivedAt = -Infinity;
+  private frameCount = 0;
+  private frameSeconds = 0;
+  private fps = 0;
+  private nextConnectionUpdate = 0;
 
   private readonly backdrop: MenuBackdrop;
   private readonly mainMenu: MainMenu;
@@ -174,9 +182,10 @@ export class Game {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
-    this.renderer.shadowMap.enabled = true;
+    // Start with the inexpensive path so an older laptop can host too.
+    this.renderer.shadowMap.enabled = false;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(1);
     this.renderer.domElement.className = 'game-canvas';
     container.appendChild(this.renderer.domElement);
 
@@ -195,6 +204,7 @@ export class Game {
     this.postfx = new PostFX();
     try {
       this.postfx.init(this.renderer, this.scene, this.camera);
+      this.postfx.setEnabled(false);
     } catch (err) {
       console.error('[Game] PostFX init failed, using plain rendering', err);
       this.postfxOk = false;
@@ -242,10 +252,10 @@ export class Game {
       onWelcome: () => { this.mainMenu.hide(); this.refreshRoomButton(); },
       onStart: (start) => {
         this.onlineStart = start; this.latestSnapshot = null; this.onlineStandings = null; this.remoteRaceTime = 0;
-        this.snapshotSequence = 0; this.lastSnapshotSent = -Infinity; this.readySent = false; this.receivedPose = false; this.remoteHasRaced = false; this.lastRemoteCountdown = -1;
+        this.snapshotSequence = 0; this.lastSnapshotSent = -Infinity; this.lastSnapshotReceivedAt = performance.now(); this.readySent = false; this.receivedPose = false; this.remoteHasRaced = false; this.lastRemoteCountdown = -1;
         this.lobby.hide(); this.startRace(start.settings);
       },
-      onSnapshot: (snapshot) => { this.latestSnapshot = snapshot; if (this.race && this.state !== 'loading') this.applyRemoteSnapshot(snapshot); },
+      onSnapshot: (snapshot) => { this.lastSnapshotReceivedAt = performance.now(); this.latestSnapshot = snapshot; if (this.race && this.state !== 'loading') this.applyRemoteSnapshot(snapshot); },
       onResults: (standings) => { this.onlineStandings = standings; if (this.race && this.state !== 'loading') this.showOnlineResults(standings); },
       onRestart: () => { this.onlineStart = null; this.latestSnapshot = null; this.onlineStandings = null; this.disposeRace(); this.showMenu('title'); this.mainMenu.hide(); this.lobby.show(); },
       onPlayerLeft: (player) => { showToast(`${player.name} left. Their Mike is now a bot.`, 'info'); },
@@ -266,6 +276,18 @@ export class Game {
     });
     this.roomLaunch = el('button', 'room-launch', 'PLAY WITH FRIENDS', this.uiRoot) as HTMLButtonElement;
     this.roomLaunch.type = 'button'; this.roomLaunch.addEventListener('click', () => this.openLobby());
+    this.graphicsButton = el('button', 'graphics-toggle', 'GRAPHICS: SMOOTH', this.uiRoot) as HTMLButtonElement;
+    this.graphicsButton.type = 'button';
+    this.graphicsButton.title = 'Smooth turns off shadows and screen effects; Fancy restores them.';
+    this.graphicsButton.addEventListener('click', () => {
+      this.fancyGraphics = !this.fancyGraphics;
+      this.renderer.shadowMap.enabled = this.fancyGraphics;
+      this.postfx.setEnabled(this.fancyGraphics);
+      this.graphicsButton.textContent = this.fancyGraphics ? 'GRAPHICS: FANCY' : 'GRAPHICS: SMOOTH';
+      this.onResize();
+    });
+    this.connectionInfo = el('div', 'race-connection', '', this.uiRoot);
+    this.connectionInfo.hidden = true;
 
     // ---------------------------------------------------------- listeners
     window.addEventListener('resize', this.onResize);
@@ -311,6 +333,7 @@ export class Game {
     this.backdrop.dispose();
     this.mainMenu.dispose();
     this.room.dispose(); this.lobby.dispose(); this.roomLaunch.remove();
+    this.graphicsButton.remove(); this.connectionInfo.remove();
     this.results.dispose();
     this.pauseMenu.dispose();
     this.loading.dispose();
@@ -332,6 +355,9 @@ export class Game {
     if (this.lastTime < 0) this.lastTime = now;
     let dt = (now - this.lastTime) / 1000;
     this.lastTime = now;
+    this.frameCount++; this.frameSeconds += Math.max(0, dt);
+    if (this.frameSeconds >= 1) { this.fps = Math.round(this.frameCount / this.frameSeconds); this.frameCount = 0; this.frameSeconds = 0; }
+    if (now >= this.nextConnectionUpdate) { this.nextConnectionUpdate = now + 500; this.updateConnectionInfo(now); }
     // WebRTC host simulation has its own timer while the renderer is backgrounded.
     if (document.hidden && this.onlineStart && this.room.isHost) return;
     if (dt > MAX_FRAME_DT) dt = MAX_FRAME_DT;
@@ -476,10 +502,13 @@ export class Game {
       steps++;
     }
     if (steps >= MAX_STEPS_PER_FRAME) this.accumulator = 0;
-    if (this.onlineStart && this.room.isHost && performance.now() - this.lastSnapshotSent >= 50 && this.room.status === 'racing') {
-      this.lastSnapshotSent = performance.now();
-      this.room.broadcastSnapshot({ raceId: this.room.raceId, sequence: this.snapshotSequence++, raceTime: r.raceManager.raceTime, phase: r.raceManager.currentPhase, countdown: r.raceManager.countdownRemaining,
-        karts: r.karts.map((k) => snapshotKart(k.state)), hazards: r.items.getHazards().map(snapshotHazard), activeBoxes: r.items.getActiveBoxPositions().map((p) => ({ x: p.x, y: p.y, z: p.z })), chaos: r.chaos.networkState });
+    const snapshotNow = performance.now();
+    if (this.onlineStart && this.room.isHost && snapshotNow - this.lastSnapshotSent >= 50 && this.room.status === 'racing') {
+      // Both rate limiters use the same timestamp: slightly different clocks
+      // used to intermittently discard a ready update and halve its send rate.
+      const sent = this.room.broadcastSnapshot({ raceId: this.room.raceId, sequence: this.snapshotSequence++, raceTime: r.raceManager.raceTime, phase: r.raceManager.currentPhase, countdown: r.raceManager.countdownRemaining,
+        karts: r.karts.map((k) => snapshotKart(k.state)), hazards: r.items.getHazards().map(snapshotHazard), activeBoxes: r.items.getActiveBoxPositions().map((p) => ({ x: p.x, y: p.y, z: p.z })), chaos: r.chaos.networkState }, snapshotNow);
+      if (sent) this.lastSnapshotSent = snapshotNow;
     }
   }
 
@@ -1051,9 +1080,23 @@ export class Game {
     const alpha = 1 - Math.exp(-24 * dt);
     for (const wire of snapshot.karts) {
       const state = r.karts[wire.id]?.state; if (!state) continue;
-      this.tmpA.set(wire.position.x, wire.position.y, wire.position.z); state.position.lerp(this.tmpA, alpha);
+      // Bridge ordinary packet gaps, but never let a disconnected kart run away.
+      const ahead = Math.min(.1, Math.max(0, (performance.now() - this.lastSnapshotReceivedAt) / 1000));
+      this.tmpA.set(wire.position.x + wire.velocity.x * ahead, wire.position.y + wire.velocity.y * ahead, wire.position.z + wire.velocity.z * ahead); state.position.lerp(this.tmpA, alpha);
       this.remoteQuaternion.set(wire.quaternion.x, wire.quaternion.y, wire.quaternion.z, wire.quaternion.w); state.quaternion.slerp(this.remoteQuaternion, alpha);
     }
+  }
+
+  private updateConnectionInfo(now: number): void {
+    const active = Boolean(this.onlineStart) && ['countdown', 'racing', 'finished'].includes(this.state);
+    this.connectionInfo.hidden = !active;
+    if (!active) return;
+    const stale = !this.room.isHost && now - this.lastSnapshotReceivedAt > 1500;
+    this.connectionInfo.classList.toggle('stalled', stale);
+    const names = this.room.roster.map((p) => p.name).join(', ');
+    const state = stale ? 'POSITION UPDATES STOPPED — REJOIN ROOM' : this.room.isHost ? 'HOST' : 'LIVE';
+    const text = `${state} · ${this.room.roster.length}/8 friends · ${this.fps} FPS · ${names}`;
+    if (this.connectionInfo.textContent !== text) this.connectionInfo.textContent = text;
   }
 
   private showOnlineResults(standings: readonly WireStanding[]): void {
@@ -1099,7 +1142,7 @@ export class Game {
   private readonly onResize = (): void => {
     const w = Math.max(1, this.container.clientWidth || window.innerWidth);
     const h = Math.max(1, this.container.clientHeight || window.innerHeight);
-    const pr = Math.min(window.devicePixelRatio || 1, 2);
+    const pr = this.fancyGraphics ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(1, 1600 / w, 900 / h);
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
