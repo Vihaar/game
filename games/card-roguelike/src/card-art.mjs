@@ -27,7 +27,7 @@ export async function requestCardDiscovery(card, key, parents = [], onReady = ()
   requested.add(key);
   try {
     const response = await fetch('/api/fold/discovery', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(25000),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(45000),
       body: JSON.stringify({ recipe: key, name: card.name, kind: card.kind, parents: parents.map(p => typeof p === 'string' ? p : p.name).slice(0, 2) }),
     });
     if ([404, 503].includes(response.status)) { unavailable = true; return null; }
@@ -35,7 +35,7 @@ export async function requestCardDiscovery(card, key, parents = [], onReady = ()
     const data = await response.json();
     if (typeof data.artUrl === 'string' && /^\/api\/fold\/art\/[a-f0-9]{64}$/.test(data.artUrl)) artwork.set(key, data.artUrl);
     const metadata = {
-      ...(typeof data.name === 'string' && data.name.length <= 64 && !/[<>\u0000-\u001f]/.test(data.name) ? { name: data.name } : {}),
+      ...(typeof data.name === 'string' && data.name.length <= 48 && !/[<>\u0000-\u001f]/.test(data.name) ? { name: data.name } : {}),
       ...(typeof data.description === 'string' && data.description.length <= 180 && !/[<>\u0000-\u001f]/.test(data.description) ? { description: data.description } : {}),
     };
     onReady(metadata);
