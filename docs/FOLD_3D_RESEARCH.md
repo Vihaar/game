@@ -56,7 +56,7 @@ None of these packs is an official Three.js engine package, and self-reported ev
 
 ## Art pipeline: what the new images do
 
-The three delivered atlases are1672×941 WebPs optimized quality88 from preserved native-generated PNGs. Each is a2×2 four-environment contact sheet; no images were physically cropped. The eight-world set is original intake + A's four interiors + B-cursed's first three interiors. B/BR is an optional warm exterior. Warm B remains available as a separate original. Exact prompts and source paths are in `assets/world-generation.md`.
+The three delivered atlases are1672×941 WebPs optimized quality88 from preserved native-generated PNGs. Each is a2×2 four-environment contact sheet; no images were physically cropped. The eight-world set is original intake + A's four interiors + B-cursed's first three interiors. B/BR is an optional warm exterior. Warm B remains available as a separate original. Exact prompts and source paths are in `games/card-roguelike/public/art/WORLD_GENERATION.md`.
 
 These files contain color pixels, not collision, navigable floors, depth, side/back surfaces, rigging, or gameplay semantics. A plane mapped with one panel can produce a beautiful fixed-view backdrop; camera movement beyond that viewpoint exposes its flatness. Recommendation: use the image as backdrop/set dressing with restrained camera travel, while actual floor/shelves/arches/bridges are reusable low-poly or layered-cardstock mesh modules with separate collision proxies. This is a pipeline inference from the artifact format and inspected model/physics sources, not a claim that generation produced3D models.
 
