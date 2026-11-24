@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check src/main.js && node --check src/player.js && node --check src/rules.mjs"
+    "check": "node --check src/main.js && node --check src/player.js && node --check src/rules.mjs && node --check src/guided-rules.mjs && node --check src/diorama.js"
   },
   "dependencies": { "three": "0.181.2" },
   "devDependencies": { "vite": "^6.3.1" }

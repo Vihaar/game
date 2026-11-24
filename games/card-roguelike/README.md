@@ -1,59 +1,59 @@
 # The Fold
 
-A first-person action roguelike inside a cursed papercraft library that is consuming reality. Walk eight physically connected areas, dodge living paper, and combine any two owned cards into a new spell. Forged spells can become ingredients again without a recipe-depth limit.
+A guided, turn-based card roguelike in an illustrated paper library. You enter knowing nothing, driven by a thirst for knowledge. Its guardians personify unanswered questions. Across eight chapters—Language, Life, Memory, Transformation, Cosmos, Truth, Self and Everything—you connect discoveries into complete understanding and restore reality.
 
-## Run
+## Run and check
 
-Requires Node.js 22 LTS and a desktop browser with WebGL.
+Node.js22 LTS and a WebGL browser are required.
 
 ```sh
 cd games/card-roguelike
 npm ci
 npm run dev
+npm run check
+npm test
+npm run build
 ```
 
-Append `?seed=42` for repeatable hands, rewards and encounters. The route is authored, not procedurally generated. Run `npm run check`, `npm test` and `npm run build` before contributing. Static output is `dist/`; relative assets support `/games/the-fold/` or another subpath. `GAME_BASE` can override the build base.
+Append `?seed=42` for repeatable cards and rewards. Output is static `dist/`; relative assets support `/games/the-fold/` or another subpath. Set `GAME_BASE` for an explicit base.
 
-## Play
+## Your turn, your pace
 
-- **Walk:** WASD. Click the scene for mouse look; Esc releases the mouse. Arrows also move/turn without capture. Space dodges spatially, with no invincibility.
-- **Fight:** J or captured left click strikes without spending cards. K or captured right click raises a brief block. Click spells or press 1–5. T cycles targets. R redraws for 1 ink; ink regenerates over time.
-- **Read enemies:** HP, next move, countdown and damage sit above each enemy. Ground marks lock during windup. Leave the mark before impact. Quills travel after the countdown and stop at cover. Offscreen attackers also produce a warning.
-- **Forge:** F opens the sheet anywhere, including combat. Choose two different owned copies, inspect the result and costs, then confirm. WASD, Space and F remain usable. Enemies keep moving; attacking, casting and blocking are unavailable during the channel.
-- **Explore:** M opens the map. Clear a room, take one reward, and walk through its newly opened doorway. Previous rooms stay open. Rewards restore only 1 HP. Break eight bindings and defeat the Unbinder.
+Click **Enter** between chapters for a guided paper-stage transition. The camera stays fixed during battles. There is no walking, aiming, pointer capture, dodging or automatic enemy damage.
 
-Choose the balanced Binder, durable Warden or fast Runner. Their HP, movement, strike, guard and dodge recovery differ. Choose a forging price at the start or in the forge:
+Choose a guardian to target. Cast cards for ink, strike once and guard once each turn. **End turn** resolves every living guardian's displayed move, consumes remaining guard, refills ink and draws a new hand. Nothing refills or expires while you think. Guard cards remain useful until resolution. Enemy preparation and heavy attacks alternate; every move and its current damage is shown before commitment.
 
-| Price | Channel | Additional completed cost |
-| --- | --- | --- |
-| Time | 2 seconds | None |
-| Corruption | 0.35 seconds | +1 corruption for the run |
-| Health | 0.35 seconds | 2 HP, never lethal |
-| All three | 2 seconds | 2 HP and +1 corruption |
+Three starting characters differ: Binder32HP/3ink/3strike/4guard; Warden40HP/3ink/2strike/6guard; Runner26HP/4ink/3strike/3guard. Every room reward heals only1HP.
 
-Every completed forge also consumes both exact copies and 1 ink. Costs apply only on completion; invalid or cancelled channels consume nothing. Corruption caps at 8 and adds `ceil(corruption / 2)` incoming damage, capped at +4. Warnings include that bonus. Wounds during a channel can make its HP price unaffordable and cancel it.
+Keys: **1–5** casts, **J** strikes, **K** guards, **F** opens the forge, **M** opens the knowledge journal. Visible buttons support every action. The interface adapts to narrow screens; a keyboard is optional for the guided game.
 
-Keyboard/mouse are supported. Narrow layouts adapt, but touch movement is not implemented. Current runs are not saved. Discovered recipe metadata stays in this browser.
+## Connect ideas
 
-**Full permadeath:** death ends the run. Restart resets the deck, forged cards, health, ink, corruption and area progress. There are no checkpoints or inherited combat upgrades. The discovery journal retains recipe knowledge only; it grants no cards or stats.
+Any two distinct owned copies can merge, including already-forged spells, without a depth cap. The preview shows the result, exact consumed copies and price. All modes consume both copies and1ink on successful completion:
 
-## Foundation and contribution
+| Price | Additional cost |
+| --- | --- |
+| Time | In battle, one named enemy immediately performs its shown move after folding. Outside battle, a short safe animation. |
+| Corruption | +1 corruption for this run; no extra move. |
+| Health | 2HP, never lethal; no extra move. |
+| All three | One immediate shown move in battle,2HP and1corruption. |
 
-The controller adapts the MIT-licensed official **Three.js r181 FPS example**, retaining Capsule/Octree collisions and five simulation substeps. Original source/license remain in `vendor/upstream/`. See [RESEARCH.md](RESEARCH.md), [THIRD_PARTY.md](THIRD_PARTY.md), [DESIGN.md](DESIGN.md) and [ART_DIRECTION.md](ART_DIRECTION.md).
+Corruption caps at8 and adds `ceil(corruption/2)` incoming damage, capped at+4. Both enemy labels and forge previews include that bonus. An immediate forge action advances only that enemy's intent, without resetting your turn or ink. Forge animations are brief feedback, not reaction challenges. Thinking never triggers an enemy move.
 
-The included original papercraft atlas supplies every card without an AI account. Optional `/api/fold/discovery` metadata/art is disabled when the backend is unconfigured and never changes combat stats. No client API keys or required paid calls.
+**Full permadeath:** death loses your deck, forged cards, resources and chapter progress. New runs begin from chapter1 with the class's original deck. Recipe metadata stays in this browser without granting combat power. Current runs are not saved. Winning sincerely delivers complete understanding; there is no punishment twist.
 
-- `areas.mjs`: authored route, enemies, difficulty.
-- `world.js`: scenery, physical doorways, static and gate Octrees.
-- `player.js`: FPS foundation and spatial dodge.
-- `combat.js` / `spatial.mjs`: chase, locked tells, projectiles and hit geometry.
-- `rules.mjs` / `crafting.mjs`: resources, exact copies, deterministic any-pair recipes and forge prices.
-- `main.js`: lifecycle/interface. Keep modeless panels from pausing combat.
+## Foundation and contributions
 
-Preserve readable telegraphs, scarce healing and bounded deterministic stats. More enemy moves, sound, difficulty tuning and accessibility are useful next contributions.
+`guided-rules.mjs` adapts the existing tested card/ownership model in `rules.mjs` and deterministic recipe system in `crafting.mjs`. Exact copy IDs prevent consumed ingredients returning through draw/discard. The Infinite Alchemy pair-caching adaptation retains its MIT notices. Three.js remains the renderer; `diorama.js` supplies illustrated layered stages and guided transitions. The original MIT Three.js FPS controller/world remain in the source for provenance and reference, but are not imported by this guided entry point. See [RESEARCH.md](RESEARCH.md), [THIRD_PARTY.md](THIRD_PARTY.md), [NARRATIVE.md](NARRATIVE.md), [DESIGN.md](DESIGN.md) and [ART_DIRECTION.md](ART_DIRECTION.md).
+
+Original included card art works without an AI account. Optional `/api/fold/discovery` decorates recipe metadata/art only and stays off when its hosting backend is unconfigured. Deterministic combat statistics never come from a model. No client API keys or required paid calls.
+
+Good contributions include new announced move patterns, character tuning, more knowledge dialogue and accessibility improvements. Keep turn decisions explicit, healing scarce, and any cost visible before confirmation.
 
 ## Verification and limits
 
-29 Node tests cover recipes, ownership, price modes, resources, combat rules, locked footprints, swept projectiles and all seven real-Octree gates in both directions, including unlocking/backtracking/reset. Browser QA covers normal walking/chase, overhead warnings, all four visible forging prices, movement/dodge during an active combat forge, exact consumption and the output entering the hand. A controlled development-page harness shortened fights to execute all eight areas/rewards, winning, free exploration and restart; this was not a manual full-difficulty campaign victory. Idle combat death and a controlled lethal hit both reached the death ending.
+The existing29 rule/spatial tests remain green. Nine guided tests cover frozen thinking, turn resolution, held guard, once-per-turn basics, classes, every forge price, exact extra actions, enemy guard, full permadeath and eight rewards. A regression confirms free strike+guard alone cannot win the campaign with any class. A deterministic card-playing pilot can win with all three classes; this is balance evidence, not a substitute for human playtesting.
 
-Rendering uses pixel ratio 1, at most 1600×900 internally, a 60 Hz cap, adjacent-area visibility and no dynamic shadows/postprocessing. Difficulty is intentionally high and needs player feedback. No multiplayer, touch movement or saved runs yet.
+Muted headless browser checks cover normal turns, target controls, unchanged state while thinking, all four visible forge prices, recursively merging actual outputs, exact copy reduction, and output cards entering the hand. An accelerated browser harness reduced guardian HP to exercise all eight chapter/reward/win flows; it was not a manual campaign victory. Real repeated End-turn inputs reached death, then restart restored floor1/eight copies/full class HP/zero curse. No browser JavaScript errors were observed.
+
+Rendering caps pixel ratio1, internal size1600×900 and45Hz with no dynamic shadows/postprocessing. Art style previews are available before the run. No multiplayer or saved runs yet.

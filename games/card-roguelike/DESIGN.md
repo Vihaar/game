@@ -1,17 +1,11 @@
-# The Fold: world and combat direction
+# The Fold: guided paper diorama
 
-A cursed library consumes reality. The authored route moves from Intake Hall through Mycelium Stacks, Flooded Index, Glasshouse of Errata, Astral Reading Room, Redaction Press and Shattered Archive to the Last Binding. Clearing each binding opens a physical doorway; rooms remain available for backtracking, and winning permits free exploration.
+The player enters with a thirst for knowledge and zero understanding. Eight unanswered questions become eight connected truths; the ending grants sincere complete understanding. Follow [NARRATIVE.md](NARRATIVE.md), retaining full permadeath for failed attempts.
 
-## Death and progression
+The stage is an illustrated physical paper world. Layered foreground paper and a stable camera frame the guardians; guided transitions replace free navigation. The user is comparing warm storybook, dark pop-up book and colorful paper theater previews before final art direction. Keep UI neutral ivory/ink so the artwork carries the world. Fraunces names tangible ideas and chapters; DM Sans carries resources, intentions and controls.
 
-Full permadeath is the design rule. Death ends the run: no checkpoints, revives, recovered decks, inherited forged cards, or permanent combat upgrades. A new run starts in Intake Hall with the selected character's baseline health, starter deck, fresh resources, no corruption and every binding locked. The recipe journal may retain knowledge and cosmetic discoveries; it never grants cards, power or progress. New cards and future systems must preserve this boundary.
+Enemy names, HP and exact next moves appear over their paper figures. A target ring and explicit target button agree. The hand and two reusable actions sit below the scene. End turn is a deliberate, prominent commitment. No timer, passive resource change, aiming or movement can make thinking unsafe.
 
-Follow [ART_DIRECTION.md](ART_DIRECTION.md): paper grain, angular folded-cardstock creatures, layered silhouettes and warm paper labels. Fraunces names cards/rooms; DM Sans carries dense costs and controls. Square atlas cells remain square. No neon, painted engraving or glossy fantasy materials.
+The forge uses two physical inputs and an output preview, a scrolling ingredient body and a fixed cost/confirm footer. Time now means one explicitly named enemy action, not pressure to act quickly. Corruption and health are bounded alternatives. Animation communicates folding without testing reaction speed. The chapter journal records learned truths without confusing narrative omniscience with enumerating every possible recipe.
 
-The world fills the page. A compact battle chapter leaves room for projected HP and next-move labels. Reusable strike, block and dodge sit above the bottom hand. The forge is a right sheet with scrolling ingredients and a fixed cost/confirm footer. Its world keeps moving. Sheets release pointer capture but retain walking, dodging and closing; selecting a price returns focus to movement.
-
-Every dangerous move has a locked spatial tell. Leave a target circle, sidestep a cleave, escape a ring, or avoid the three shown boss-volley lanes. Projectiles stop at the same cover actors use. There is no hidden dodge invulnerability or turn retaliation. Windup/recovery create opportunities to strike or spend both hands forging. Warnings include corruption exactly once.
-
-Gate collisions use a separate replaceable Octree. Tests exercise production geometry rather than simplified collision mocks. Low-poly paper meshes, capped resolution, adjacent-room rendering and no dynamic shadows protect frame time. Ambient movement respects reduced-motion preference. Responsive cards do not imply touch movement.
-
-Recipes and bounded statistics are deterministic local rules. Optional generated names/descriptions/art decorate discoveries without changing damage, healing, ownership or costs. Inserted metadata is escaped or assigned as text. The static atlas stays available when the optional endpoint is off.
+Retain low rendering cost, readable narrow layouts, visible keyboard focus and reduced-motion transitions. Combat comes from deterministic local rules; optional generated metadata never changes costs or statistics and is escaped before insertion. Illustrations must remain visible without accounts or external paid calls.
