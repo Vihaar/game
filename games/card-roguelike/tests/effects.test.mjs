@@ -49,11 +49,11 @@ test("arbitrarily deep recursive spells keep finite timing and bounded draw work
   assert.ok(effectProfile({ depth: Infinity, kind: "bad" }).duration < 1);
   assert.ok(effectProfile({}, { reducedMotion: true }).duration < 0.3);
 });
-function engine() {
+function engine(options = {}) {
   const load = TextureLoader.prototype.load;
   TextureLoader.prototype.load = () => new Texture();
   try {
-    return new SpellEffects(new Scene(), { camera: new PerspectiveCamera() });
+    return new SpellEffects(new Scene(), { camera: new PerspectiveCamera(), ...options });
   } finally {
     TextureLoader.prototype.load = load;
   }
@@ -113,4 +113,18 @@ test("same elapsed time yields same trajectory independent of frame partition", 
   );
   a.dispose();
   b.dispose();
+});
+
+test("reduced-motion forging crossfades fixed ingredient seals without orbiting", () => {
+  const effects = engine({ reducedMotion: true });
+  effects.forge(getCard("obsidian"), new Vector3());
+  const slot = effects.slots.find((s) => s.active);
+  effects.update(0.04, 0.04);
+  const positions = slot.seals.map((seal) => seal.position.clone());
+  effects.update(0.08, 0.12);
+  slot.seals.forEach((seal, i) =>
+    assert.ok(seal.position.distanceTo(positions[i]) < 1e-8),
+  );
+  assert.equal(slot.ribbon.visible, false);
+  effects.dispose();
 });

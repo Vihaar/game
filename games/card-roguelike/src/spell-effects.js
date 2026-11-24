@@ -368,7 +368,13 @@ export class SpellEffects {
     }
     slot.seals.forEach((seal, i) => {
       if (!seal.visible) return;
-      if (profile.forge) {
+      if (profile.forge && profile.reducedMotion) {
+        seal.position.copy(center);
+        if (i < 2) seal.position.addScaledVector(side, i ? 0.45 : -0.45);
+        seal.material.opacity = opacity * (i === 2 ? linear : 1 - linear);
+        seal.scale.setScalar(i === 2 ? 0.75 : 0.55);
+        seal.rotation.set(0, 0, 0);
+      } else if (profile.forge) {
         const output = i === 2,
           stage = output
             ? Math.max(0, (p - 0.45) / 0.55)
