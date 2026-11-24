@@ -2,7 +2,7 @@
 export const DIORAMA_SCENES = [
   {
     id: "intake",
-    backdrop: "library-stacks.webp",
+    backdrop: "storybook.webp",
     paper: "#e9d7b9",
     edge: "#b78e62",
     ink: "#3e4f59",
@@ -10,7 +10,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "mycelium",
-    backdrop: "library-garden.webp",
+    backdrop: "world-atlas-a.webp",
+    panel: 0,
     paper: "#d7e2c8",
     edge: "#91a88d",
     ink: "#355d57",
@@ -18,7 +19,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "flooded",
-    backdrop: "library-water.webp",
+    backdrop: "world-atlas-a.webp",
+    panel: 1,
     paper: "#d0e5e4",
     edge: "#82b4bc",
     ink: "#315e73",
@@ -26,7 +28,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "glasshouse",
-    backdrop: "library-garden.webp",
+    backdrop: "world-atlas-a.webp",
+    panel: 2,
     paper: "#ead5d0",
     edge: "#c29999",
     ink: "#5d6e67",
@@ -34,7 +37,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "observatory",
-    backdrop: "library-stars.webp",
+    backdrop: "world-atlas-a.webp",
+    panel: 3,
     paper: "#d8cfe7",
     edge: "#a895c2",
     ink: "#4b486e",
@@ -42,7 +46,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "press",
-    backdrop: "library-stacks.webp",
+    backdrop: "world-atlas-b.webp",
+    panel: 0,
     paper: "#e5c8b6",
     edge: "#bd8a76",
     ink: "#744c56",
@@ -50,7 +55,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "broken",
-    backdrop: "library-stars.webp",
+    backdrop: "world-atlas-b.webp",
+    panel: 1,
     paper: "#d8d0de",
     edge: "#aaa0bd",
     ink: "#61576c",
@@ -58,7 +64,8 @@ export const DIORAMA_SCENES = [
   },
   {
     id: "binding",
-    backdrop: "library-stars.webp",
+    backdrop: "world-atlas-b.webp",
+    panel: 2,
     paper: "#ecd6b4",
     edge: "#baa084",
     ink: "#3c4c67",
@@ -99,9 +106,21 @@ export function sceneBackdrop(index, style = "storybook", overrides = {}) {
   return (
     overrides[style]?.[scene.id] ??
     overrides[scene.id] ??
-    DIORAMA_STYLES[style]?.preview ??
+    (style === "storybook" ? scene.backdrop : DIORAMA_STYLES[style]?.preview) ??
     DIORAMA_STYLES.storybook.preview
   );
+}
+
+/** Crop only the selected chapter, leaving source textures reusable and immutable. */
+export function sceneBackdropRegion(index, style = "storybook", overrides = {}) {
+  const scene = DIORAMA_SCENES[Math.max(0, Math.min(7, index))];
+  if (
+    style !== "storybook" ||
+    overrides[style]?.[scene.id] ||
+    overrides[scene.id] ||
+    scene.panel === undefined
+  ) return null;
+  return atlasRegion(scene.panel, 2, 2, 0.002);
 }
 
 /** Three UVs start at the bottom; generated atlas metadata is read top-to-bottom. */

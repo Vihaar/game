@@ -31,4 +31,4 @@ Full permadeath remains: a failed attempt loses its deck, forged cards, resource
 
 The game leads you along a fixed route. Between encounters, a brief guided transition opens the next illustrated paper stage. Battles are turn-based; no walking, pointer capture, dodge timing or automatic attacks are required. You can stop and read. A Time-price forge clearly previews its immediate enemy action before confirmation. Corruption and Health retain explicit, bounded costs.
 
-The user is comparing three visual directions before choosing the final world look: warm handmade storybook, dark moonlit pop-up book, and colorful paper theater. All three use real generated artwork of physical layered paper. No final visual choice has been assumed.
+The user selected the first visual direction: warm handmade storybook. Distinct chapter illustrations, layered paper architecture and guided interactions carry the ignorance-to-understanding journey. Dark pop-up book and colorful theater remain archived concept studies.

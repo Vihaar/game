@@ -39,9 +39,13 @@ Enemy health and next move sit on small legible paper scraps above their illustr
 
 Motion should read as a fold, flutter, snap or tear. Respect reduced motion; never shake or flash just to fill space. Runtime rendering stays inexpensive: capped resolution, no default dynamic shadows or postprocessing, a few layered artwork planes and illustrated paper creatures. Avoid constant camera sway or zoom while reading.
 
-## Direction comparison
+## Chosen direction: warm handmade storybook
 
-The user requested three versions of the same library scene before choosing a final look. `public/art/SCENES.md` records warm storybook, dark moonlit pop-up book and colorful paper-theater previews, including their prompts. Do not treat a preview as an accepted final palette until the user chooses. All directions must support the ignorance-to-understanding story in `NARRATIVE.md`.
+On 2026-11-24 the user selected the first preview, **warm handmade storybook**. Ivory paper, honey light, moss foliage, dusty coral bindings and book-ink blue now define every chapter. `public/art/SCENES.md` retains the original three concepts as provenance; the other two are archived studies. New chapter art must match `public/art/storybook.webp`.
+
+The playable world uses a guided 2.5D composition: chapter-specific illustrations behind physical paper architecture, a folded path and book props. Perspective changes along short fixed camera rails when entering rooms or approaching a book or forge; battles remain still. The player explores by choosing visible objects, with mouse, touch and keyboard equivalents. Avoid recreating frantic free movement. Each of the eight truths must have its own identifiable room.
+
+The signature is the path through an oversized open book: the learner moves from a blank page toward a library of connected ideas. Keep the center inviting and preserve the rich art around it. Interactive objects belong in the room; quiet paper labels make them discoverable. Reading and forging are optional before a battle and provide no hidden healing or combat bonuses.
 
 ## Generation prompt to reuse
 

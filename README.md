@@ -37,7 +37,7 @@ These check and build every game. Each game produces its own static `dist/`. The
 
 Open **Play with friends**, choose a driver/name, and host a room. Share the invite link or six-character code. Up to eight people can play; remaining seats use AI. Keep the host tab open. Guest disconnects return their seat to AI; there is no host migration. Some restrictive networks require a TURN relay; connection errors are shown in the lobby. See the [kart guide](games/server-kart/README.md).
 
-Controls: WASD/arrows drive, Space/Shift drift, E uses an item, Q looks back, Esc opens the menu, and M mutes the original ice-cream-truck-style chime music. The kart and first-person game currently target desktop keyboard/gamepad and keyboard/mouse respectively.
+Kart controls: WASD/arrows drive, Space/Shift drift, E uses an item, Q looks back, Esc opens the menu, and M mutes the original ice-cream-truck-style chime music. Kart targets desktop keyboard/gamepad. The Fold uses visible buttons for guided exploration and turn-based battles, with mouse, touch and keyboard support.
 
 The finish-line checkout is a **joke with imaginary MikeCoins**. It never collects card details or charges real money. The distraction item uses a nonsexual animated censor-card gag.
 
@@ -46,7 +46,7 @@ The finish-line checkout is a **joke with imaginary MikeCoins**. It never collec
 The repository started from the [official Phaser Vite/TypeScript template](https://github.com/phaserjs/template-vite-ts). Each playable game then reuses a more directly relevant licensed foundation:
 
 - Kart: a remix of [BridgeMind's complete Turbo Kart Rush](https://github.com/bridge-mind/turbo-kart-rush), with Three.js and PeerJS networking.
-- The Fold: the [official Three.js first-person Octree/Capsule example](https://github.com/mrdoob/three.js/blob/r181/examples/games_fps.html), adapted for exploration and card combat.
+- The Fold: Three.js paper dioramas and turn-based card combat. Its initial [official Three.js Octree/Capsule example](https://github.com/mrdoob/three.js/blob/r181/examples/games_fps.html) adaptation remains in source; the guided game reuses Three.js geometry, texture atlases and raycasting.
 - Soup and elevator: [Matter.js's actual ball-pool, compound-body, and manipulation examples](https://github.com/liabru/matter-js/tree/master/examples). Soup uses a rigid-particle approximation, not a real fluid solver.
 
 Read the [foundation research](docs/FOUNDATIONS.md), [kart research](docs/KART_FOUNDATIONS.md), and each game's retained source/license notices. The original starter documentation remains in [docs/PHASER_TEMPLATE.md](docs/PHASER_TEMPLATE.md).
