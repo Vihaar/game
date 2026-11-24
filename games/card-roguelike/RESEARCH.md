@@ -26,4 +26,10 @@ The game pins Three.js 0.181.2 rather than floating on repository development HE
 
 ## Scope of reuse
 
-This is a new card-crafting game built on a reused, licensed first-person example and established Three.js modules. It is not a claim that a complete matching card-crafting roguelike was found. Original additions are six merge recipes, turn rules, short room progression, UI, and geometric content. Neither a custom renderer nor a custom collision solver was written.
+This is a new card-crafting game built on a reused, licensed first-person example and established Three.js modules. It is not a claim that a complete matching card-crafting roguelike was found. Neither a custom renderer nor a custom collision solver was written.
+
+## Recursive crafting expansion
+
+[Infinite Alchemy](https://github.com/sshh12/llm_alchemy/tree/e9d6937d8b2fc999976e45bd49fdc6d32fc54d99) supplies a licensed canonical-pair/cache pattern and FNV-1a helper. Those small parts are adapted in `src/crafting.mjs` with the MIT notice retained. The game's own rules derive bounded combat effects from elemental lineage and permit further combinations without a fixed recipe table. Discovery identity stays stable when cosmetic names change. A local catalog saves lineage; it does not grant ownership of cards.
+
+The initial six named recipes are preserved. Additional combinations work offline, and optional server-side AI may supply names/illustrations only. We do not call Neal.fun or claim to have reproduced its private model pipeline. The expanded world and enemy attacks continue to reuse Three.js Octree/Capsule collision and rendering.

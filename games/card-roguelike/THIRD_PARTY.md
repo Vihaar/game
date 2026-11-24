@@ -15,7 +15,20 @@
 
 ## Build tooling
 
-Vite and its transitive dependencies are installed through npm. Their notices remain in package distributions. No source from another game was copied.
+Vite and its transitive dependencies are installed through npm. Their notices remain in package distributions.
+
+## Infinite Alchemy
+
+- Author: Shrivu Shankar.
+- Repository: https://github.com/sshh12/llm_alchemy
+- Pinned revision: `e9d6937d8b2fc999976e45bd49fdc6d32fc54d99`.
+- Reuse: the FNV-1a helper and canonical sorted-pair/cache identity pattern from `src/shared/hash.ts` and `src/app/lib/ids.ts`, adapted in `src/crafting.mjs`.
+- License: MIT, retained inline and in `vendor/upstream/ALCHEMY-LICENSE.txt`; production builds include `public/ALCHEMY-LICENSE.txt`.
+- No Neal.fun/private crafting endpoint, original game's artwork, provider account or hosted model was copied or called.
+
+## Original generated artwork
+
+The papercraft spell atlas was generated for this project with the built-in image generation tool. It is separate from third-party avatar assets used by the kart game. See `public/art/README.md` for its prompt and provenance, and `ART_DIRECTION.md` for the visual rules.
 
 ## Fonts
 
