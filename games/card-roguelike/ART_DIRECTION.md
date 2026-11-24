@@ -33,11 +33,15 @@ Keep colors as dyed paper, with slight fiber variation. Fraunces is the restrain
 
 ## World, enemies and interface
 
-Rooms are book dioramas: folded walls, layered floors, oversized page silhouettes, stitched bindings, torn doorways and economical geometric shelves. Each area has a distinct silhouette and dominant paper color. Enemy bodies are folded angular paper, with simple cutout faces and page-strip limbs. Avoid metal-like materials; use high roughness and flat facets.
+Rooms are illustrated book dioramas: intricate folded architecture, layered floors, oversized page silhouettes, stitched bindings and torn doorways. Use real generated environment artwork as the scene's centerpiece, with restrained foreground paper layers. The previous blocky procedural rooms are not the visual target. The guided camera follows a fixed route between encounters and stays stable while the player chooses cards.
 
-Enemy health and next move sit on small legible paper scraps above their heads. Attack footprints use clear cut-paper shapes and a visible countdown; danger cannot rely only on color. Cards and menus use quiet stacked-paper edges, a single dog-ear fold, and readable dark ink. The scene remains visible while forging.
+Enemy health and next move sit on small legible paper scraps above their illustrated cutout bodies. Turn intentions state who will act and what they will do; danger cannot rely only on color. Cards and menus use quiet stacked-paper edges, a single dog-ear fold, and readable dark ink. The scene remains visible while forging. Battles wait for deliberate player actions rather than requiring walking, aim or dodge timing.
 
-Motion should read as a fold, flutter, snap or tear. Respect reduced motion; never shake or flash just to fill space. Runtime rendering stays inexpensive: capped resolution, no default dynamic shadows or postprocessing, modest geometry, and current/adjacent area scenery only.
+Motion should read as a fold, flutter, snap or tear. Respect reduced motion; never shake or flash just to fill space. Runtime rendering stays inexpensive: capped resolution, no default dynamic shadows or postprocessing, a few layered artwork planes and illustrated paper creatures. Avoid constant camera sway or zoom while reading.
+
+## Direction comparison
+
+The user requested three versions of the same library scene before choosing a final look. `public/art/SCENES.md` records warm storybook, dark moonlit pop-up book and colorful paper-theater previews, including their prompts. Do not treat a preview as an accepted final palette until the user chooses. All directions must support the ignorance-to-understanding story in `NARRATIVE.md`.
 
 ## Generation prompt to reuse
 
