@@ -1,25 +1,31 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
+import { readFile } from 'node:fs/promises';
 import { RoomTransport } from '../RoomTransport.ts';
 import { emptyWireInput } from '../protocol.ts';
 
 class Connection extends EventEmitter {
   open = false; dataChannel = { bufferedAmount: 0 };
-  constructor(peer) { super(); this.peer = peer; }
-  send(message) { const copy = structuredClone(message); queueMicrotask(() => { if (this.other?.open) this.other.emit('data', copy); }); }
+  bufferSize = 0;
+  constructor(peer, serialization = 'binary') { super(); this.peer = peer; this.serialization = serialization; }
+  send(message) {
+    // Mirrors PeerJS1.5.5 JSONConnection's real limit; binary uses its chunking path.
+    if (this.serialization === 'json' && new TextEncoder().encode(JSON.stringify(message)).length >= 16300) { this.emit('error', { type: 'message-too-big' }); return; }
+    const copy = structuredClone(message); queueMicrotask(() => { if (this.other?.open) this.other.emit('data', copy); });
+  }
   close() { if (!this.open) return; this.open = false; queueMicrotask(() => this.emit('close')); if (this.other?.open) { this.other.open = false; queueMicrotask(() => this.other.emit('close')); } }
 }
-function network() {
+function network(serializationOverride) {
   const peers = new Map(); let next = 0;
   class FakePeer extends EventEmitter {
     connections = []; destroyed = false;
     constructor(id) { super(); this.id = id ?? `guest-${++next}`; if (peers.has(this.id)) queueMicrotask(() => this.emit('error', { type: 'unavailable-id' })); else { peers.set(this.id, this); queueMicrotask(() => this.emit('open', this.id)); } }
-    connect(id) {
-      const local = new Connection(id); this.connections.push(local);
+    connect(id, options = {}) {
+      const local = new Connection(id, serializationOverride ?? options.serialization); this.connections.push(local);
       queueMicrotask(() => {
         const host = peers.get(id); if (!host) { this.emit('error', { type: 'peer-unavailable' }); return; }
-        const remote = new Connection(this.id); local.other = remote; remote.other = local; host.connections.push(remote); host.emit('connection', remote);
+        const remote = new Connection(this.id, local.serialization); local.other = remote; remote.other = local; host.connections.push(remote); host.emit('connection', remote);
         local.open = remote.open = true; remote.emit('open'); local.emit('open');
       });
       return local;
@@ -73,4 +79,51 @@ test('real handshakes enforce eight total racers and reuse the disconnected slot
     await assert.rejects(guests[7].join(code, profile)); assert.equal(host.roster.length, 8);
     guests[2].leave(); await flush(); const replacement = await guests[7].join(code, profile); assert.equal(replacement.slot, 3); assert.equal(host.roster.length, 8);
   } finally { guests.forEach((g) => g.dispose()); host.dispose(); }
+});
+
+const busySnapshot = async () => JSON.parse(await readFile(new URL('./fixtures/busy-race.json', import.meta.url), 'utf8'));
+
+test('busy real-engine state above PeerJS JSON limit stays connected and reaches binary guests, including late joins', async () => {
+  const options = network(); const received = []; const host = new RoomTransport({}, options); const guest = new RoomTransport({ onSnapshot: (s) => received.push(s) }, options); const late = new RoomTransport({ onSnapshot: (s) => received.push(s) }, options);
+  try {
+    const snapshot = await busySnapshot();
+    assert.ok(new TextEncoder().encode(JSON.stringify({ v: 1, type: 'snapshot', snapshot })).length > 16300);
+    const code = await host.create(profile, settings); await guest.join(code, profile); host.startRace(); await flush();
+    assert.equal(guest.hostConnection.serialization, 'binary');
+    assert.equal(host.broadcastSnapshot({ ...snapshot, raceId: 1, sequence: 1 }, 100), true); await flush();
+    assert.equal(received[0].hazards.length, 40); assert.equal(host.roster.length, 2); assert.equal(guest.status, 'racing');
+    await late.join(code, profile); await flush(); assert.equal(late.status, 'racing'); assert.equal(received.length, 2); assert.equal(received[1].hazards.length, 40);
+  } finally { host.dispose(); guest.dispose(); late.dispose(); }
+});
+
+test('old JSON guests get actionable reload notice before they can lose state mid-race', async () => {
+  const options = network('json'); const host = new RoomTransport({}, options); const errors = []; const guest = new RoomTransport({ onError: (e) => errors.push(e) }, options);
+  try { const code = await host.create(profile, settings); await assert.rejects(guest.join(code, profile)); assert.equal(errors.at(-1).code, 'version'); assert.match(errors.at(-1).message, /Reload both/); assert.equal(host.roster.length, 1); }
+  finally { host.dispose(); guest.dispose(); }
+});
+
+test('WAN backpressure drops obsolete snapshots, keeps control traffic, and recovers with newest state', async () => {
+  const options = network(); const received = []; const host = new RoomTransport({}, options); const guest = new RoomTransport({ onSnapshot: (s) => received.push(s) }, options);
+  try {
+    const snapshot = await busySnapshot(); const code = await host.create(profile, settings); await guest.join(code, profile); host.startRace(); await flush();
+    const connection = host.guests.values().next().value.connection;
+    connection.dataChannel.bufferedAmount = 40000;
+    for (let i = 1; i <= 1200; i++) host.broadcastSnapshot({ ...snapshot, raceId: 1, sequence: i }, 100 + i * 50);
+    await flush(); assert.equal(received.length, 0); assert.equal(host.diagnostics.droppedTransientPackets, 1200); assert.equal(host.roster.length, 2);
+    connection.dataChannel.bufferedAmount = 0; connection.bufferSize = 1;
+    host.broadcastSnapshot({ ...snapshot, raceId: 1, sequence: 1201 }, 60200); await flush(); assert.equal(received.length, 0);
+    connection.bufferSize = 0;
+    host.broadcastSnapshot({ ...snapshot, raceId: 1, sequence: 1202 }, 60300); await flush(); assert.equal(received.at(-1).sequence, 1202);
+    connection.dataChannel.bufferedAmount = 40000;
+    host.broadcastResults([{ kartId: 0, name: 'Torin', color: 0, place: 1, finishTime: 60, isPlayer: true }]); await flush(); assert.equal(guest.status, 'results');
+  } finally { host.dispose(); guest.dispose(); }
+});
+
+test('a rejected individual send does not evict a racer and invalid snapshots are visible in diagnostics', async () => {
+  const options = network(); const host = new RoomTransport({}, options); const guest = new RoomTransport({}, options);
+  try {
+    const code = await host.create(profile, settings); await guest.join(code, profile); host.startRace(); await flush();
+    const connection = host.guests.values().next().value.connection; connection.emit('error', { type: 'message-too-big' }); assert.equal(host.roster.length, 2); assert.equal(host.diagnostics.sendErrors, 1);
+    const snapshot = await busySnapshot(); snapshot.karts[0].speed = NaN; assert.equal(host.broadcastSnapshot(snapshot, 100), false); assert.equal(host.diagnostics.invalidOutgoingSnapshots, 1);
+  } finally { host.dispose(); guest.dispose(); }
 });

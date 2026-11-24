@@ -30,6 +30,8 @@ export interface RoomTransportOptions {
   connectionTimeoutMs?: number;
 }
 interface GuestConnection { connection: DataConnection; limiter: MessageRateLimit; invalid: number; timer: ReturnType<typeof setTimeout> }
+export interface TransportDiagnostics { invalidOutgoingSnapshots: number; invalidHostPackets: number; droppedTransientPackets: number; sendErrors: number; snapshotsSent: number; snapshotsReceived: number }
+const MAX_TRANSIENT_BUFFER_BYTES = 32768;
 
 /** Host-authoritative star topology. Host owns physics/items/race; clients never send world state. */
 export class RoomTransport {
@@ -56,8 +58,10 @@ export class RoomTransport {
   private currentStart: RaceStart | null = null;
   private latestSnapshot: RaceSnapshot | null = null;
   private readySlots = new Set<number>();
+  private readonly counters: TransportDiagnostics = { invalidOutgoingSnapshots: 0, invalidHostPackets: 0, droppedTransientPackets: 0, sendErrors: 0, snapshotsSent: 0, snapshotsReceived: 0 };
 
   constructor(private readonly callbacks: RoomTransportCallbacks = {}, private readonly options: RoomTransportOptions = {}) {}
+  get diagnostics(): Readonly<TransportDiagnostics> { return { ...this.counters }; }
 
   async create(profile: PlayerProfile, settings: RoomSettings): Promise<string> {
     if (!this.validProfile(profile) || !this.validSettings(settings)) throw new Error('Choose a valid player and track first.');
@@ -91,7 +95,9 @@ export class RoomTransport {
       const generation = this.generation;
       return await new Promise<RoomWelcome>((resolve, reject) => {
         let settled = false;
-        const connection = peer.connect(roomPeerId(code), { reliable: true, serialization: 'json', label: 'mike-kart-v1' });
+        // PeerJS JSON rejects >=16,300 bytes instead of chunking; busy races exceed that.
+        // Its BinaryPack connection handles chunking/reassembly on the existing transport.
+        const connection = peer.connect(roomPeerId(code), { reliable: true, serialization: 'binary', label: 'mike-kart-v2' });
         this.hostConnection = connection;
         const finish = (error?: RoomError, welcome?: RoomWelcome) => {
           if (settled) return; settled = true; clearTimeout(timer); this.pendingCancel = null;
@@ -103,7 +109,7 @@ export class RoomTransport {
         connection.on('open', () => { if (generation === this.generation) this.send(connection, { v: 1, type: 'hello', profile }); });
         connection.on('data', (data) => {
           if (generation !== this.generation) return;
-          const message = parseHostMessage(data); if (!message) return;
+          const message = parseHostMessage(data); if (!message) { this.counters.invalidHostPackets++; return; }
           if (!settled) {
             if (message.type === 'reject') { finish({ code: message.code, message: message.message }); return; }
             if (message.type !== 'welcome' || message.roomCode !== code || !message.roster.some((p) => p.peerId === peer.id && p.slot === message.slot)) return;
@@ -151,10 +157,10 @@ export class RoomTransport {
   /** Caller owns its 20Hz snapshot schedule; this also caps transmission to 20Hz. */
   broadcastSnapshot(snapshot: RaceSnapshot, now = performance.now()): boolean {
     if (!this.isHost || this.status !== 'racing' || now - this.lastSnapshotAt < SNAPSHOT_INTERVAL_MS || snapshot.raceId !== this.raceId || snapshot.sequence <= this.lastSnapshotSequence) return false;
-    const safe = parseSnapshot(snapshot); if (!safe) return false;
+    const safe = parseSnapshot(snapshot); if (!safe) { this.counters.invalidOutgoingSnapshots++; return false; }
     this.latestSnapshot = safe;
     this.lastSnapshotAt = now; this.lastSnapshotSequence = safe.sequence;
-    this.broadcast({ v: 1, type: 'snapshot', snapshot: safe }, true); return true;
+    this.broadcast({ v: 1, type: 'snapshot', snapshot: safe }, true); this.counters.snapshotsSent++; return true;
   }
   /** Call each render/input frame. Item press edges are retained until a packet is sent. */
   sendInput(input: WireInput, now = performance.now()): boolean {
@@ -214,6 +220,10 @@ export class RoomTransport {
   private acceptGuest(connection: DataConnection): void {
     const generation = this.generation;
     if (!this.isHost || !this.hostRoster) { connection.close(); return; }
+    if (connection.serialization !== 'binary') {
+      connection.on('open', () => this.reject(connection, 'version', 'Your game is out of date. Reload both players’ tabs, then create a new room.'));
+      return;
+    }
     if (this.guests.has(connection.peer)) { connection.close(); return; }
     const entry: GuestConnection = { connection, limiter: new MessageRateLimit(), invalid: 0, timer: setTimeout(() => this.dropGuest(connection.peer), 7000) };
     if (this.guests.size >= 7 || !['lobby', 'racing'].includes(this.status)) {
@@ -246,7 +256,14 @@ export class RoomTransport {
       if (message.type === 'ready' && this.status === 'racing' && message.raceId === this.raceId) this.readySlots.add(player.slot);
     });
     connection.on('close', () => { if (generation === this.generation) this.dropGuest(connection.peer); });
-    connection.on('error', () => { if (generation === this.generation) this.dropGuest(connection.peer); });
+    connection.on('error', (error) => {
+      if (generation !== this.generation) return;
+      this.counters.sendErrors++;
+      // An individual rejected send is not proof that the peer disconnected.
+      // A real connection closure still takes the normal close/release path.
+      if (error.type === 'message-too-big' || error.type === 'not-open-yet') return;
+      this.dropGuest(connection.peer);
+    });
   }
   private receiveHost(message: HostMessage): void {
     if (message.type === 'reject') { this.fail(message.code, message.message); return; }
@@ -257,7 +274,7 @@ export class RoomTransport {
     if (message.type === 'start' && message.raceId > this.raceId && this.status === 'lobby') {
       this.raceId = message.raceId; this.resetRacePackets(); this.setState('racing'); this.callbacks.onStart?.(message);
     } else if (message.type === 'snapshot' && this.status === 'racing' && message.snapshot.raceId === this.raceId && message.snapshot.sequence > this.lastSnapshotSequence) {
-      this.lastSnapshotSequence = message.snapshot.sequence; this.callbacks.onSnapshot?.(message.snapshot);
+      this.lastSnapshotSequence = message.snapshot.sequence; this.counters.snapshotsReceived++; this.callbacks.onSnapshot?.(message.snapshot);
     } else if (message.type === 'results' && this.status === 'racing' && message.raceId === this.raceId) {
       this.setState('results'); this.callbacks.onResults?.(message.standings, message.raceId);
     } else if (message.type === 'restart' && message.raceId === this.raceId && ['racing', 'results'].includes(this.status)) {
@@ -276,8 +293,13 @@ export class RoomTransport {
   }
   private broadcast(message: HostMessage, transient = false): void { for (const guest of this.guests.values()) if (this.hostRoster?.get(guest.connection.peer)) this.send(guest.connection, message, transient); }
   private send(connection: DataConnection, message: HostMessage | ClientMessage, transient = false): boolean {
-    if (!connection.open || (transient && (connection.dataChannel?.bufferedAmount ?? 0) > 65536)) return false;
-    try { connection.send(message); return true; } catch { return false; }
+    if (!connection.open) return false;
+    // Check both the browser's SCTP queue and PeerJS's public application queue.
+    // Never append more transient history behind a blocked send; the next frame
+    // supplies current state instead. Lobby/start/results remain reliable.
+    const queued = (connection as DataConnection & { bufferSize?: number }).bufferSize ?? 0;
+    if (transient && (queued > 0 || (connection.dataChannel?.bufferedAmount ?? 0) > MAX_TRANSIENT_BUFFER_BYTES)) { this.counters.droppedTransientPackets++; return false; }
+    try { connection.send(message); return true; } catch { this.counters.sendErrors++; return false; }
   }
   private reject(connection: DataConnection, code: string, message: string): void { this.send(connection, { v: 1, type: 'reject', code, message }); setTimeout(() => connection.close(), 250); }
   private validProfile(profile: PlayerProfile): boolean { return Boolean(parseProfile(profile)) && (!this.options.allowedCharacterIds || this.options.allowedCharacterIds.includes(profile.characterId)); }

@@ -6,6 +6,14 @@ MIT-licensed [PeerJS](https://github.com/peers/peerjs/blob/master/LICENSE) suppl
 
 The host reserves a six-character code as `vihaar-mike-v1-CODE`, owns slot 0, and runs every kart's simulation, AI, items, checkpoints, laps and results. Up to seven guests receive stable slots 1–7, replacing those AI drivers. Unoccupied/disconnected slots return to AI under the Game integration. Guests send controls only and render host snapshots. Clients never send positions, laps, results, arbitrary slot IDs or pause/menu commands. The host ignores stale/wrong-race packets and rejects malformed controls instead of clamping malicious values into a valid command.
 
+### Busy-race disconnect fix
+
+Connections use PeerJS's **binary** serializer and its built-in chunking/reassembly. PeerJS 1.5.5's [JSON connection rejects messages at 16,300 bytes](https://github.com/peers/peerjs/blob/v1.5.5/lib/dataconnection/BufferedConnection/Json.ts); it does not chunk them. A valid supported race with 40 moving hazards was measured at 17,599 JSON bytes. Previously, the resulting `message-too-big` error also evicted the guest. A rejected individual send now leaves room membership intact; a real connection close still returns its seat to AI.
+
+Older JSON clients receive an explicit instruction to reload both tabs and create a new room. The numerical payload protocol stays version 1; the connection label is `mike-kart-v2`. The incoming binary connection can also be negotiated with a previous host's PeerJS library, but both players should reload to get current game/transport fixes.
+
+Transient state/input packets are skipped when the browser send queue exceeds 32KiB or PeerJS already has queued messages. Skipping obsolete state keeps congestion from growing an application backlog; subsequent frames send the newest state. Start, lobby, results and restart messages remain reliable. This is bounded backpressure, not a claim that WAN latency disappears. `room.diagnostics` exposes accepted snapshot counts, invalid packet counts, skipped transient packets and send errors for troubleshooting without relaxing validation.
+
 [PeerJS Cloud](https://peerjs.com/client/faq) handles signaling by default; gameplay data normally flows browser-to-browser. Some networks require a TURN relay. This module does not promise universal NAT traversal or host migration. If the host tab closes, clients receive `host-left` and must create/join a new room. Anyone with the room code can join a waiting room; codes are invitations, not account authentication.
 
 ## API and integration

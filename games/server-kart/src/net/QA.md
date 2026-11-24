@@ -1,5 +1,13 @@
 # Multiplayer validation — 2026-11-24
 
+## Long-run/busy-state regression follow-up
+
+- Ran 240 simulated seconds of the real Kart/AI/ItemManager/ServerChaos implementation in an isolated muted headless browser. Validated all 4,800 20Hz snapshots: zero invalid states; normal-race sizes ranged from 8,998 to 10,347 JSON bytes with up to five active hazards. Strict finite-field validation was not the observed failure.
+- Staged the engine's supported maximum of 40 moving shell hazards through ItemManager APIs. The resulting valid snapshot was 17,599 JSON bytes, exceeding PeerJS 1.5.5 JSONConnection's 16,300-byte cutoff. Its `message-too-big` event previously flowed into unconditional `dropGuest`, explaining a concrete busy-race disappearance path.
+- With binary serialization, two real PeerJS peers negotiated through public cloud signaling and delivered a 25,776-JSON-byte/80-hazard protocol stress packet intact. Both peers remained racing with two roster members; diagnostics showed no send or parse errors. This deliberately exceeds the engine's normal 40-hazard cap to exercise transport headroom.
+- Regression tests include the captured real-engine busy-state fixture, large state delivery/late joins, rejection of old JSON clients with reload instructions, individual rejected sends retaining membership, and 1,200 blocked snapshots over 60 virtual seconds. Clearing browser/PeerJS backpressure delivered only the newest snapshot, and results still reached the client while transient traffic was blocked.
+- Existing game/protocol tests plus new transport regressions pass (20 tests). The audit browser was closed. These checks establish the reproduced packet-size failure and bounded queue recovery; they do not measure every household's real WAN quality.
+
 The integrated game was exercised in two isolated agent-browser Chrome contexts, not the user's browser or native apps. Both test browsers were muted and closed after testing. Final typecheck/build and 13 protocol/game-rule tests pass.
 
 ## Real browser checks
