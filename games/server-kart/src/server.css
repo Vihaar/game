@@ -1,0 +1,71 @@
+/* Server Kart remix: race-night stickers, a blue garage, and yellow cheese alarms. */
+:root {
+  --bg: #162b76;
+  --bg-2: #204de8;
+  --ink: #ffffff;
+  --ink-dim: rgba(255,255,255,.85);
+  --ink-faint: rgba(255,255,255,.65);
+  --gold: #ffdc26;
+  --accent-grad: linear-gradient(#ffdc26,#ffdc26);
+  --glass-bg: rgba(24,48,134,.94);
+  --glass-border: rgba(255,255,255,.65);
+  --glass-shadow: 5px 5px 0 #10204c;
+  --radius: 12px;
+  --body: 'Trebuchet MS', 'Segoe UI', sans-serif;
+}
+.logo { transform: rotate(-3deg); }
+.logo-word,.logo-word-1 { filter:drop-shadow(5px 6px 0 #16316d); -webkit-text-stroke:5px #11245f; }
+.logo-word::after { background: #ffdc26; background-clip:text; -webkit-background-clip:text; }
+.logo-word-1::after { background: #fff; background-clip:text; -webkit-background-clip:text; }
+.logo-sub { letter-spacing:.12em; font-size:clamp(14px,1.5vw,20px); color:#fff; background:#204de8; padding:8px 16px; transform:rotate(-3deg); }
+.press-start { border-radius:10px; background:#ffdc26; border:3px solid #11245f; box-shadow:5px 5px 0 #11245f; }
+.press-start-text { color:#12235c; text-shadow:none; letter-spacing:.08em; }
+.btn.primary,.btn.start { background:#ffdc26; color:#12235c; text-shadow:none; border:2px solid #12235c; box-shadow:4px 4px 0 #12235c; animation:none; }
+.btn.start::after { display:none; }
+.card,.glass { backdrop-filter:none; }
+.card { border-width:2px; }
+.card-tag { font-size:14px; }
+.pill { font-size:13px; letter-spacing:.05em; }
+.stat-label { font-size:12px; }
+.btn { letter-spacing:.06em; border-radius:10px; }
+.version { font-family:var(--body); font-size:13px; text-transform:none; letter-spacing:0; color:#fff; }
+.server-chaos { position:fixed; z-index:45; left:50%; top:22%; transform:translateX(-50%) rotate(-2deg); max-width:85vw; padding:16px 24px; background:#ffdc26; color:#152457; border:4px solid #152457; border-radius:8px; box-shadow:7px 7px 0 #fff; font-family:var(--display); font-size:clamp(20px,3vw,40px); text-align:center; pointer-events:none; }
+.server-chaos.warning { background:#fff; color:#1637b9; font-size:clamp(17px,2vw,25px); top:18%; }
+.room-toggle { position:fixed; z-index:40; left:16px; top:14px; padding:10px 16px; border:2px solid #11245f; border-radius:8px; background:#ffdc26; color:#11245f; font-weight:bold; cursor:pointer; box-shadow:3px 3px 0 #11245f; }
+.room-layer { position:fixed; inset:0; z-index:65; display:grid; place-items:center; background:rgba(8,20,58,.8); overflow:auto; padding:20px; }
+.room-panel { width:min(600px,100%); max-height:90vh; overflow:auto; background:#204de8; color:#fff; border:3px solid #fff; border-radius:14px; box-shadow:8px 8px 0 #10204c; padding:24px; }
+.room-panel h2 { margin:0 0 6px; font-family:var(--display); font-size:36px; letter-spacing:.03em; }
+.room-panel p { line-height:1.5; font-size:16px; }
+.room-panel label { display:block; font-weight:bold; margin-top:12px; font-size:15px; }
+.room-panel input,.room-panel select { width:100%; margin-top:6px; padding:11px; border:2px solid #152457; border-radius:6px; font:inherit; background:#fff; color:#172b67; }
+.room-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+.room-actions button { padding:10px 14px; border:2px solid #152457; border-radius:6px; font:inherit; font-weight:bold; cursor:pointer; background:#ffdc26; color:#152457; }
+.room-actions button:disabled { opacity:.55; cursor:wait; }
+.room-actions button.secondary { background:#fff; }
+.room-code { font:bold 34px 'Courier New',monospace; letter-spacing:.16em; background:#132861; padding:14px; border-radius:8px; text-align:center; margin:14px 0; }
+.room-roster { list-style:none; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.room-roster li { padding:9px 12px; background:#1738b1; border:1px solid #839bff; border-radius:6px; font-size:15px; }
+.room-roster .bot { opacity:.65; }
+.room-status { min-height:24px; font-size:15px; color:#ffec84; }
+.room-badge { position:fixed; z-index:41; bottom:12px; left:50%; transform:translateX(-50%); border:2px solid #132861; border-radius:8px; background:#fff; color:#132861; padding:9px 14px; font-size:14px; cursor:pointer; }
+.distraction { position:fixed; inset:0; display:grid; place-items:center; z-index:43; pointer-events:none; }
+.distraction-card { width:min(600px,76vw); padding:32px; background:#ff78b9; color:#111; border:8px solid #111; box-shadow:12px 12px 0 #ffdc26; transform:rotate(-7deg); font:clamp(30px,6vw,76px) var(--display); text-align:center; }
+.distraction-card small { display:block; margin-top:16px; padding:8px; background:#111; color:#fff; font-size:clamp(18px,3vw,30px); }
+:focus-visible { outline:3px solid #fff; outline-offset:4px; }
+@media(max-width:700px) { .room-panel{padding:18px} .room-roster{grid-template-columns:1fr} .room-toggle{font-size:13px;left:8px;top:8px} .server-chaos{top:30%} }
+@media(prefers-reduced-motion:reduce) { .logo,.card,.btn,.panel-in,.press-start,.room-layer *{animation:none!important;transition:none!important;} }
+.lap-checkout { position:fixed;z-index:44;left:50%;top:22%;transform:translateX(-50%) rotate(2deg);width:min(540px,86vw);background:#fff;color:#14265f;border:4px solid #132861;border-radius:12px;padding:20px;box-shadow:9px 9px 0 #ffdc26;text-align:center; }
+.lap-checkout h2 { margin:9px 0;font:clamp(25px,4vw,40px) var(--display); }
+.lap-checkout strong { display:block;font:bold 27px 'Courier New',monospace; }
+.lap-checkout p { font-size:15px;line-height:1.4;margin:10px 0; }
+.lap-checkout small { display:block;font-size:13px;font-weight:bold; }
+.prank-actions { display:flex;justify-content:center;gap:8px;flex-wrap:wrap; }
+.prank-actions button { font:700 14px var(--body);background:#ffdc26;color:#132861;border:2px solid #132861;border-radius:6px;padding:10px;cursor:pointer; }
+.distraction-card { animation:distraction-wobble .8s steps(2,end) infinite; }
+.distraction-card p { font:16px var(--body); }
+.distraction-eyes { font:30px monospace;letter-spacing:8px;margin-bottom:12px; }
+.char-portrait { width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:8px; }
+@keyframes distraction-wobble { from{transform:rotate(-5deg)} to{transform:rotate(5deg)} }
+@media(prefers-reduced-motion:reduce) { .distraction-card {animation:none!important;} }
+
+.char-portrait { object-fit:contain; background:#14265f; }

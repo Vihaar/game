@@ -13,3 +13,10 @@
 - **box2d-wasm / liquidfun-wasm**, Birch-san and upstream contributors — [source](https://github.com/Birch-san/box2d-wasm). Follow its Zlib and upstream notices if selected. Not installed yet.
 
 Record source URLs, authors, license texts, commit revisions, and local paths whenever code or assets are brought in.
+
+## Playable game foundations
+
+- Server Kart: BridgeMind's Turbo Kart Rush, MIT, pinned at `6c0456c7642447eae29e0832e7e542fec07ec07d`; Three.js and PeerJS. Exact source/license notes are in games/server-kart/THIRD_PARTY.md.
+- The Fold: official Three.js FPS example, MIT, pinned upstream sources retained under games/card-roguelike/vendor; see its THIRD_PARTY.md.
+- Soup and elevator: official Matter.js examples, MIT; each game retains pinned upstream source and notices.
+- Requested Discord avatars: separate third-party images under games/server-kart/public/portraits, excluded from MIT code licensing. No chats, account credentials, or private profile metadata are included.

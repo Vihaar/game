@@ -6,9 +6,9 @@ Anyone can help. Bugs, sketches, sound effects, funny passenger ideas, and playt
 
 1. Pick an [open issue](https://github.com/Vihaar/game/issues) or suggest an idea. Discuss large changes before spending a weekend on them.
 2. Fork the repository to your GitHub account.
-3. Clone your fork, run `npm ci`, then `npm run dev`.
+3. Clone your fork, run `npm ci`, `npm run setup:games`, then `npm run dev`.
 4. Create a branch: `git switch -c your-name/short-description`.
-5. Make a focused change. Run `npm run typecheck` and `npm run build`.
+5. Make a focused change. Run `npm run typecheck`, `npm test`, and `npm run build`.
 6. Push your branch and open a pull request to `Vihaar/game:main`.
 
 Explain what changed and how you checked it. Include a screenshot for visual changes and the browser/device used for gameplay changes. Small pull requests are easier to review. GitHub's web editor also lets you propose documentation changes without a local setup.

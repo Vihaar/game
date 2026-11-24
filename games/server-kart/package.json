@@ -1,0 +1,24 @@
+{
+  "name": "server-kart",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Everybody drives Mike. An open-source friend kart racer remixed from Turbo Kart Rush.",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/game/chaosRules.test.ts src/game/prankRules.test.ts src/net/tests/protocol.test.mjs src/net/tests/transport.test.mjs"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.5",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "vihaar-game",
-  "description": "Two tiny browser games: Don't Spill the Soup and One More Person.",
+  "description": "Four small open-source browser games, built on established engines and examples.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
@@ -14,11 +14,17 @@
   },
   "homepage": "https://github.com/Vihaar/game#readme",
   "scripts": {
-    "dev": "vite --config vite/config.dev.mjs",
-    "build": "vite build --config vite/config.prod.mjs",
+    "dev": "npm --prefix games/server-kart run dev",
+    "build": "node scripts/games.mjs build",
     "dev-nolog": "vite --config vite/config.dev.mjs",
     "build-nolog": "vite build --config vite/config.prod.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "node scripts/games.mjs check",
+    "dev:kart": "npm --prefix games/server-kart run dev",
+    "dev:fold": "npm --prefix games/card-roguelike run dev",
+    "dev:soup": "npm --prefix games/soup run dev",
+    "dev:elevator": "npm --prefix games/elevator run dev",
+    "setup:games": "node scripts/games.mjs install",
+    "test": "node scripts/games.mjs test"
   },
   "devDependencies": {
     "@types/matter-js": "^0.20.2",

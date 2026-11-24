@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore a first-person paper dungeon. Fuse the cards in your deck into stronger spells. A short open-source roguelike prototype.">
+  <title>The Fold · a card-crafting dungeon</title>
+</head>
+<body>
+  <main id="app">
+    <div id="world" aria-label="First-person dungeon view"></div>
+    <header class="hud">
+      <div class="wordmark"><span class="rune">✣</span> THE FOLD <span class="prototype">prototype</span></div>
+      <div id="stats" class="stats"></div>
+      <button id="help-button" class="small-button" aria-label="Show controls">?</button>
+    </header>
+    <section class="chapter"><p id="chapter-label">THE FIRST FOLD</p><h1 id="chapter-title">An unfinished spell.</h1><p id="objective"></p></section>
+    <div id="crosshair" aria-hidden="true">+</div>
+    <div id="targets" class="targets" aria-label="Choose an enemy"></div>
+    <div id="message" class="message" role="status" aria-live="polite"></div>
+    <section id="combat" class="combat" hidden>
+      <div class="turn-bar"><span id="energy"></span><span id="deck-count"></span><button id="end-turn">End turn <kbd>Enter</kbd></button></div>
+      <div id="hand" class="hand" aria-label="Your hand"></div>
+    </section>
+    <footer id="explore-controls" class="explore-controls"><span><kbd>WASD</kbd> walk <span class="separator">/</span> click the room to look <span class="separator">/</span> <kbd>Esc</kbd> release mouse</span><button id="forge-button">Open the forge <kbd>F</kbd></button></footer>
+    <dialog id="intro" class="panel intro" aria-labelledby="intro-title">
+      <p class="eyebrow">A FIRST-PERSON CARD-CRAFTING DUNGEON</p>
+      <h2 id="intro-title">The Fold<span>.</span></h2>
+      <p class="intro-copy">The library has folded in on itself.<br>Bring a deck. Leave with a spell nobody has seen.</p>
+      <div class="intro-cards" aria-hidden="true"><span>✦<small>EMBER</small></span><b>+</b><span>✦<small>EMBER</small></span><b>=</b><span class="fused">☀<small>FLARE</small></span></div>
+      <p>Explore three chambers. Fight with cards. Between battles, consume two cards to forge something stronger.</p>
+      <button id="start-button" class="primary">Enter the library</button>
+      <p class="fineprint">Desktop prototype · keyboard + mouse · about 5 minutes<br>Original card rules, built on the Three.js FPS example.</p>
+      <a class="source-link" href="https://github.com/Vihaar/game" target="_blank" rel="noreferrer">Help build it on GitHub</a>
+    </dialog>
+    <dialog id="forge" class="panel forge" aria-labelledby="forge-title">
+      <div class="panel-heading"><div><p class="eyebrow">THE SPELL FORGE</p><h2 id="forge-title">Two become one.</h2></div><button id="close-forge" aria-label="Close forge">Close <kbd>Esc</kbd></button></div>
+      <p>Pick two cards from your deck. Forging permanently consumes both copies. Your new spell joins the deck for the next battle.</p>
+      <div id="fusion-preview" class="fusion-preview" aria-live="polite"></div>
+      <button id="merge-button" class="primary" disabled>Choose two cards</button>
+      <h3>Your deck <span id="inventory-count"></span></h3>
+      <div id="inventory" class="inventory"></div>
+      <details><summary>Known recipes</summary><div id="recipes" class="recipes"></div></details>
+    </dialog>
+    <dialog id="reward" class="panel reward" aria-labelledby="reward-title">
+      <p class="eyebrow">A PAGE RECOVERED</p><h2 id="reward-title">The room exhales.</h2><p id="reward-copy"></p><div id="reward-choices" class="reward-choices"></div>
+    </dialog>
+    <dialog id="ending" class="panel ending" aria-labelledby="ending-title"><p class="eyebrow" id="ending-label"></p><h2 id="ending-title"></h2><p id="ending-copy"></p><button id="restart-button" class="primary">Start a new run</button><a class="source-link" href="https://github.com/Vihaar/game/issues" target="_blank" rel="noreferrer">Suggest what happens next</a></dialog>
+    <dialog id="help" class="panel help" aria-labelledby="help-title"><h2 id="help-title">A little field guide.</h2><p><strong>Explore:</strong> WASD to walk. Click the room for mouse look. Esc releases the mouse. Arrow keys also turn the camera. F opens the forge between battles.</p><p><strong>Fight:</strong> Movement pauses during an encounter. Click an enemy or press Q/E to choose a target. Click cards or press 1–5 to cast. Spend up to 3 ink each turn, then press Enter. Block expires after the enemies attack.</p><p><strong>Forge:</strong> Choose two distinct copies from your deck, preview the result, then forge. Both inputs are consumed. Nothing happens if the recipe is invalid.</p><p><strong>Win:</strong> Clear all three chambers. A new run shuffles enemies, drops, and the draw pile. Run progress resets on reload.</p><button id="close-help" class="primary">Got it</button></dialog>
+    <noscript>This game requires JavaScript and WebGL.</noscript>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

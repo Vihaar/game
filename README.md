@@ -1,51 +1,58 @@
-# Two tiny games. Come build them.
+# Small games. Very questionable decisions.
 
-We're making **Don't Spill the Soup** and **One More Person**: short, silly browser games you can send to a friend. A third experiment explores a **first-person card-crafting roguelike**.
+Four open-source browser game prototypes. Play, break them, and help make them funnier.
 
-Anyone can contribute code, art, sound, jokes, ideas, or playtest feedback.
+| Game | What you do | Source |
+| --- | --- | --- |
+| [Server Kart](https://vihaar.me/games/mike/) | Everyone drives Mike. Friends join a room and replace AI racers. | [games/server-kart](games/server-kart) |
+| [The Fold](https://vihaar.me/games/the-fold/) | Explore in first person, fight encounters, and permanently merge spell cards. | [games/card-roguelike](games/card-roguelike) |
+| [Don't Spill the Soup](https://vihaar.me/games/soup/) | Carry a full bowl through a short, inconvenient shift. | [games/soup](games/soup) |
+| [One More Person](https://vihaar.me/games/elevator/) | Drag and rotate passengers into an increasingly crowded elevator. | [games/elevator](games/elevator) |
 
-**Status:** research and project setup. Running the app currently opens the upstream Phaser demo. Our games are not playable yet. The roguelike is being developed on a separate branch.
-
-## The games
-
-- **Don't Spill the Soup:** Carry a very full bowl across a room. Sudden movements send soup toward the rim. Survive interruptions and get a receipt for how much soup arrived. Target: 60–90 seconds.
-- **One More Person:** Pack a tiny elevator with inconvenient passengers and their belongings. Drag, rotate, squeeze, then decide when to close the doors. Target: 1–3 minutes.
-- **Card roguelike:** Explore in first person, collect cards, and combine them into new abilities. Start with a small playable run before expanding.
-
-Read the [game plans](docs/GAME_PLANS.md) and [research into existing foundations](docs/FOUNDATIONS.md).
-
-## Build on existing work
-
-This repository was generated from the MIT-licensed [official Phaser + Vite + TypeScript template](https://github.com/phaserjs/template-vite-ts). Reuse established engines, examples, and assets with compatible licenses before writing custom systems. Keep attribution with everything reused.
-
-- Elevator physics: [Matter.js](https://github.com/liabru/matter-js), available through Phaser, with existing dragging, compound-body, and stacking examples.
-- Soup research: [LiquidFun browser demo and source](https://github.com/Birch-san/liquidfun-play-2). Its wave-machine example supplies real sloshing fluid; test its older toolchain before adapting it. It is not installed yet.
-- Current starter: Phaser 4.0.0, Vite, TypeScript. The upstream README's Phaser 3 description is stale; package.json pins Phaser 4.
+These are small first playable versions, with room for better art, balance, tracks, cards, passengers, and jokes. The hub is at [vihaar.me/games](https://vihaar.me/games/).
 
 ## Run locally
 
-Use Node.js 22 LTS and npm. No API keys, database, or paid services are required.
+Use Node.js 22.12+ and npm. No API keys, database, or paid service is required to run the games. Kart rooms use PeerJS's public signaling service by default.
 
 ```sh
 git clone https://github.com/Vihaar/game.git
 cd game
 npm ci
+npm run setup:games
 npm run dev
 ```
 
-Open the local URL printed by Vite. To check your changes:
+The default dev command opens the kart project's server. Choose another with `npm run dev:fold`, `npm run dev:soup`, or `npm run dev:elevator`. Open the URL printed by Vite.
 
 ```sh
 npm run typecheck
+npm test
 npm run build
 ```
 
-The build produces a static site in `dist/`. Default scripts skip the template's optional usage logger. Original starter documentation is preserved in [docs/PHASER_TEMPLATE.md](docs/PHASER_TEMPLATE.md).
+These check and build every game. Each game produces its own static `dist/`. The website repository downloads a pinned public source commit and publishes those builds under `/games/`.
 
-## Join in
+## Playing kart with friends
 
-Start with a [good first issue](https://github.com/Vihaar/game/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22), or [suggest an idea](https://github.com/Vihaar/game/issues/new/choose).
+Open **Play with friends**, choose a driver/name, and host a room. Share the invite link or six-character code. Up to eight people can play; remaining seats use AI. Keep the host tab open. Guest disconnects return their seat to AI; there is no host migration. Some restrictive networks require a TURN relay; connection errors are shown in the lobby. See the [kart guide](games/server-kart/README.md).
 
-Fork the repo, make a branch, and open a pull request. No collaborator access is required. See [CONTRIBUTING.md](CONTRIBUTING.md). Maintainers review contributions before merging.
+Controls: WASD/arrows drive, Space/Shift drift, E uses an item, Q looks back, Esc opens the menu, and M mutes the original ice-cream-truck-style chime music. The kart and first-person game currently target desktop keyboard/gamepad and keyboard/mouse respectively.
 
-Code is [MIT licensed](LICENSE). Contributions must be yours to share or include a compatible license and credit. Third-party notices stay with their source; see [THIRD_PARTY.md](THIRD_PARTY.md).
+The finish-line checkout is a **joke with imaginary MikeCoins**. It never collects card details or charges real money. The distraction item uses a nonsexual animated censor-card gag.
+
+## Existing foundations first
+
+The repository started from the [official Phaser Vite/TypeScript template](https://github.com/phaserjs/template-vite-ts). Each playable game then reuses a more directly relevant licensed foundation:
+
+- Kart: a remix of [BridgeMind's complete Turbo Kart Rush](https://github.com/bridge-mind/turbo-kart-rush), with Three.js and PeerJS networking.
+- The Fold: the [official Three.js first-person Octree/Capsule example](https://github.com/mrdoob/three.js/blob/r181/examples/games_fps.html), adapted for exploration and card combat.
+- Soup and elevator: [Matter.js's actual ball-pool, compound-body, and manipulation examples](https://github.com/liabru/matter-js/tree/master/examples). Soup uses a rigid-particle approximation, not a real fluid solver.
+
+Read the [foundation research](docs/FOUNDATIONS.md), [kart research](docs/KART_FOUNDATIONS.md), and each game's retained source/license notices. The original starter documentation remains in [docs/PHASER_TEMPLATE.md](docs/PHASER_TEMPLATE.md).
+
+## Help build it
+
+Anyone can contribute code, art, sound, jokes, ideas, or playtest feedback. Fork the repo and submit a pull request; collaborator access is not required. Start with a [good first issue](https://github.com/Vihaar/game/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22), or [suggest an idea](https://github.com/Vihaar/game/issues/new/choose). See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Code is [MIT licensed](LICENSE), with retained third-party notices in each game. User-requested Discord avatar images are separate third-party assets and are excluded from the code license. See [THIRD_PARTY.md](THIRD_PARTY.md) and game-specific credits before reusing assets.
