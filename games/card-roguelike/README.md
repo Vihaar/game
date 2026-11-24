@@ -31,7 +31,7 @@ The battle grimoire disappears between encounters so the world has room to breat
 
 Your battle interface is a two-page spellbook. The left leaf holds Strike, Guard, ink and End turn. The right leaf contains prepared rune seals, their names, effects and costs. Choose a guardian, then cast a prepared rune for ink. You may Strike once and Guard once each turn without spending a rune.
 
-**End turn** resolves every living guardian's displayed move, consumes remaining guard, refills ink and prepares fresh inscriptions. Nothing attacks, refills or expires while you think. Guard remains until resolution. Preparation, guard and heavy attacks are announced in advance. The game renders at up to60Hz; combat has no reaction timer.
+**End turn** resolves every living guardian's displayed move, consumes remaining guard, refills ink and prepares fresh inscriptions. Nothing attacks, refills or expires while you think. Guard remains until resolution. Preparation, guard and heavy attacks are announced in advance. Presentation follows the browser's display refresh with capped resolution; combat has no reaction timer.
 
 Binder:32HP/3ink/3strike/4guard. Warden:40HP/3ink/2strike/6guard. Runner:26HP/4ink/3strike/3guard. Optional opening settings are collapsed under Choose your path, with Binder/Time as defaults.
 

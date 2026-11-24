@@ -689,7 +689,8 @@ function positionTargets() {
 let previous = performance.now(),
   elapsed = 0;
 renderer.setAnimationLoop((now) => {
-  if (now - previous < 1000 / 60) return;
+  // The browser already paces this to display refresh. A second 60Hz threshold
+  // skips ordinary frames when timestamps round just below 16.667ms.
   const dt = Math.min(0.05, (now - previous) / 1000);
   previous = now;
   elapsed += dt;
