@@ -56,7 +56,7 @@ export class GuidedDiorama {
       this.backdrop.material.map = this.textures.get(file); this.backdrop.material.needsUpdate = true;
       this.fitBackdrop();
     }
-    if (file === this.enemyAtlas.file) for (const actor of this.actors) this.applyEnemyTexture(actor);
+    if (file === this.enemyAtlas.file) { for (const actor of this.actors) this.applyEnemyTexture(actor); this.fitCamera(); }
   }
 
   clearGroup(group) {
@@ -76,13 +76,13 @@ export class GuidedDiorama {
     this.backdrop = this.addPlane(this.scenery, 32, 18, this.paperMaterial('#ffffff', { map: this.textures.get(backdrop) }), 0, 4.1, -6);
     // The stage lip is three thin, torn sheets. The illustrated room remains the focal point.
     for (let layer = 0; layer < 3; layer++) {
-      const shape = new THREE.Shape(); shape.moveTo(-18, -5);
+      const shape = new THREE.Shape(); shape.moveTo(-40, -40);
       for (let point = 0; point <= 28; point++) {
         const x = -18 + point * 36 / 28;
         const y = -0.6 + layer * 0.12 + Math.sin(point * 1.9 + layer) * 0.07 + Math.abs(x) * 0.025;
         shape.lineTo(x, y);
       }
-      shape.lineTo(18, -5); shape.closePath();
+      shape.lineTo(40, -40); shape.closePath();
       const sheet = new THREE.Mesh(new THREE.ShapeGeometry(shape), this.paperMaterial(layer === 2 ? area.paper : layer === 1 ? area.edge : area.ink));
       sheet.position.set(0, 0.4, 1.7 + layer * 0.055); this.scenery.add(sheet);
     }
@@ -121,11 +121,11 @@ export class GuidedDiorama {
     const source = this.textures.get(this.enemyAtlas.file);
     if (!source) return;
     const texture = source.clone(); texture.userData.atlasClone = true;
-    const region = atlasRegion(Math.max(0, this.enemyAtlas.types.indexOf(actor.definition.type)), this.enemyAtlas.columns, this.enemyAtlas.rows);
+    const region = atlasRegion(Math.max(0, this.enemyAtlas.types.indexOf(actor.definition.type)), this.enemyAtlas.columns, this.enemyAtlas.rows, 0.004, this.enemyAtlas.regions?.[actor.definition.type]);
     texture.repeat.fromArray(region.repeat); texture.offset.fromArray(region.offset); texture.needsUpdate = true;
     if (actor.sprite.material.map?.userData.atlasClone) actor.sprite.material.map.dispose();
     actor.sprite.material.map = texture; actor.sprite.material.needsUpdate = true;
-    const aspect = source.image?.width && source.image?.height ? (source.image.width / this.enemyAtlas.columns) / (source.image.height / this.enemyAtlas.rows) : 1;
+    const aspect = source.image?.width && source.image?.height ? (source.image.width * region.sourceSize[0]) / (source.image.height * region.sourceSize[1]) : 1;
     actor.sprite.scale.x = aspect;
   }
 
@@ -145,7 +145,7 @@ export class GuidedDiorama {
         const actor = { definition: { ...definition }, index, group, sprite, ring, shadow, intent: 'idle', baseY: 3.2, alive: definition.hp > 0 };
         this.applyEnemyTexture(actor); return actor;
       });
-      this.layoutEnemies();
+      this.fitCamera();
     }
     definitions.forEach((definition, index) => {
       const actor = this.actors[index]; actor.definition = { ...definition }; actor.alive = definition.hp > 0;
@@ -168,9 +168,13 @@ export class GuidedDiorama {
     const aspect = Math.max(0.35, this.camera.aspect || 1.6);
     this.lastAspect = aspect;
     this.camera.fov = 42; this.camera.near = 0.1; this.camera.far = 70;
-    this.camera.position.set(0, 3.6, aspect < 0.85 ? Math.max(14, 8.7 / aspect) : 14);
+    this.layoutEnemies();
+    const halfWidth = this.actors.reduce((width, actor) => Math.max(width,
+      Math.abs(actor.group.position.x) + actor.sprite.geometry.parameters.width * actor.sprite.scale.x * actor.group.scale.x / 2 + 0.2), 0);
+    const fitWidth = halfWidth / (Math.tan(THREE.MathUtils.degToRad(21)) * aspect) + 0.5;
+    this.camera.position.set(0, 3.6, Math.max(14, fitWidth, aspect < 0.85 ? 8.7 / aspect : 0));
     this.camera.lookAt(0, 2.6, 0); this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
-    this.layoutEnemies(); this.fitBackdrop();
+    this.fitBackdrop();
   }
 
   fitBackdrop() {

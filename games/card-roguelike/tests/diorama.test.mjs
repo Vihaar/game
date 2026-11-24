@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Scene, PerspectiveCamera, Texture, TextureLoader } from 'three';
+import { Scene, PerspectiveCamera, Texture, TextureLoader, Vector3 } from 'three';
 import { GuidedDiorama } from '../src/diorama.js';
-import { atlasRegion, sceneBackdrop } from '../src/diorama-scenes.mjs';
+import { atlasRegion, sceneBackdrop, ENEMY_ATLAS } from '../src/diorama-scenes.mjs';
 
 test('atlas crops remain inside their own cells and top-row images use top-row UVs', () => {
   for (let index = 0; index < 6; index++) {
@@ -15,6 +15,10 @@ test('atlas crops remain inside their own cells and top-row images use top-row U
   }
   assert.equal(sceneBackdrop(0, 'popup'), 'popup.webp');
   assert.equal(sceneBackdrop(7, 'storybook', { storybook: { binding: 'unfolded-cosmos.webp' } }), 'unfolded-cosmos.webp');
+  const inkling = atlasRegion(0, 3, 2, 0.004, ENEMY_ATLAS.regions.inkling);
+  const scribe = atlasRegion(3, 3, 2, 0.004, ENEMY_ATLAS.regions.scribe);
+  assert.ok(inkling.offset[1] > 1 - 468 / 1024, 'top-row crop excludes the neighbouring quill tip');
+  assert.ok(scribe.offset[1] + scribe.repeat[1] < 1 - 468 / 1024, 'bottom row includes the quill without overlapping the top row');
 });
 
 test('guided travel and art swaps preserve calm framing and current enemy state', async () => {
@@ -34,7 +38,7 @@ test('guided travel and art swaps preserve calm framing and current enemy state'
     const definitions = [{ id: 'a', type: 'inkling', hp: 10 }, { id: 'b', type: 'warden', hp: 10 }];
     diorama.setEnemies(definitions).setTarget(1);
     // A rectangular 3x2 sheet must not stretch a 300x200 cell into a square.
-    assert.equal(diorama.actors[0].sprite.scale.x, 1.5);
+    assert.equal(diorama.actors[0].sprite.scale.x, (900 / 3) / (400 * 468 / 1024));
     const liveMesh = diorama.actors[1].sprite;
     diorama.setEnemies([{ ...definitions[0], hp: 0 }, definitions[1]]);
     assert.equal(diorama.actors[0].group.visible, false);
@@ -58,6 +62,12 @@ test('guided travel and art swaps preserve calm framing and current enemy state'
     assert.equal(diorama.actors[0].group.rotation.z, 0);
     camera.aspect = 0.56; diorama.update(0.1, 11, { reducedMotion: true });
     assert.ok(camera.position.z > stableCamera.z, 'portrait framing fits the encounter width');
+    diorama.setEnemies(Array.from({ length: 4 }, (_, index) => ({ id: String(index), type: 'inkling', hp: 10 })));
+    diorama.group.updateMatrixWorld(true);
+    for (const actor of diorama.actors) for (const side of [-1, 1]) {
+      const edge = actor.sprite.localToWorld(new Vector3(side * 1.75, 0, 0)).project(camera);
+      assert.ok(Math.abs(edge.x) < 1, 'all four portrait enemy planes fit inside the view');
+    }
     assert.ok(requests.some(url => url.endsWith('theater.webp')));
     diorama.dispose();
     assert.equal(await diorama.travelTo(0), false);

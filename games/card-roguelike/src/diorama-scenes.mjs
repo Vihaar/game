@@ -13,6 +13,11 @@ export const DIORAMA_SCENES = [
 export const ENEMY_ATLAS = {
   file: 'enemy-atlas.webp', columns: 3, rows: 2,
   types: ['inkling', 'eater', 'warden', 'scribe', 'bell', 'unbinder'],
+  // Generated silhouettes occupy unequal rows: quills/hats begin above y=512.
+  // These top-left-origin normalized rectangles exclude neighbouring silhouettes.
+  regions: Object.fromEntries(['inkling', 'eater', 'warden', 'scribe', 'bell', 'unbinder'].map((type, index) => [type,
+    [index % 3 / 3, index < 3 ? 0 : 468 / 1024, 1 / 3, index < 3 ? 468 / 1024 : 556 / 1024],
+  ])),
 };
 
 export const DIORAMA_STYLES = {
@@ -27,17 +32,19 @@ export function sceneBackdrop(index, style = 'storybook', overrides = {}) {
 }
 
 /** Three UVs start at the bottom; generated atlas metadata is read top-to-bottom. */
-export function atlasRegion(index, columns = ENEMY_ATLAS.columns, rows = ENEMY_ATLAS.rows, inset = 0.004) {
+export function atlasRegion(index, columns = ENEMY_ATLAS.columns, rows = ENEMY_ATLAS.rows, inset = 0.004, rectangle) {
   const safe = Math.max(0, Math.min(columns * rows - 1, index));
+  const [x, y, width, height] = rectangle ?? [safe % columns / columns, Math.floor(safe / columns) / rows, 1 / columns, 1 / rows];
   return {
-    repeat: [1 / columns - inset * 2, 1 / rows - inset * 2],
-    offset: [safe % columns / columns + inset, 1 - (Math.floor(safe / columns) + 1) / rows + inset],
+    repeat: [width - inset * 2, height - inset * 2],
+    offset: [x + inset, 1 - y - height + inset],
+    sourceSize: [width, height],
   };
 }
 
 export function enemyLayout(count, aspect = 1.6) {
   const compact = aspect < 0.85;
-  const spacing = compact ? 1.65 : count > 3 ? 2.65 : 3.3;
+  const spacing = compact ? 2.75 : count > 3 ? 2.65 : 3.3;
   return Array.from({ length: count }, (_, index) => ({
     x: (index - (count - 1) / 2) * spacing,
     y: compact ? 3.5 : 3.2,
