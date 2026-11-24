@@ -5,7 +5,7 @@ Four open-source browser game prototypes. Play, break them, and help make them f
 | Game | What you do | Source |
 | --- | --- | --- |
 | [Server Kart](https://vihaar.me/games/mike/) | Everyone drives Mike. Friends join a room and replace AI racers. | [games/server-kart](games/server-kart) |
-| [The Fold](https://vihaar.me/games/the-fold/) | Explore a cursed papercraft library, dodge pursuing enemies, and forge cards during fights. | [games/card-roguelike](games/card-roguelike) |
+| [The Fold](https://vihaar.me/games/the-fold/) | Follow a guided paper-library journey, face questions in turn-based battles, and forge new knowledge. | [games/card-roguelike](games/card-roguelike) |
 | [Don't Spill the Soup](https://vihaar.me/games/soup/) | Carry a full bowl through a short, inconvenient shift. | [games/soup](games/soup) |
 | [One More Person](https://vihaar.me/games/elevator/) | Drag and rotate passengers into an increasingly crowded elevator. | [games/elevator](games/elevator) |
 

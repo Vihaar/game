@@ -16,11 +16,11 @@ Pack a tiny elevator. Each arrival insists they can fit. Drag and rotate passeng
 
 First prototype: adapt Matter's compound-body, stacking, and dragging examples through Phaser. Use five passenger silhouettes and one fixed elevator. Try top-down packing before ragdoll complexity. Add a visible rotation control, enclosure/doorway checks, scoring, and restart. Add a ladder, bicycle, and wedding cake after packing is fun. Target: 1–3 minutes.
 
-## First-person card roguelike
+## The Fold: guided card roguelike
 
-Explore a cursed library consuming reality. The expanded playable run has eight connected areas, three characters, real-time pursuit and telegraphed spatial attacks. Enemy health and next moves appear above them. Repeatable attack and block support the spell deck; healing is scarce.
+Enter a magical paper library knowing nothing, thirsty to learn everything. Eight guided chapters teach Language, Life, Memory, Transformation, Cosmos, Truth, Self and Everything. The ending grants sincere complete understanding. Full permadeath resets a failed run's deck, forged cards, resources and progress; only recipe knowledge persists.
 
-Any pair of owned cards can be recursively forged, including during combat. Both copies are consumed and recipes have bounded powers. Time, corruption, health and combined costs are selectable for playtesting. Saved discoveries retain lineage, not owned cards. The visual direction is in `games/card-roguelike/ART_DIRECTION.md`; the art is physical layered papercraft. Optional server AI adds presentation only and stays disabled without provider credentials and an operator budget decision.
+Battles are deliberate turns with visible intentions, once-per-turn basic attack/guard and an explicit End turn. There is no free walking, aiming, dodge timing or automatic damage while thinking. The game leads the camera between illustrated paper stages. Any two owned cards can be recursively forged during battle. Time clearly previews one extra enemy action; corruption, health and combined prices remain selectable. Powers and healing stay bounded. Three generated art directions are available for comparison before a final world palette is chosen. See `games/card-roguelike/NARRATIVE.md` and `ART_DIRECTION.md`. Optional runtime AI decorates cards only and stays disabled without configured credentials.
 
 ## Shared constraints
 
