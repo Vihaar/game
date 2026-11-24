@@ -1,0 +1,10 @@
+The Fold prototype
+Source: https://github.com/Vihaar/game/tree/main/games/card-roguelike
+
+Built on Three.js 0.181.2 and the official Three.js r181 FPS example:
+https://github.com/mrdoob/three.js/blob/r181/examples/games_fps.html
+Three.js copyright and MIT license: THREE-LICENSE.txt
+Original additions: LICENSE.txt
+
+The interface requests Fraunces and DM Sans from Google Fonts; local system
+fonts are used if unavailable. No external game artwork is included.
