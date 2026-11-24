@@ -1,0 +1,5 @@
+export const ROUND_SECONDS=40;
+export const INTERRUPTIONS=[{at:8,warning:"DOOR SLAM IN 2 SECONDS. Brace the bowl.",message:"The door says hello.",kind:"door"},{at:18,warning:"CAT CROSSING IN 2 SECONDS. Obviously.",message:"The cat has right of way.",kind:"cat"},{at:28,warning:"PHONE RINGING IN 2 SECONDS. Let it ring.",message:"Unknown caller: probably more soup.",kind:"phone"}];
+export class SpillLedger{constructor(total){this.total=total;this.spilled=new Set();}observe(id,escaped){if(!escaped||this.spilled.has(id))return false;this.spilled.add(id);return true;}get remaining(){return Math.max(0,this.total-this.spilled.size);}get percent(){return Math.round(this.remaining/this.total*100);}}
+export function escapedBowl(point,bowl,bottomY){const dx=point.x-bowl.x,dy=point.y-bowl.y;const x=dx*Math.cos(bowl.angle)+dy*Math.sin(bowl.angle);const y=-dx*Math.sin(bowl.angle)+dy*Math.cos(bowl.angle);return Math.abs(x)>126||y>bottomY+25;}
+export function outcome(percent){return percent>=65?"delivered":"sleeves";}

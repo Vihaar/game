@@ -1,0 +1,5 @@
+import{test}from'node:test';import assert from'node:assert/strict';import{fullyInside,evaluateDeparture}from'./rules.js';
+const box={left:0,right:100,top:0,bottom:100};const shape=(id,vertices)=>({id,vertices});
+test('all corners must fit, not just the passenger center',()=>{assert.equal(fullyInside(shape(1,[{x:4,y:4},{x:96,y:96}]),box),true);assert.equal(fullyInside(shape(2,[{x:50,y:50},{x:101,y:50}]),box),false);});
+test('a protruding belonging invalidates a compound passenger',()=>{const b={id:1,parts:[shape(0,[]),shape(1,[{x:20,y:20}]),shape(2,[{x:110,y:20}])]};assert.equal(fullyInside(b,box),false);});
+test('empty lift cannot depart and even a non-boarded doorway obstruction blocks it',()=>{const inside=shape(1,[{x:20,y:20}]);const outside=shape(2,[{x:150,y:20}]);assert.equal(evaluateDeparture([outside],new Set(),box).canDepart,false);const clear=evaluateDeparture([inside,outside],new Set(),box);assert.equal(clear.canDepart,true);assert.equal(clear.boarded.length,1);assert.equal(evaluateDeparture([inside,outside],new Set([2]),box).canDepart,false);});

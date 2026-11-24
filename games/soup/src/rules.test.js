@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {SpillLedger,escapedBowl,outcome,INTERRUPTIONS} from './rules.js';
+test('spills count once and never return to the bowl',()=>{const s=new SpillLedger(4);assert.equal(s.observe(1,false),false);assert.equal(s.observe(1,true),true);assert.equal(s.observe(1,true),false);assert.equal(s.observe(1,false),false);assert.equal(s.remaining,3);assert.equal(s.percent,75);});
+test('spill boundaries rotate with the bowl',()=>{const b={x:300,y:300,angle:Math.PI/2};assert.equal(escapedBowl({x:300,y:430},b,20),true);assert.equal(escapedBowl({x:300,y:300},b,20),false);assert.equal(escapedBowl({x:240,y:300},b,20),true);});
+test('win boundary and telegraphed interruptions are explicit',()=>{assert.equal(outcome(65),'delivered');assert.equal(outcome(64),'sleeves');assert.equal(INTERRUPTIONS.length,3);assert.ok(INTERRUPTIONS.every((x,i)=>x.at>=2&&(i===0||x.at>INTERRUPTIONS[i-1].at+3)));});
