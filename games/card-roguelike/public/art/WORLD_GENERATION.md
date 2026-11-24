@@ -1,5 +1,21 @@
 # Fold world atlas generation
 
+## Transparent prop atlas
+
+Built-in image_gen generated `prop-atlas.webp` using storybook.webp as style/material reference. Left grimoire on ivory plinth; middle rune forge with three floating folded glyphs; right intricate open book arch. Genuine alpha requested, preserved in ffmpeg WebP quality88. Output inspected inline. No Python or image editing performed. Original PNG: `C:/Users/Owner/.codex/generated_images/01a20f21-5087-71e0-9f8e-2209d9ebb154/exec-a19b45d8-8b60-4716-bead-ee0856d31096.png`.
+
+### Exact prop prompt
+
+```text
+Use case: stylized-concept.
+Asset type: transparent in-game papercraft prop atlas. Input image 1 is a STYLE AND MATERIAL REFERENCE ONLY, not a layout reference.
+Create ONE VERY WIDE 3:1 image, ideally1536x512, with exactly THREE EQUALLY WIDE SQUARE CELLS IN A SINGLE HORIZONTAL ROW, on a genuinely TRANSPARENT ALPHA BACKGROUND. No dividers, no floor, no backdrop, no matte color. Each cell contains ONE complete distinct isolated prop, large but fully contained with comfortable transparent breathing room. No objects or shadows cross into another cell. All props seen from consistent front-facing slight three-quarter human-eye-height camera. The props are exquisite physical handmade paper dioramas matching the reference: layered ivory cardstock with visible fine paper fibers, delicate cutout edges, ink-navy covers, muted moss and coral details, warm gentle illumination and self-shadowing. Detailed finished game assets, no UI.
+LEFT CELL: an open GRIMOIRE resting on an intricately layered ivory BOOK PLINTH. Broad folded pages, dark ink-blue cover edges and coral binding thread, carved botanical page cutouts, delicate abstract magical runic shapes cut from paper (no alphabet/text), readable open silhouette.
+MIDDLE CELL: a RUNE FORGE made from a moss-and-ivory stacked BOOK PLINTH, three separate small folded magical glyph objects hovering above it in a rising triangular arrangement. Coral/ivory/ink-blue folded glyphs emit restrained soft warm highlights. Plinth decorated with tiny layered paper folds and red thread. Distinct from the grimoire.
+RIGHT CELL: an intricate complete upright OPEN BOOK ARCHWAY DOOR. Two tall ivory open pages form carved branching paper arches around an OPEN transparent doorway void, ink-navy outer book covers and visible page layers, fine moss/coral leaves and coral binding thread. Freestanding whole object, no attached building, no floor.
+Constraints: true transparency including clear doorway void and spaces between glyphs, whole objects not cropped, equal thirds with separate cells, no contact-sheet borders/gutters/lines, no words, text, labels, logos, watermark, characters, humans, furniture not specified. No grey/checkered rendered background; alpha only. No shiny plastic. No ground shadow plane; only object self-shadows. Three square prop compositions in a single3:1row.
+```
+
 ## Cursed B variant
 
 User explicitly requested warmth turning to darkness as knowledge becomes a curse. Generated a separate `world-atlas-b-cursed.webp` without overwriting original B. Same dimensions1672×941 and same quadrant order; TL coral press with ink shadows, TR navy/plum suspended archive, BL cold ivory forbidden binding threaded in red, BR warm exterior. Built-in result inspected; quality88 WebP via ffmpeg only. Original PNG preserved at `C:/Users/Owner/.codex/generated_images/01a20f21-5087-71e0-9f8e-2209d9ebb154/exec-e0bfbbfd-4bcb-449e-9146-939d1970a49a.png`.
