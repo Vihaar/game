@@ -1045,3 +1045,808 @@ body[data-phase="travel"] .action-dock {
     bottom: 330px;
   }
 }
+/* The illustrated world has room to breathe between encounters. */
+body:not([data-phase="battle"]) .action-dock {
+  display: none;
+}
+body[data-phase="explore"] .advance-wrap {
+  top: auto;
+  left: auto;
+  right: 1.2rem;
+  bottom: 1rem;
+  transform: none;
+  width: auto;
+  max-width: 48vw;
+}
+body[data-phase="explore"] .advance-wrap button {
+  font-size: 0.8rem;
+  padding: 0.7rem 1rem;
+  box-shadow: 2px 3px 0 #29374725;
+}
+body[data-phase="explore"] .message {
+  bottom: 5.5rem;
+}
+.explore-tools {
+  position: fixed;
+  z-index: 4;
+  bottom: 1rem;
+  left: 1.2rem;
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+.explore-tools > span {
+  padding: 0.4rem 0.6rem;
+  background: #eee5d4be;
+  font:
+    500 0.85rem "Fraunces",
+    Georgia,
+    serif;
+}
+.explore-tools > button {
+  font-size: 0.75rem;
+}
+.world-hotspot {
+  position: fixed;
+  z-index: 4;
+  width: 160px;
+  min-height: 66px;
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transform: translate(-50%, -100%);
+  background: #f4ead7ed;
+  border: 1px solid #b59c78;
+  border-radius: 3px 12px 3px 3px;
+  box-shadow: 3px 4px 0 #29374725;
+}
+.world-hotspot::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: calc(50% - 7px);
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid #b59c78;
+  border-bottom: 1px solid #b59c78;
+  background: #f4ead7;
+  transform: rotate(45deg);
+}
+.world-hotspot:hover:not(:disabled) {
+  transform: translate(-50%, calc(-100% - 2px));
+}
+.world-hotspot strong {
+  font:
+    500 1rem/1.1 "Fraunces",
+    Georgia,
+    serif;
+}
+.world-hotspot small {
+  font-size: 0.6rem;
+  color: #74604b;
+}
+.hotspot-mark {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #8b6b4b;
+}
+.world-hotspot.visited .hotspot-mark {
+  color: #67806b;
+}
+.book-panel {
+  top: 19%;
+  bottom: auto;
+  right: 1.2rem;
+  width: 390px;
+  max-height: 70dvh;
+  padding: 1.1rem;
+  background: #f1e5cefa;
+}
+.book-panel .book-question {
+  font:
+    500 1.35rem/1.2 "Fraunces",
+    Georgia,
+    serif;
+  margin: 1rem 0 0.5rem;
+  color: #715d46;
+}
+.book-panel #book-passage {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin: 0.7rem 0;
+}
+.book-panel blockquote {
+  font:
+    500 1.05rem/1.5 "Fraunces",
+    Georgia,
+    serif;
+  border-left: 2px solid #987e5c;
+  margin: 0.8rem 0;
+  padding: 0.3rem 0.7rem;
+  color: #705a42;
+}
+.book-panel .book-note {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: #8b775f;
+}
+@media (max-width: 650px) {
+  .world-hotspot {
+    width: 140px;
+    min-height: 62px;
+    padding: 0.4rem 0.45rem;
+  }
+  .world-hotspot strong {
+    font-size: 0.85rem;
+  }
+  .world-hotspot small {
+    font-size: 0.55rem;
+  }
+  .explore-tools {
+    left: 0.6rem;
+    bottom: 0.65rem;
+  }
+  .explore-tools > span {
+    display: none;
+  }
+  body[data-phase="explore"] .advance-wrap {
+    right: 0.6rem;
+    bottom: 0.65rem;
+    max-width: 72vw;
+  }
+  body[data-phase="explore"] .advance-wrap button {
+    font-size: 0.7rem;
+    padding: 0.7rem;
+  }
+  body[data-phase="explore"] .message {
+    bottom: 4.6rem;
+  }
+  .book-panel {
+    top: 22%;
+    right: 0.6rem;
+    max-width: calc(100vw - 1.2rem);
+    padding: 0.9rem;
+  }
+}
+/* A physical spread: controls on the left leaf, inscribed rune seals on the right. */
+.grimoire {
+  left: 50%;
+  right: auto;
+  bottom: -5px;
+  width: min(1100px, calc(100vw - 3rem));
+  transform: translateX(-50%);
+  padding: 0;
+  background: #c7ad7d;
+  border: 1px solid #876e48;
+  border-radius: 38% 5% 2% 3% / 5% 3% 1% 2%;
+  box-shadow:
+    0 -5px 30px #172a3530,
+    0 -2px 0 #f2e2bd,
+    0 -5px 0 #ac9062;
+  display: grid;
+  grid-template-columns: 31% 69%;
+  min-height: 240px;
+  isolation: isolate;
+}
+.grimoire::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 31%;
+  top: 5px;
+  bottom: 0;
+  width: 20px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    #5e48241f,
+    #f3e7ca70 25%,
+    #715a393d 52%,
+    #fff6de90 75%,
+    transparent
+  );
+  pointer-events: none;
+}
+.grimoire-page {
+  min-width: 0;
+  padding: 1rem 1.1rem 0.6rem;
+  background: #efe3c7;
+}
+.grimoire-left {
+  border-radius: 18px 0 0 3px;
+  background: linear-gradient(100deg, #e7d5ae, #f2e8cf 78%, #cdb88f);
+  text-align: center;
+}
+.grimoire-right {
+  border-radius: 0 20px 3px 0;
+  background: linear-gradient(95deg, #d3bf97, #f5eacf 5%, #eee1bf 96%, #d9c49d);
+}
+.grimoire-left .eyebrow {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  color: #7e674a;
+}
+.grimoire-left h2 {
+  font:
+    500 1.45rem/1.1 "Fraunces",
+    Georgia,
+    serif;
+  margin: 0.1rem 0 0.35rem;
+  color: #4e493a;
+}
+.grimoire-note {
+  font-size: 0.67rem;
+  line-height: 1.4;
+  margin: 0.3rem 0 0.6rem;
+  color: #786c57;
+}
+.grimoire .basics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+.grimoire .basics button {
+  min-width: 0;
+  padding: 0.4rem;
+  font-size: 0.8rem;
+  background: #f5eacf;
+}
+.grimoire .basics small {
+  font-size: 0.6rem;
+}
+.grimoire .turn-tools {
+  justify-content: space-between;
+  gap: 0.3rem;
+  margin: 0.55rem 0;
+}
+.grimoire .turn-tools #energy {
+  font-size: 0.7rem;
+  padding: 0.15rem;
+  background: none;
+}
+.grimoire .turn-tools button {
+  font-size: 0.65rem;
+  padding: 0.35rem 0.4rem;
+  background: #eadab8;
+}
+.grimoire #end-turn {
+  width: 100%;
+  font-size: 0.8rem;
+  padding: 0.45rem;
+}
+.grimoire #end-turn small {
+  display: inline-block;
+  margin-left: 0.6rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+.grimoire-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0.2rem 0.4rem 0.6rem;
+}
+.grimoire-heading .eyebrow {
+  margin: 0;
+  font-size: 0.58rem;
+  color: #776247;
+}
+.grimoire-heading > span {
+  font-size: 0.65rem;
+  color: #8d7a5b;
+}
+.grimoire .hand {
+  min-height: 0;
+  display: flex;
+  gap: 0.2rem;
+  align-items: stretch;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 0.25rem 0.25rem 0.5rem;
+}
+.rune {
+  position: relative;
+  flex: 1 0 110px;
+  min-width: 0;
+  max-width: 145px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.3rem 0.3rem 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 50% 50% 8px 8px;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    transform 0.18s,
+    background 0.18s,
+    border-color 0.18s;
+}
+.rune:hover:not(:disabled) {
+  background: #fff4d680;
+  transform: translateY(-3px);
+  border-color: #c7ad77;
+}
+.rune:disabled {
+  opacity: 0.4;
+}
+.rune.selected {
+  border: 1px solid #8c6e41;
+  background: #d8c19470;
+  outline: 2px solid #ac8b56;
+  outline-offset: 1px;
+}
+.rune-seal {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background-size: 400% 400%;
+  background-repeat: no-repeat;
+  background-color: #e1cfab;
+  border: 3px double #a58a5d;
+  box-shadow:
+    0 2px 4px #67523430,
+    inset 0 0 10px #fff4d5;
+  isolation: isolate;
+}
+.rune.inscribed .rune-seal {
+  border-color: #7a6e8b;
+  box-shadow:
+    0 2px 4px #67523430,
+    0 0 0 2px #b7a3bf55;
+}
+.rune-glyph {
+  position: absolute;
+  right: -4px;
+  bottom: -3px;
+  font-size: 0.85rem;
+  background: #ede0bd;
+  border: 1px solid #ab9167;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #705b39;
+}
+.rune > strong {
+  font:
+    500 1rem/1.08 "Fraunces",
+    Georgia,
+    serif;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+.rune-effects {
+  font-size: 0.65rem;
+  line-height: 1.3;
+  text-align: center;
+  color: #665e4d;
+}
+.rune-cost {
+  font-size: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.2rem;
+  color: #8b7553;
+}
+.rune-cost kbd {
+  font-size: 0.55rem;
+}
+.grimoire .dock-caption {
+  font-size: 0.6rem;
+  margin: 0.15rem 0 0;
+  color: #887557;
+}
+.reward-choices .rune {
+  flex-basis: 145px;
+  min-height: 165px;
+  max-width: 170px;
+}
+.reward-choices .rune-seal {
+  width: 86px;
+  height: 86px;
+}
+.forge-panel {
+  width: min(880px, calc(100vw - 2rem));
+  right: 50%;
+  transform: translateX(50%);
+  top: 9%;
+  bottom: 4%;
+  padding: 0.9rem 1rem 0.7rem;
+  border-radius: 15px 22px 5px 5px;
+  background: linear-gradient(90deg, #efe3c7 48%, #cbb68a 50%, #f3e8ce 52%);
+  box-shadow:
+    0 8px 35px #29374745,
+    0 3px 0 #a78b5f,
+    0 6px 0 #d6c195;
+}
+.forge-panel > header {
+  padding: 0.2rem 0.3rem 0.6rem;
+  background: #efe3c7b0;
+}
+.forge-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  gap: 2rem;
+  padding-top: 0.4rem;
+}
+.forge-leaf {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 0.3rem 0.25rem 0.6rem;
+}
+.forge-leaf .inventory {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+.inventory .rune {
+  min-width: 0;
+  max-width: none;
+  padding: 0.35rem 0.15rem;
+  min-height: 128px;
+}
+.inventory .rune-seal {
+  width: 55px;
+  height: 55px;
+}
+.inventory .rune-glyph {
+  font-size: 0.6rem;
+  width: 17px;
+  height: 17px;
+}
+.inventory .rune > strong {
+  font-size: 0.83rem;
+}
+.inventory .rune-effects {
+  font-size: 0.58rem;
+}
+.inventory .rune-cost {
+  font-size: 0.55rem;
+}
+.fusion-tile {
+  border: 0;
+  background: none;
+  min-height: 110px;
+}
+.fusion-seal {
+  width: 66px;
+  height: 66px;
+}
+.forge-body .fusion-tile strong {
+  font-size: 0.9rem;
+}
+.forge-commit {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.6rem 0.3rem 0.1rem;
+  background: #efe3c7a8;
+}
+.forge-commit p {
+  flex: 1;
+  font-size: 0.75rem;
+}
+.forge-commit button {
+  width: 40%;
+  min-height: 42px;
+}
+.path-settings {
+  text-align: left;
+  border-top: 1px solid #c1ae8a;
+  border-bottom: 1px solid #c1ae8a;
+  padding: 0.65rem 0.2rem;
+  margin: 1rem 0;
+}
+.path-settings > summary {
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #6e624d;
+}
+.intro {
+  width: min(94vw, 650px);
+}
+.intro .intro-copy {
+  font:
+    400 1.2rem/1.8 "Fraunces",
+    Georgia,
+    serif;
+  color: #676257;
+  margin: 1rem 0 1.5rem;
+}
+.intro .fineprint {
+  margin: 0.8rem 0 0.2rem;
+  font-size: 0.65rem;
+}
+.intro > a {
+  font-size: 0.65rem;
+  color: #887557;
+  margin-top: 0.6rem;
+}
+.intro h2 {
+  font-size: 4rem;
+}
+.intro .path-settings .characters {
+  margin-top: 0.8rem;
+}
+@media (max-height: 740px) and (min-width: 651px) {
+  .grimoire {
+    min-height: 215px;
+  }
+  .grimoire-page {
+    padding: 0.7rem 0.9rem 0.5rem;
+  }
+  .grimoire-note {
+    display: none;
+  }
+  .grimoire .rune-seal {
+    width: 66px;
+    height: 66px;
+  }
+  .grimoire .rune > strong {
+    font-size: 0.9rem;
+  }
+  .grimoire .rune-effects {
+    font-size: 0.6rem;
+  }
+  .grimoire-left h2 {
+    font-size: 1.25rem;
+  }
+  .grimoire-heading {
+    margin-bottom: 0.4rem;
+  }
+}
+@media (max-width: 800px) and (min-width: 651px) {
+  .grimoire {
+    width: calc(100vw - 1rem);
+    grid-template-columns: 32% 68%;
+  }
+  .grimoire::before {
+    left: 32%;
+  }
+  .grimoire .rune {
+    flex-basis: 91px;
+  }
+  .grimoire .rune-seal {
+    width: 60px;
+    height: 60px;
+  }
+  .grimoire-page {
+    padding: 0.8rem 0.6rem;
+  }
+  .grimoire-note {
+    font-size: 0.6rem;
+  }
+  .grimoire .turn-tools {
+    flex-wrap: wrap;
+  }
+  .grimoire .turn-tools #energy {
+    padding: 0;
+  }
+  .grimoire .turn-tools button {
+    font-size: 0.6rem;
+  }
+  .grimoire-heading > span {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .grimoire {
+    width: calc(100vw - 0.6rem);
+    grid-template-columns: 1fr;
+    min-height: 0;
+    border-radius: 16px 16px 3px 3px;
+  }
+  .grimoire::before {
+    left: 50%;
+    top: 0;
+  }
+  .grimoire-page {
+    padding: 0.5rem 0.55rem;
+  }
+  .grimoire-left {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    border-radius: 14px 14px 0 0;
+    text-align: center;
+    background: linear-gradient(90deg, #f0e4c7, #dbc69e 49%, #f2e7cc 51%);
+  }
+  .grimoire-left > .eyebrow,
+  .grimoire-left > h2,
+  .grimoire-note {
+    display: none;
+  }
+  .grimoire .basics,
+  .grimoire .turn-tools {
+    display: contents;
+  }
+  .grimoire .basics button {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.2rem;
+  }
+  .grimoire .basics small {
+    font-size: 0.53rem;
+  }
+  .grimoire .turn-tools button {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.2rem;
+    background: #f0e4c7;
+  }
+  .grimoire .turn-tools #energy {
+    grid-column: 1/-1;
+    grid-row: 2;
+    font-size: 0.65rem;
+    padding: 0;
+  }
+  .grimoire #end-turn {
+    font-size: 0.7rem;
+    padding: 0.3rem;
+  }
+  .grimoire #end-turn small {
+    display: block;
+    margin: 0.15rem 0 0;
+    font-size: 0.5rem;
+  }
+  .grimoire-right {
+    background: linear-gradient(90deg, #efe3c7, #decaa6 49%, #f3e8ce 51%);
+    border-radius: 0 0 3px 3px;
+    padding-top: 0.15rem;
+  }
+  .grimoire-heading {
+    margin: 0.1rem 0.3rem 0.3rem;
+  }
+  .grimoire-heading .eyebrow {
+    font-size: 0.5rem;
+  }
+  .grimoire-heading > span {
+    font-size: 0.55rem;
+  }
+  .grimoire .hand {
+    justify-content: flex-start;
+    gap: 0.05rem;
+    min-height: 0;
+    padding: 0.1rem 0.05rem 0.3rem;
+  }
+  .grimoire .rune {
+    flex: 0 0 85px;
+    min-height: 135px;
+    padding: 0.25rem 0.2rem;
+  }
+  .grimoire .rune-seal {
+    width: 52px;
+    height: 52px;
+  }
+  .grimoire .rune > strong {
+    font-size: 0.85rem;
+  }
+  .grimoire .rune-effects {
+    font-size: 0.58rem;
+  }
+  .grimoire .rune-cost {
+    font-size: 0.55rem;
+  }
+  .grimoire .dock-caption {
+    font-size: 0.52rem;
+    margin: 0;
+  }
+  .forge-panel {
+    width: calc(100vw - 1rem);
+    max-width: none;
+    right: 50%;
+    top: 4.2rem;
+    bottom: 0.5rem;
+    padding: 0.6rem;
+  }
+  .forge-body {
+    display: block;
+    overflow-y: auto;
+    padding: 0.2rem;
+    flex: 1;
+  }
+  .forge-leaf {
+    overflow: visible;
+    padding: 0.2rem;
+  }
+  .forge-panel .movement-note {
+    font-size: 0.65rem;
+    margin: 0.1rem 0;
+  }
+  .forge-mode-row {
+    margin-top: 0.4rem;
+  }
+  .forge-panel .mode-copy {
+    font-size: 0.65rem;
+    margin: 0.4rem 0;
+  }
+  .fusion-tile {
+    min-height: 90px;
+  }
+  .fusion-seal {
+    width: 52px;
+    height: 52px;
+  }
+  .forge-left .fusion-preview {
+    margin-bottom: 0.5rem;
+  }
+  .forge-right {
+    border-top: 1px solid #c1ae8a;
+  }
+  .forge-leaf .inventory {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .inventory .rune {
+    min-height: 122px;
+  }
+  .inventory .rune-seal {
+    width: 48px;
+    height: 48px;
+  }
+  .inventory .rune > strong {
+    font-size: 0.75rem;
+  }
+  .inventory .rune-effects {
+    font-size: 0.53rem;
+  }
+  .forge-commit {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .forge-commit p {
+    font-size: 0.7rem;
+    margin: 0.1rem 0;
+  }
+  .forge-commit button {
+    width: 100%;
+    min-height: 38px;
+  }
+  .intro .intro-copy {
+    font-size: 1.05rem !important;
+    line-height: 1.8;
+  }
+  .intro h2 {
+    font-size: 3.5rem;
+  }
+  .path-settings {
+    margin: 0.8rem 0;
+  }
+  .reward-choices .rune-seal {
+    width: 65px;
+    height: 65px;
+  }
+  .reward-choices .rune > strong {
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 650px) {
+  .grimoire .rune {
+    flex: 1 0 calc((100vw - 2rem) / 5);
+    max-width: none;
+  }
+  .grimoire .rune-effects {
+    font-size: 0.63rem;
+  }
+  .grimoire .rune-cost {
+    font-size: 0.6rem;
+  }
+}
+.rune > strong {
+  max-height: 2.3em;
+  overflow: hidden;
+}
+.forge-leaf .inventory {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.inventory .rune-effects {
+  font-size: 0.63rem;
+}

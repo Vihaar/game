@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#e9dfcd" />
-    <title>The Fold · a thirst for knowledge</title>
+    <title>The Fold · the library awaits</title>
     <meta
       name="description"
-      content="A guided turn-based card journey through a papercraft library. Enter knowing nothing. Learn everything."
+      content="Awaken before a paper library. Explore, inscribe rune magic, and begin the climb."
     />
   </head>
   <body>
@@ -16,7 +16,7 @@
       <div class="paper-edge" aria-hidden="true"></div>
       <header class="hud">
         <a class="wordmark" href="./"
-          >THE FOLD <span>a thirst for knowledge</span></a
+          >THE FOLD <span id="journey-caption">The library awaits</span></a
         >
         <div id="stats" class="stats"></div>
         <div class="hud-buttons">
@@ -35,6 +35,26 @@
         aria-label="Choose a question to answer; enemy health and announced moves"
       ></div>
       <p id="message" class="message" role="status" aria-live="polite"></p>
+      <nav id="world-hotspots" aria-label="Explore the paper library" hidden>
+        <button id="world-read" class="world-hotspot">
+          <span class="hotspot-mark" aria-hidden="true">✧</span
+          ><strong>Read the open book</strong
+          ><small>A question on the page</small>
+        </button>
+        <button id="world-forge" class="world-hotspot">
+          <span class="hotspot-mark" aria-hidden="true">◇</span
+          ><strong>Connect two ideas</strong><small>Open the spell forge</small>
+        </button>
+        <button id="world-binding" class="world-hotspot">
+          <span class="hotspot-mark" aria-hidden="true">↗</span
+          ><strong>Ask the next question</strong
+          ><small>Continue your journey</small>
+        </button>
+      </nav>
+      <div class="explore-tools" hidden>
+        <span>A book to read. An idea to connect.</span
+        ><button id="explore-forge-button">Forge <kbd>F</kbd></button>
+      </div>
       <div class="advance-wrap">
         <button id="advance-button" class="primary" hidden></button>
       </div>
@@ -49,43 +69,68 @@
       >
         <header>
           <div>
-            <p class="eyebrow">THE SPELL FORGE</p>
-            <h2 id="forge-title">Two ideas. A new understanding.</h2>
+            <p class="eyebrow">THE OPEN SPELLBOOK</p>
+            <h2 id="forge-title" tabindex="-1">Inscribe a new spell.</h2>
           </div>
           <button id="close-forge" aria-label="Close forge">
             Close <kbd>F / Esc</kbd>
           </button>
         </header>
         <div class="forge-body">
-          <p class="movement-note">
-            Take your time. Only the price you confirm can trigger an enemy
-            move.
-          </p>
-          <div class="forge-mode-row">
-            <label for="forge-mode">The library's price</label
-            ><select id="forge-mode"></select>
-          </div>
-          <p id="mode-copy" class="mode-copy"></p>
-          <div id="fusion-preview" class="fusion-preview"></div>
-          <h3>Your deck <span id="inventory-count"></span></h3>
-          <div id="inventory" class="inventory"></div>
-          <details>
-            <summary>Discoveries in this browser</summary>
-            <p id="discoveries"></p>
-          </details>
+          <section class="forge-leaf forge-left">
+            <p class="movement-note">
+              Take your time. Only the price you confirm can trigger an enemy
+              move.
+            </p>
+            <div class="forge-mode-row">
+              <label for="forge-mode">The library's price</label
+              ><select id="forge-mode"></select>
+            </div>
+            <p id="mode-copy" class="mode-copy"></p>
+            <div id="fusion-preview" class="fusion-preview"></div>
+          </section>
+          <section class="forge-leaf forge-right">
+            <h3>Your grimoire <span id="inventory-count"></span></h3>
+            <div id="inventory" class="inventory"></div>
+            <details>
+              <summary>Discoveries in this browser</summary>
+              <p id="discoveries"></p>
+            </details>
+          </section>
         </div>
         <footer class="forge-commit">
           <p id="cost-preview"></p>
           <button id="merge-button" class="primary" disabled>
-            Choose two owned copies
+            Choose two rune imprints
           </button>
         </footer>
+      </aside>
+      <aside
+        id="book"
+        class="utility-panel book-panel"
+        hidden
+        aria-labelledby="book-title"
+      >
+        <header>
+          <div>
+            <p class="eyebrow">AN OPEN PAGE</p>
+            <h2 id="book-title" tabindex="-1"></h2>
+          </div>
+          <button id="close-book">Close <kbd>Esc</kbd></button>
+        </header>
+        <p id="book-question" class="book-question"></p>
+        <p id="book-passage"></p>
+        <blockquote id="book-truth" hidden></blockquote>
+        <p class="book-note">
+          Reading is optional. Take a thought with you, then continue when you
+          are ready.
+        </p>
       </aside>
       <aside id="map" class="utility-panel" hidden aria-labelledby="map-title">
         <header>
           <div>
-            <p class="eyebrow">A THIRST FOR KNOWLEDGE</p>
-            <h2 id="map-title">Eight truths to understand.</h2>
+            <p class="eyebrow">YOUR JOURNAL</p>
+            <h2 id="map-title">Notes from the climb.</h2>
           </div>
           <button id="close-map">Close</button>
         </header>
@@ -102,73 +147,82 @@
           <button id="close-help">Close</button>
         </header>
         <p>
-          Choose an enemy to target. Cast cards for ink, strike once, and raise
+          Choose an enemy to target. Cast runes for ink, strike once, and raise
           your reusable guard once each turn. When you are ready,
           <strong>End turn</strong> resolves every living enemy's shown move,
-          refills ink, and draws a fresh hand.
+          refills ink, and prepares fresh inscriptions.
         </p>
         <p>
           Guard lasts until enemy resolution. Nothing attacks or refills while
           you think. There is no walking, aiming, dodge timer or mouse capture.
         </p>
         <p>
-          <strong>Forge:</strong> combine any two different owned copies,
-          including forged spells. Check the exact price before confirming. The
-          Time price lets one named enemy perform its shown move immediately.
-          Other modes exchange health or permanent corruption.
+          <strong>Forge:</strong> combine two distinct rune imprints, including
+          forged inscriptions. Check the exact price before confirming. The Time
+          price lets one named enemy perform its shown move immediately. Other
+          modes exchange health or permanent corruption.
         </p>
         <p>
           <strong>Keys:</strong> 1–5 casts · J strikes · K guards · F forge · M
           journal. All actions also have visible buttons.
         </p>
         <p>
-          <strong>Full permadeath:</strong> death loses this run's health, deck,
-          forged spells and knowledge progress. Recipe discoveries remain in
-          this browser. Each cleared binding heals just 1 HP.
+          <strong>Full permadeath:</strong> death loses this run's health,
+          grimoire, forged spells and knowledge progress. Recipe discoveries
+          remain in this browser. Each cleared binding heals just 1 HP.
         </p>
       </aside>
-      <footer class="action-dock">
-        <div class="action-row">
+      <footer class="action-dock grimoire" aria-label="Your open grimoire">
+        <section class="grimoire-page grimoire-left">
+          <p class="eyebrow">THE GRIMOIRE</p>
+          <h2>Shape an answer.</h2>
+          <p class="grimoire-note">
+            Read their intentions.<br />Commit when you are ready.
+          </p>
           <div class="basics">
             <button id="basic-attack">Strike <kbd>J</kbd><small></small></button
             ><button id="basic-block">Guard <kbd>K</kbd><small></small></button>
           </div>
           <div class="turn-tools">
             <span id="energy"></span
-            ><button id="forge-button">Forge <kbd>F</kbd></button
-            ><button id="end-turn" class="primary">
-              End turn <small id="turn-number"></small>
-            </button>
+            ><button id="forge-button">Combine runes <kbd>F</kbd></button>
           </div>
-        </div>
-        <div id="hand" class="hand" aria-label="Spell cards"></div>
-        <p id="deck-count" class="dock-caption"></p>
+          <button id="end-turn" class="primary">
+            End turn <small id="turn-number"></small>
+          </button>
+        </section>
+        <section class="grimoire-page grimoire-right">
+          <div class="grimoire-heading">
+            <p class="eyebrow">PREPARED INSCRIPTIONS</p>
+            <span>Choose a rune to cast</span>
+          </div>
+          <div
+            id="hand"
+            class="hand"
+            aria-label="Prepared rune inscriptions"
+          ></div>
+          <p id="grimoire-count" class="dock-caption"></p>
+        </section>
       </footer>
       <dialog id="intro" class="panel intro">
-        <p class="eyebrow">
-          ENTER KNOWING NOTHING. LEAVE UNDERSTANDING EVERYTHING.
-        </p>
+        <p class="eyebrow">YOU WAKE UP</p>
         <h2>The Fold<span>.</span></h2>
         <p class="intro-copy">
-          A thirst for knowledge brings you to a library consuming reality.<br />Its
-          guardians are unanswered questions. Your cards are ideas.<br />Understand
-          eight truths. Learn everything.
+          No name. No memories.<br />Only a library before you.<br />And a
+          stairway leading up.
         </p>
-        <label for="paper-style">Preview the paper world</label
-        ><select id="paper-style">
-          <option value="storybook">Warm storybook</option>
-          <option value="popup">Dark pop-up book</option>
-          <option value="theater">Colorful paper theater</option>
-        </select>
-        <div id="characters" class="characters"></div>
-        <p id="character-summary"></p>
-        <label for="run-forge-mode">Choose what new knowledge costs</label
-        ><select id="run-forge-mode"></select>
-        <p id="run-mode-copy" class="mode-copy"></p>
-        <button id="start-button" class="primary">Enter the library</button>
+        <details class="path-settings">
+          <summary>Choose your path</summary>
+          <div id="characters" class="characters"></div>
+          <p id="character-summary"></p>
+          <label for="run-forge-mode">The price of inscription</label
+          ><select id="run-forge-mode"></select>
+          <p id="run-mode-copy" class="mode-copy"></p>
+        </details>
+        <button id="start-button" class="primary">Begin the climb</button>
         <p class="fineprint">
-          Guided encounters · turn-based cards · full permadeath<br />Take your
-          time. Enemies wait for your turn.
+          Turn-based rune magic · full permadeath<br />Take your time. Enemies
+          wait for your turn.
         </p>
         <a
           href="https://github.com/Vihaar/game"

@@ -24,6 +24,7 @@ import {
   applyCardDiscovery,
 } from "./guided-rules.mjs";
 import { cardArtStyle, requestCardDiscovery } from "./card-art.mjs";
+import { chapterBook, worldAvailable } from "./world-interactions.mjs";
 import "./style.css";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
@@ -43,9 +44,18 @@ const KNOWLEDGE = [
     "Change reveals what can become, not only what already is.",
   ],
   ["Cosmos", "Every small thing belongs to a greater connected whole."],
-  ["Truth", "Understanding grows when appearances meet honest questions."],
-  ["Self", "The one asking is part of the world being understood."],
-  ["Everything", "Every truth is connected. You now understand the whole."],
+  [
+    "Truth",
+    "You see what is true. The comforting answers can no longer shelter you.",
+  ],
+  [
+    "Self",
+    "You remember who is asking, and why the library feels like a return.",
+  ],
+  [
+    "Everything",
+    "Every truth is connected. You understand them all, and cannot unknow them.",
+  ],
 ];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let state = newGuidedRun(),
@@ -60,6 +70,10 @@ let state = newGuidedRun(),
   areaIndex = 0,
   lastPhase = "explore",
   messageTimer;
+let worldBusy = false,
+  readChapters = new Set(),
+  panelTrigger = null,
+  runEpoch = 0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45,
@@ -84,6 +98,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 $("#world").appendChild(renderer.domElement);
 const diorama = new GuidedDiorama(scene, camera, renderer, {
+  style: "storybook",
   onEnemyClick: (index) => chooseTarget(index),
 });
 function resize() {
@@ -113,7 +128,7 @@ function say(text) {
   messageTimer = setTimeout(() => ($("#message").textContent = ""), 6500);
 }
 function closePanels() {
-  for (const id of ["forge", "help", "map"]) $("#" + id).hidden = true;
+  for (const id of ["forge", "help", "map", "book"]) $("#" + id).hidden = true;
 }
 function dialog(id) {
   closePanels();
@@ -124,21 +139,25 @@ function effects(c) {
     c.damage ? `${c.damage}${c.all ? " to all" : ""} damage` : "",
     c.block ? `${c.block} guard` : "",
     c.heal ? `${c.heal} heal` : "",
-    c.draw ? `draw ${c.draw}` : "",
+    c.draw ? `prepare ${c.draw}` : "",
   ]
     .filter(Boolean)
     .join(" · ");
 }
-function cardMarkup(key, index, mode = "hand") {
-  const c = getCard(key);
-  if (!c) return "";
+function runeMarkup(key, index, mode = "hand") {
+  const rune = getCard(key);
+  if (!rune) return "";
   const disabled =
     mode === "hand" &&
     (state.phase !== "battle" ||
       state.forge ||
       travelling ||
-      c.cost > state.energy);
-  return `<button class="card ${esc(c.kind)}${c.fused ? " fused" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(c.name)}. ${esc(effects(c))}. ${c.cost} ink"><span class="card-top"><span>${c.fused ? "FOLDED SPELL" : "ELEMENT"}</span><b>${c.cost} ink</b></span><span class="card-art" style="${esc(cardArtStyle(c, key))}"></span><strong>${esc(c.name)}</strong><span class="card-effects">${esc(effects(c))}</span><span class="card-text">${esc((c.description || c.text || "").replace(/briefly/g, "this turn").replace(/nearby enemies/g, "all enemies"))}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</button>`;
+      rune.cost > state.energy);
+  const description = (rune.description || rune.text || "")
+    .replace(/briefly/g, "this turn")
+    .replace(/nearby enemies/g, "all enemies")
+    .replace(/Draw a card/g, "Prepare a rune");
+  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(description)}"><span class="rune-seal" style="${esc(cardArtStyle(rune, key))}"><span class="rune-glyph" aria-hidden="true">${esc(rune.glyph || "◇")}</span></span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost">${rune.cost} ink${mode === "hand" ? ` · <kbd>${index + 1}</kbd>` : ""}</span></button>`;
 }
 function renderCharacters() {
   $("#characters").innerHTML = Object.values(CHARACTERS)
@@ -176,26 +195,27 @@ function renderEnemies() {
 function render() {
   document.body.dataset.phase = travelling ? "travel" : state.phase;
   const area = AREAS[areaIndex];
-  $("#area-label").textContent =
-    `CHAPTER ${areaIndex + 1} / 8 · ${KNOWLEDGE[areaIndex][0].toUpperCase()}`;
+  $("#area-label").textContent = `FLOOR ${areaIndex + 1} / 8`;
   $("#area-title").textContent = area.name;
+  $("#journey-caption").textContent =
+    state.floor >= 3 ? "A thirst for knowledge" : "The library awaits";
   $("#objective").textContent = travelling
     ? "The pages are finding their place."
     : state.phase === "battle"
       ? "Your turn. Take your time; nothing attacks until you commit."
       : area.subtitle;
   $("#knowledge-progress").textContent =
-    `${state.phase === "won" ? 8 : state.floor - 1} / 8 truths understood`;
+    state.floor >= 3 ? `${state.floor - 1} truths understood` : "";
   $("#stats").innerHTML =
     `<span>${esc(state.character.name)}</span><strong>${state.hp} / ${state.maxHp} HP</strong><span>${state.block} guard</span><span>Curse ${state.corruption} <small>(+${corruptionDamageBonus(state)} damage)</small></span>`;
   $("#energy").textContent = `${state.energy} / ${state.maxEnergy} ink`;
   $("#turn-number").textContent = `TURN ${state.turn}`;
-  $("#deck-count").textContent =
-    `${state.inventory.length} owned · ${state.draw.length} draw · ${state.discard.length} discard`;
+  $("#grimoire-count").textContent =
+    `${state.inventory.length} bound runes · ${state.hand.length} prepared · ${state.draw.length} unread · ${state.discard.length} resting`;
   $("#hand").innerHTML =
     state.phase === "battle"
-      ? state.hand.map((k, i) => cardMarkup(k, i)).join("")
-      : '<p class="empty-hand">The next encounter is ahead. You may fold cards before continuing.</p>';
+      ? state.hand.map((k, i) => runeMarkup(k, i)).join("")
+      : '<p class="empty-hand">Your grimoire is quiet. Connect two runes before the next question.</p>';
   $("#basic-attack").disabled =
     state.phase !== "battle" ||
     state.struckThisTurn ||
@@ -208,10 +228,10 @@ function render() {
     travelling;
   $("#basic-attack small").textContent = state.struckThisTurn
     ? "Used this turn"
-    : `${state.character.basicDamage} damage · once per turn`;
+    : `${state.character.basicDamage} damage · once`;
   $("#basic-block small").textContent = state.guardedThisTurn
     ? "Used this turn"
-    : `${state.character.blockAmount} guard · once per turn`;
+    : `${state.character.blockAmount} guard · once`;
   $("#end-turn").disabled =
     state.phase !== "battle" || Boolean(state.forge) || travelling;
   $("#advance-button").hidden = state.phase !== "explore" || !started;
@@ -240,9 +260,10 @@ function renderForge() {
   $("#forge-mode").value = state.forgeMode;
   $("#forge-mode").disabled = Boolean(state.forge);
   $("#mode-copy").textContent = FORGE_MODES[state.forgeMode].description;
-  $("#inventory-count").textContent = `(${state.inventory.length} copies)`;
+  $("#inventory-count").textContent =
+    `(${state.inventory.length} rune imprints)`;
   $("#inventory").innerHTML = state.inventory
-    .map((k, i) => cardMarkup(k, i, "inventory"))
+    .map((k, i) => runeMarkup(k, i, "inventory"))
     .join("");
   const first = selected.length ? state.inventory[selected[0]] : null,
     second = selected.length > 1 ? state.inventory[selected[1]] : null;
@@ -256,21 +277,24 @@ function renderForge() {
   const tile = (k, empty) => {
     const c = k && getCard(k);
     return c
-      ? `<span class="fusion-tile"><span class="card-art" style="${esc(cardArtStyle(c, k))}"></span><strong>${esc(c.name)}</strong></span>`
+      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal" style="${esc(cardArtStyle(c, k))}"></span><strong>${esc(c.name)}</strong></span>`
       : `<span class="fusion-tile empty">${empty}</span>`;
   };
   $("#fusion-preview").innerHTML =
-    `${tile(first, "First copy")}<b>+</b>${tile(second, "Second copy")}<b>=</b>${tile(output, "New spell")}`;
+    `${tile(first, "First rune")}<b>+</b>${tile(second, "Second rune")}<b>=</b>${tile(output, "New inscription")}`;
   $("#cost-preview").textContent = preview?.output
-    ? `Consumes both copies + ${preview.inkCost} ink${preview.healthCost ? ` + ${preview.healthCost} HP` : ""}${preview.corruptionGain ? ` + 1 curse (enemy damage +${preview.enemyDamageBonusAfter})` : ""}. ${preview.enemyAction ? `${preview.enemyAction.name} immediately: ${preview.enemyAction.label}.` : "No extra enemy move."}`
-    : preview?.reason ||
-      "Choose any two distinct owned copies. Forged spells can be ingredients again.";
+    ? `Consumes both runes + ${preview.inkCost} ink${preview.healthCost ? ` + ${preview.healthCost} HP` : ""}${preview.corruptionGain ? ` + 1 curse (enemy damage +${preview.enemyDamageBonusAfter})` : ""}. ${preview.enemyAction ? `${preview.enemyAction.name} immediately: ${preview.enemyAction.label}.` : "No extra enemy move."}`
+    : preview?.reason?.replace(
+        /Keep moving while it refills\./g,
+        "Enter a question or end your turn to refill ink.",
+      ) ||
+      "Choose two distinct rune imprints. A forged inscription can become an ingredient again.";
   $("#merge-button").disabled = !preview?.ok || Boolean(state.forge);
   $("#merge-button").textContent = state.forge
     ? "Folding…"
     : preview?.ok
       ? `Forge ${getCard(preview.output).name}`
-      : "Choose two owned copies";
+      : "Choose two rune imprints";
   $("#discoveries").textContent =
     getDiscoveryCatalog()
       .slice(-12)
@@ -326,20 +350,33 @@ function checkPhase() {
   if (state.phase === "reward") showReward();
   if (["dead", "won"].includes(state.phase)) showEnding();
 }
-async function advance() {
-  if (travelling || state.phase !== "explore" || state.forge) return;
+async function advance({ focused = false } = {}) {
+  if (worldBusy || travelling || state.phase !== "explore" || state.forge)
+    return;
+  const epoch = runEpoch;
   closePanels();
+  if (!focused) {
+    worldBusy = true;
+    try {
+      await diorama.focusWorld?.("binding", { reducedMotion });
+    } finally {
+      worldBusy = false;
+    }
+  }
+  if (epoch !== runEpoch || !started || state.phase !== "explore") return;
   travelling = true;
-  areaIndex = state.floor - 1;
   render();
   await diorama.travelTo(areaIndex, { reducedMotion });
-  if (!started) return;
+  if (epoch !== runEpoch || !started) return;
   travelling = false;
+  clearTimeout(messageTimer);
+  $("#message").textContent = "";
   startGuidedBattle(state, random);
   lastPhase = state.phase;
   render();
 }
 function beginRun() {
+  runEpoch++;
   for (const d of document.querySelectorAll("dialog[open]")) d.close();
   closePanels();
   const mode = $("#run-forge-mode").value;
@@ -350,6 +387,8 @@ function beginRun() {
     Math.floor(Math.random() * 1e9);
   random = seededRandom(seed);
   started = true;
+  worldBusy = false;
+  readChapters = new Set();
   travelling = false;
   areaIndex = 0;
   selected = [];
@@ -357,7 +396,9 @@ function beginRun() {
   diorama.setArea(0);
   renderModes();
   render();
-  say("Choose your first binding. You control when each turn ends.");
+  say(
+    "Read the open book, connect ideas at the forge, or ask the next question.",
+  );
 }
 function showReward() {
   rewardOptions = shuffle(["ember", "stone", "dew", "gust"], random).slice(
@@ -366,9 +407,9 @@ function showReward() {
   );
   $("#reward-title").textContent = `${KNOWLEDGE[areaIndex][0]}, understood.`;
   $("#reward-copy").textContent =
-    `${KNOWLEDGE[areaIndex][1]} Choose a card copy and recover 1 health.`;
+    `${KNOWLEDGE[areaIndex][1]} Choose a rune for your grimoire and recover 1 health.`;
   $("#reward-choices").innerHTML = rewardOptions
-    .map((k, i) => cardMarkup(k, i, "reward"))
+    .map((k, i) => runeMarkup(k, i, "reward"))
     .join("");
   dialog("#reward");
 }
@@ -378,18 +419,19 @@ function showEnding() {
     ? "ALL EIGHT TRUTHS, UNDERSTOOD"
     : "FULL PERMADEATH";
   $("#ending-title").textContent = won
-    ? "You understand everything."
+    ? "The last answer."
     : "The library keeps this life.";
   $("#ending-copy").textContent =
-    `${state.character.name} · ${won ? 8 : state.floor - 1} / 8 bindings · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "You entered knowing nothing. Language, life, memory, transformation, the cosmos, truth and self now form one complete understanding. You know everything. With every unanswered question resolved, reality is whole again." : "Your deck, forged spells, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
+    `${state.character.name} · ${won ? 8 : state.floor - 1} / 8 bindings · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "You remember your name. You know why you came. You know everything—and you cannot unknow it. Every voice in every book speaks at once. The library is silent. Your mind never will be." : "Your runes, forged inscriptions, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
   dialog("#ending");
 }
 function togglePanel(id) {
-  if (!started || travelling) return;
+  if (!started || travelling || worldBusy) return;
   const open = $("#" + id).hidden;
   closePanels();
   $("#" + id).hidden = !open;
   if (open) {
+    panelTrigger = document.activeElement;
     if (id === "forge") {
       selected = [];
       renderForge();
@@ -397,7 +439,7 @@ function togglePanel(id) {
     if (id === "map") renderMap();
   }
 }
-$("#paper-style").onchange = (e) => diorama.setStyle(e.target.value);
+
 $("#characters").onclick = (e) => {
   const b = e.target.closest("[data-character]");
   if (b) {
@@ -420,7 +462,7 @@ $("#hand").onclick = (e) => {
 };
 for (const id of ["forge", "help", "map"]) {
   $("#" + id + "-button").onclick = () => togglePanel(id);
-  $("#close-" + id).onclick = () => ($("#" + id).hidden = true);
+  $("#close-" + id).onclick = () => closeWorldPanel(id);
 }
 $("#inventory").onclick = (e) => {
   const b = e.target.closest("[data-index]");
@@ -449,16 +491,31 @@ $("#run-forge-mode").onchange = (e) => {
   setForgeMode(state, e.target.value);
   $("#run-mode-copy").textContent = FORGE_MODES[state.forgeMode].description;
 };
-$("#reward-choices").onclick = (e) => {
+$("#reward-choices").onclick = async (e) => {
   const b = e.target.closest("[data-index]");
   if (!b || !takeReward(state, rewardOptions[Number(b.dataset.index)])) return;
+  const epoch = runEpoch;
   $("#reward").close();
   lastPhase = state.phase;
   diorama.setEnemies([]);
-  if (state.phase === "won") showEnding();
+  if (state.phase === "won") {
+    showEnding();
+    render();
+    return;
+  }
+  travelling = true;
+  areaIndex = state.floor - 1;
   render();
+  await diorama.travelTo(areaIndex, { reducedMotion });
+  if (epoch !== runEpoch || !started) return;
+  travelling = false;
+  render();
+  say(`${AREAS[areaIndex].name}. An open page is waiting.`);
 };
 $("#restart-button").onclick = () => {
+  runEpoch++;
+  worldBusy = false;
+  readChapters = new Set();
   $("#ending").close();
   started = false;
   travelling = false;
@@ -482,17 +539,123 @@ addEventListener("keydown", (e) => {
     ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)
   )
     return;
+  if (worldBusy) return;
   if (e.code === "Escape") {
-    closePanels();
+    const panel = ["book", "forge", "help", "map"].find(
+      (id) => !$("#" + id).hidden,
+    );
+    if (panel) closeWorldPanel(panel);
     return;
   }
-  if (e.code === "KeyF") togglePanel("forge");
-  if (e.code === "KeyM") togglePanel("map");
+  if (e.code === "KeyF") {
+    togglePanel("forge");
+    return;
+  }
+  if (e.code === "KeyM") {
+    togglePanel("map");
+    return;
+  }
+  if (["book", "forge", "help", "map"].some((id) => !$("#" + id).hidden))
+    return;
   if (e.code === "KeyJ") strike();
   if (e.code === "KeyK") guard();
   if (e.code === "Enter" && e.target.tagName !== "BUTTON") endTurn();
   if (/^Digit[1-5]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
 });
+
+function syncWorldUI() {
+  const visible = worldAvailable({
+    started,
+    phase: state.phase,
+    travelling,
+    modal: Boolean(document.querySelector("dialog[open]")),
+  });
+  diorama.setWorldVisible?.(visible);
+  const panelOpen = ["forge", "help", "map", "book"].some(
+    (id) => !$("#" + id).hidden,
+  );
+  $("#world-hotspots").hidden = !visible || panelOpen || worldBusy;
+  $(".explore-tools").hidden = !visible || panelOpen;
+  $("#advance-button").hidden = !visible || panelOpen;
+  $("#advance-button").disabled = worldBusy || Boolean(state.forge);
+  $("#explore-forge-button").disabled = worldBusy;
+  $("#world-read").classList.toggle("visited", readChapters.has(areaIndex));
+  const fallback = {
+    read: [0.25, 0.58],
+    forge: [0.51, 0.7],
+    binding: [0.78, 0.48],
+  };
+  for (const [id, point] of Object.entries(fallback)) {
+    const button = $("#world-" + id);
+    const anchor = diorama.getWorldAnchor?.(id);
+    let x = point[0] * innerWidth,
+      y = point[1] * innerHeight;
+    if (anchor) {
+      anchor.project(camera);
+      x = (anchor.x * 0.5 + 0.5) * innerWidth;
+      y = (-anchor.y * 0.5 + 0.5) * innerHeight;
+    }
+    button.style.left = `${Math.max(75, Math.min(innerWidth - 75, x))}px`;
+    button.style.top = `${Math.max(225, Math.min(innerHeight - 145, y))}px`;
+    button.disabled = worldBusy || (id === "binding" && Boolean(state.forge));
+  }
+}
+async function useWorld(id) {
+  if (
+    !worldAvailable({
+      started,
+      phase: state.phase,
+      travelling,
+      modal: Boolean(document.querySelector("dialog[open]")),
+    }) ||
+    worldBusy ||
+    (id === "binding" && state.forge)
+  )
+    return;
+  const epoch = runEpoch;
+  panelTrigger = $("#world-" + id);
+  worldBusy = true;
+  syncWorldUI();
+  try {
+    await diorama.focusWorld?.(id, { reducedMotion });
+  } finally {
+    worldBusy = false;
+  }
+  if (epoch !== runEpoch || state.phase !== "explore" || !started) return;
+  if (id === "binding") {
+    advance({ focused: true });
+    return;
+  }
+  if (id === "forge") {
+    togglePanel("forge");
+    $("#forge-title").focus();
+    return;
+  }
+  const book = chapterBook(areaIndex);
+  closePanels();
+  $("#book-title").textContent = book.title;
+  $("#book-question").textContent = book.question;
+  $("#book-passage").textContent = book.passage;
+  $("#book-truth").hidden = state.floor - 1 <= areaIndex;
+  $("#book-truth").textContent = KNOWLEDGE[areaIndex][1];
+  $("#book").hidden = false;
+  readChapters.add(areaIndex);
+  $("#book-title").focus();
+}
+function closeWorldPanel(id) {
+  $("#" + id).hidden = true;
+  syncWorldUI();
+  if (panelTrigger?.isConnected && !panelTrigger.disabled) panelTrigger.focus();
+  panelTrigger = null;
+}
+for (const id of ["read", "forge", "binding"])
+  $("#world-" + id).onclick = () => useWorld(id);
+$("#close-book").onclick = () => closeWorldPanel("book");
+$("#explore-forge-button").onclick = () => {
+  panelTrigger = document.activeElement;
+  togglePanel("forge");
+};
+
 function positionTargets() {
   const positions = [...document.querySelectorAll("[data-enemy]")]
     .filter((button) => !button.disabled)
@@ -526,7 +689,7 @@ function positionTargets() {
 let previous = performance.now(),
   elapsed = 0;
 renderer.setAnimationLoop((now) => {
-  if (now - previous < 1000 / 45) return;
+  if (now - previous < 1000 / 60) return;
   const dt = Math.min(0.05, (now - previous) / 1000);
   previous = now;
   elapsed += dt;
@@ -546,6 +709,7 @@ renderer.setAnimationLoop((now) => {
   }
   diorama.update(dt, elapsed, { reducedMotion });
   positionTargets();
+  syncWorldUI();
   renderer.render(scene, camera);
 });
 renderCharacters();
@@ -571,5 +735,7 @@ if (import.meta.env.DEV)
     forge: state.forge ? { ...state.forge } : null,
     corruption: state.corruption,
     travelling,
+    worldBusy,
+    readChapters: [...readChapters],
     drawCalls: renderer.info.render.calls,
   });
