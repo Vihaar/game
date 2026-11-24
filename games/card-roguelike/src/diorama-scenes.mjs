@@ -1,40 +1,124 @@
 /** Visual-only scene data. Combat state never comes from the illustration layer. */
 export const DIORAMA_SCENES = [
-  { id: 'intake', backdrop: 'library-stacks.webp', paper: '#e9d7b9', edge: '#b78e62', ink: '#3e4f59', side: -1 },
-  { id: 'mycelium', backdrop: 'library-garden.webp', paper: '#d7e2c8', edge: '#91a88d', ink: '#355d57', side: 1 },
-  { id: 'flooded', backdrop: 'library-water.webp', paper: '#d0e5e4', edge: '#82b4bc', ink: '#315e73', side: -1 },
-  { id: 'glasshouse', backdrop: 'library-garden.webp', paper: '#ead5d0', edge: '#c29999', ink: '#5d6e67', side: -1 },
-  { id: 'observatory', backdrop: 'library-stars.webp', paper: '#d8cfe7', edge: '#a895c2', ink: '#4b486e', side: 1 },
-  { id: 'press', backdrop: 'library-stacks.webp', paper: '#e5c8b6', edge: '#bd8a76', ink: '#744c56', side: 1 },
-  { id: 'broken', backdrop: 'library-stars.webp', paper: '#d8d0de', edge: '#aaa0bd', ink: '#61576c', side: -1 },
-  { id: 'binding', backdrop: 'library-stars.webp', paper: '#ecd6b4', edge: '#baa084', ink: '#3c4c67', side: 1 },
+  {
+    id: "intake",
+    backdrop: "library-stacks.webp",
+    paper: "#e9d7b9",
+    edge: "#b78e62",
+    ink: "#3e4f59",
+    side: -1,
+  },
+  {
+    id: "mycelium",
+    backdrop: "library-garden.webp",
+    paper: "#d7e2c8",
+    edge: "#91a88d",
+    ink: "#355d57",
+    side: 1,
+  },
+  {
+    id: "flooded",
+    backdrop: "library-water.webp",
+    paper: "#d0e5e4",
+    edge: "#82b4bc",
+    ink: "#315e73",
+    side: -1,
+  },
+  {
+    id: "glasshouse",
+    backdrop: "library-garden.webp",
+    paper: "#ead5d0",
+    edge: "#c29999",
+    ink: "#5d6e67",
+    side: -1,
+  },
+  {
+    id: "observatory",
+    backdrop: "library-stars.webp",
+    paper: "#d8cfe7",
+    edge: "#a895c2",
+    ink: "#4b486e",
+    side: 1,
+  },
+  {
+    id: "press",
+    backdrop: "library-stacks.webp",
+    paper: "#e5c8b6",
+    edge: "#bd8a76",
+    ink: "#744c56",
+    side: 1,
+  },
+  {
+    id: "broken",
+    backdrop: "library-stars.webp",
+    paper: "#d8d0de",
+    edge: "#aaa0bd",
+    ink: "#61576c",
+    side: -1,
+  },
+  {
+    id: "binding",
+    backdrop: "library-stars.webp",
+    paper: "#ecd6b4",
+    edge: "#baa084",
+    ink: "#3c4c67",
+    side: 1,
+  },
 ];
 
 export const ENEMY_ATLAS = {
-  file: 'enemy-atlas.webp', columns: 3, rows: 2,
-  types: ['inkling', 'eater', 'warden', 'scribe', 'bell', 'unbinder'],
+  file: "enemy-atlas.webp",
+  columns: 3,
+  rows: 2,
+  types: ["inkling", "eater", "warden", "scribe", "bell", "unbinder"],
   // Generated silhouettes occupy unequal rows: quills/hats begin above y=512.
   // These top-left-origin normalized rectangles exclude neighbouring silhouettes.
-  regions: Object.fromEntries(['inkling', 'eater', 'warden', 'scribe', 'bell', 'unbinder'].map((type, index) => [type,
-    [index % 3 / 3, index < 3 ? 0 : 468 / 1024, 1 / 3, index < 3 ? 468 / 1024 : 556 / 1024],
-  ])),
+  regions: Object.fromEntries(
+    ["inkling", "eater", "warden", "scribe", "bell", "unbinder"].map(
+      (type, index) => [
+        type,
+        [
+          (index % 3) / 3,
+          index < 3 ? 0 : 468 / 1024,
+          1 / 3,
+          index < 3 ? 468 / 1024 : 556 / 1024,
+        ],
+      ],
+    ),
+  ),
 };
 
 export const DIORAMA_STYLES = {
-  storybook: { label: 'Handmade storybook', preview: 'storybook.webp' },
-  popup: { label: 'Pop-up book', preview: 'popup.webp' },
-  theater: { label: 'Paper theatre', preview: 'theater.webp' },
+  storybook: { label: "Handmade storybook", preview: "storybook.webp" },
+  popup: { label: "Pop-up book", preview: "popup.webp" },
+  theater: { label: "Paper theatre", preview: "theater.webp" },
 };
 
-export function sceneBackdrop(index, style = 'storybook', overrides = {}) {
+export function sceneBackdrop(index, style = "storybook", overrides = {}) {
   const scene = DIORAMA_SCENES[Math.max(0, Math.min(7, index))];
-  return overrides[style]?.[scene.id] ?? overrides[scene.id] ?? DIORAMA_STYLES[style]?.preview ?? DIORAMA_STYLES.storybook.preview;
+  return (
+    overrides[style]?.[scene.id] ??
+    overrides[scene.id] ??
+    DIORAMA_STYLES[style]?.preview ??
+    DIORAMA_STYLES.storybook.preview
+  );
 }
 
 /** Three UVs start at the bottom; generated atlas metadata is read top-to-bottom. */
-export function atlasRegion(index, columns = ENEMY_ATLAS.columns, rows = ENEMY_ATLAS.rows, inset = 0.004, rectangle) {
+export function atlasRegion(
+  index,
+  columns = ENEMY_ATLAS.columns,
+  rows = ENEMY_ATLAS.rows,
+  inset = 0.004,
+  rectangle,
+) {
   const safe = Math.max(0, Math.min(columns * rows - 1, index));
-  const [x, y, width, height] = rectangle ?? [safe % columns / columns, Math.floor(safe / columns) / rows, 1 / columns, 1 / rows];
+  const [x, y, width, height] = rectangle ?? [
+    (safe % columns) / columns,
+    Math.floor(safe / columns) / rows,
+    1 / columns,
+    1 / rows,
+  ];
   return {
     repeat: [width - inset * 2, height - inset * 2],
     offset: [x + inset, 1 - y - height + inset],

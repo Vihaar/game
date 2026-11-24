@@ -1,14 +1,202 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e9dfcd"><title>The Fold · a thirst for knowledge</title><meta name="description" content="A guided turn-based card journey through a papercraft library. Enter knowing nothing. Learn everything."></head><body><main id="app">
-<div id="world" aria-label="Guided papercraft library diorama"></div><div class="paper-edge" aria-hidden="true"></div>
-<header class="hud"><a class="wordmark" href="./">THE FOLD <span>a thirst for knowledge</span></a><div id="stats" class="stats"></div><div class="hud-buttons"><button id="map-button">Journal <kbd>M</kbd></button><button id="help-button" aria-label="Show controls">?</button></div></header>
-<section class="chapter"><p id="area-label"></p><h1 id="area-title"></h1><p id="objective"></p><p id="knowledge-progress"></p></section>
-<div id="enemy-targets" aria-label="Choose a question to answer; enemy health and announced moves"></div><p id="message" class="message" role="status" aria-live="polite"></p>
-<div class="advance-wrap"><button id="advance-button" class="primary" hidden></button></div><div id="channel-banner" class="channel-banner" hidden><span id="channel-copy"></span></div>
-<aside id="forge" class="forge-panel" hidden aria-labelledby="forge-title"><header><div><p class="eyebrow">THE SPELL FORGE</p><h2 id="forge-title">Two ideas. A new understanding.</h2></div><button id="close-forge" aria-label="Close forge">Close <kbd>F / Esc</kbd></button></header><div class="forge-body"><p class="movement-note">Take your time. Only the price you confirm can trigger an enemy move.</p><div class="forge-mode-row"><label for="forge-mode">The library's price</label><select id="forge-mode"></select></div><p id="mode-copy" class="mode-copy"></p><div id="fusion-preview" class="fusion-preview"></div><h3>Your deck <span id="inventory-count"></span></h3><div id="inventory" class="inventory"></div><details><summary>Discoveries in this browser</summary><p id="discoveries"></p></details></div><footer class="forge-commit"><p id="cost-preview"></p><button id="merge-button" class="primary" disabled>Choose two owned copies</button></footer></aside>
-<aside id="map" class="utility-panel" hidden aria-labelledby="map-title"><header><div><p class="eyebrow">A THIRST FOR KNOWLEDGE</p><h2 id="map-title">Eight truths to understand.</h2></div><button id="close-map">Close</button></header><ol id="map-content"></ol></aside>
-<aside id="help" class="utility-panel" hidden aria-labelledby="help-title"><header><h2 id="help-title">Your turn. Your pace.</h2><button id="close-help">Close</button></header><p>Choose an enemy to target. Cast cards for ink, strike once, and raise your reusable guard once each turn. When you are ready, <strong>End turn</strong> resolves every living enemy's shown move, refills ink, and draws a fresh hand.</p><p>Guard lasts until enemy resolution. Nothing attacks or refills while you think. There is no walking, aiming, dodge timer or mouse capture.</p><p><strong>Forge:</strong> combine any two different owned copies, including forged spells. Check the exact price before confirming. The Time price lets one named enemy perform its shown move immediately. Other modes exchange health or permanent corruption.</p><p><strong>Keys:</strong> 1–5 casts · J strikes · K guards · F forge · M journal. All actions also have visible buttons.</p><p><strong>Full permadeath:</strong> death loses this run's health, deck, forged spells and knowledge progress. Recipe discoveries remain in this browser. Each cleared binding heals just 1 HP.</p></aside>
-<footer class="action-dock"><div class="action-row"><div class="basics"><button id="basic-attack">Strike <kbd>J</kbd><small></small></button><button id="basic-block">Guard <kbd>K</kbd><small></small></button></div><div class="turn-tools"><span id="energy"></span><button id="forge-button">Forge <kbd>F</kbd></button><button id="end-turn" class="primary">End turn <small id="turn-number"></small></button></div></div><div id="hand" class="hand" aria-label="Spell cards"></div><p id="deck-count" class="dock-caption"></p></footer>
-<dialog id="intro" class="panel intro"><p class="eyebrow">ENTER KNOWING NOTHING. LEAVE UNDERSTANDING EVERYTHING.</p><h2>The Fold<span>.</span></h2><p class="intro-copy">A thirst for knowledge brings you to a library consuming reality.<br>Its guardians are unanswered questions. Your cards are ideas.<br>Understand eight truths. Learn everything.</p><label for="paper-style">Preview the paper world</label><select id="paper-style"><option value="storybook">Warm storybook</option><option value="popup">Dark pop-up book</option><option value="theater">Colorful paper theater</option></select><div id="characters" class="characters"></div><p id="character-summary"></p><label for="run-forge-mode">Choose what new knowledge costs</label><select id="run-forge-mode"></select><p id="run-mode-copy" class="mode-copy"></p><button id="start-button" class="primary">Enter the library</button><p class="fineprint">Guided encounters · turn-based cards · full permadeath<br>Take your time. Enemies wait for your turn.</p><a href="https://github.com/Vihaar/game" target="_blank" rel="noreferrer">Help write the next chapter</a></dialog>
-<dialog id="reward" class="panel reward"><p class="eyebrow">A QUESTION ANSWERED</p><h2 id="reward-title"></h2><p id="reward-copy"></p><div id="reward-choices" class="reward-choices"></div></dialog>
-<dialog id="ending" class="panel ending"><p id="ending-label" class="eyebrow"></p><h2 id="ending-title"></h2><p id="ending-copy"></p><button id="restart-button" class="primary">Begin a new life</button><a href="https://github.com/Vihaar/game/issues" target="_blank" rel="noreferrer">Help build The Fold</a></dialog>
-<noscript>The Fold needs JavaScript and WebGL.</noscript></main><script type="module" src="/src/main.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#e9dfcd" />
+    <title>The Fold · a thirst for knowledge</title>
+    <meta
+      name="description"
+      content="A guided turn-based card journey through a papercraft library. Enter knowing nothing. Learn everything."
+    />
+  </head>
+  <body>
+    <main id="app">
+      <div id="world" aria-label="Guided papercraft library diorama"></div>
+      <div class="paper-edge" aria-hidden="true"></div>
+      <header class="hud">
+        <a class="wordmark" href="./"
+          >THE FOLD <span>a thirst for knowledge</span></a
+        >
+        <div id="stats" class="stats"></div>
+        <div class="hud-buttons">
+          <button id="map-button">Journal <kbd>M</kbd></button
+          ><button id="help-button" aria-label="Show controls">?</button>
+        </div>
+      </header>
+      <section class="chapter">
+        <p id="area-label"></p>
+        <h1 id="area-title"></h1>
+        <p id="objective"></p>
+        <p id="knowledge-progress"></p>
+      </section>
+      <div
+        id="enemy-targets"
+        aria-label="Choose a question to answer; enemy health and announced moves"
+      ></div>
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+      <div class="advance-wrap">
+        <button id="advance-button" class="primary" hidden></button>
+      </div>
+      <div id="channel-banner" class="channel-banner" hidden>
+        <span id="channel-copy"></span>
+      </div>
+      <aside
+        id="forge"
+        class="forge-panel"
+        hidden
+        aria-labelledby="forge-title"
+      >
+        <header>
+          <div>
+            <p class="eyebrow">THE SPELL FORGE</p>
+            <h2 id="forge-title">Two ideas. A new understanding.</h2>
+          </div>
+          <button id="close-forge" aria-label="Close forge">
+            Close <kbd>F / Esc</kbd>
+          </button>
+        </header>
+        <div class="forge-body">
+          <p class="movement-note">
+            Take your time. Only the price you confirm can trigger an enemy
+            move.
+          </p>
+          <div class="forge-mode-row">
+            <label for="forge-mode">The library's price</label
+            ><select id="forge-mode"></select>
+          </div>
+          <p id="mode-copy" class="mode-copy"></p>
+          <div id="fusion-preview" class="fusion-preview"></div>
+          <h3>Your deck <span id="inventory-count"></span></h3>
+          <div id="inventory" class="inventory"></div>
+          <details>
+            <summary>Discoveries in this browser</summary>
+            <p id="discoveries"></p>
+          </details>
+        </div>
+        <footer class="forge-commit">
+          <p id="cost-preview"></p>
+          <button id="merge-button" class="primary" disabled>
+            Choose two owned copies
+          </button>
+        </footer>
+      </aside>
+      <aside id="map" class="utility-panel" hidden aria-labelledby="map-title">
+        <header>
+          <div>
+            <p class="eyebrow">A THIRST FOR KNOWLEDGE</p>
+            <h2 id="map-title">Eight truths to understand.</h2>
+          </div>
+          <button id="close-map">Close</button>
+        </header>
+        <ol id="map-content"></ol>
+      </aside>
+      <aside
+        id="help"
+        class="utility-panel"
+        hidden
+        aria-labelledby="help-title"
+      >
+        <header>
+          <h2 id="help-title">Your turn. Your pace.</h2>
+          <button id="close-help">Close</button>
+        </header>
+        <p>
+          Choose an enemy to target. Cast cards for ink, strike once, and raise
+          your reusable guard once each turn. When you are ready,
+          <strong>End turn</strong> resolves every living enemy's shown move,
+          refills ink, and draws a fresh hand.
+        </p>
+        <p>
+          Guard lasts until enemy resolution. Nothing attacks or refills while
+          you think. There is no walking, aiming, dodge timer or mouse capture.
+        </p>
+        <p>
+          <strong>Forge:</strong> combine any two different owned copies,
+          including forged spells. Check the exact price before confirming. The
+          Time price lets one named enemy perform its shown move immediately.
+          Other modes exchange health or permanent corruption.
+        </p>
+        <p>
+          <strong>Keys:</strong> 1–5 casts · J strikes · K guards · F forge · M
+          journal. All actions also have visible buttons.
+        </p>
+        <p>
+          <strong>Full permadeath:</strong> death loses this run's health, deck,
+          forged spells and knowledge progress. Recipe discoveries remain in
+          this browser. Each cleared binding heals just 1 HP.
+        </p>
+      </aside>
+      <footer class="action-dock">
+        <div class="action-row">
+          <div class="basics">
+            <button id="basic-attack">Strike <kbd>J</kbd><small></small></button
+            ><button id="basic-block">Guard <kbd>K</kbd><small></small></button>
+          </div>
+          <div class="turn-tools">
+            <span id="energy"></span
+            ><button id="forge-button">Forge <kbd>F</kbd></button
+            ><button id="end-turn" class="primary">
+              End turn <small id="turn-number"></small>
+            </button>
+          </div>
+        </div>
+        <div id="hand" class="hand" aria-label="Spell cards"></div>
+        <p id="deck-count" class="dock-caption"></p>
+      </footer>
+      <dialog id="intro" class="panel intro">
+        <p class="eyebrow">
+          ENTER KNOWING NOTHING. LEAVE UNDERSTANDING EVERYTHING.
+        </p>
+        <h2>The Fold<span>.</span></h2>
+        <p class="intro-copy">
+          A thirst for knowledge brings you to a library consuming reality.<br />Its
+          guardians are unanswered questions. Your cards are ideas.<br />Understand
+          eight truths. Learn everything.
+        </p>
+        <label for="paper-style">Preview the paper world</label
+        ><select id="paper-style">
+          <option value="storybook">Warm storybook</option>
+          <option value="popup">Dark pop-up book</option>
+          <option value="theater">Colorful paper theater</option>
+        </select>
+        <div id="characters" class="characters"></div>
+        <p id="character-summary"></p>
+        <label for="run-forge-mode">Choose what new knowledge costs</label
+        ><select id="run-forge-mode"></select>
+        <p id="run-mode-copy" class="mode-copy"></p>
+        <button id="start-button" class="primary">Enter the library</button>
+        <p class="fineprint">
+          Guided encounters · turn-based cards · full permadeath<br />Take your
+          time. Enemies wait for your turn.
+        </p>
+        <a
+          href="https://github.com/Vihaar/game"
+          target="_blank"
+          rel="noreferrer"
+          >Help write the next chapter</a
+        >
+      </dialog>
+      <dialog id="reward" class="panel reward">
+        <p class="eyebrow">A QUESTION ANSWERED</p>
+        <h2 id="reward-title"></h2>
+        <p id="reward-copy"></p>
+        <div id="reward-choices" class="reward-choices"></div>
+      </dialog>
+      <dialog id="ending" class="panel ending">
+        <p id="ending-label" class="eyebrow"></p>
+        <h2 id="ending-title"></h2>
+        <p id="ending-copy"></p>
+        <button id="restart-button" class="primary">Begin a new life</button
+        ><a
+          href="https://github.com/Vihaar/game/issues"
+          target="_blank"
+          rel="noreferrer"
+          >Help build The Fold</a
+        >
+      </dialog>
+      <noscript>The Fold needs JavaScript and WebGL.</noscript>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
