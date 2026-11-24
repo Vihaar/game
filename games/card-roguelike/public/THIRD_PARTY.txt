@@ -16,3 +16,7 @@ art/README.md. No Neal.fun endpoint or artwork is used.
 
 The interface requests Fraunces and DM Sans from Google Fonts; local system
 fonts are used if unavailable. No external game artwork is included.
+
+Original generated chapter scenery and guardian cutouts: art/SCENES.md and
+art/WORLD_GENERATION.md. The interactive paper-world geometry uses Three.js.
+

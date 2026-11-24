@@ -41,7 +41,7 @@ Motion should read as a fold, flutter, snap or tear. Respect reduced motion; nev
 
 ## Chosen direction: warm handmade storybook
 
-On 2026-11-24 the user selected the first preview, **warm handmade storybook**. Ivory paper, honey light, moss foliage, dusty coral bindings and book-ink blue now define every chapter. `public/art/SCENES.md` retains the original three concepts as provenance; the other two are archived studies. New chapter art must match `public/art/storybook.webp`.
+On 2026-11-24 the user selected the first preview, **warm handmade storybook**, then specified that it should darken as knowledge reveals its curse. Ivory paper, honey light, moss foliage and dusty coral define the entrance. Later chapters introduce deep teal, long book-ink shadows, plum, moonlit ivory and red binding thread. Preserve the physical handmade material throughout; darkness changes the mood, not the medium. `public/art/SCENES.md` retains the original three concepts as provenance; the other two are archived studies.
 
 The playable world uses a guided 2.5D composition: chapter-specific illustrations behind physical paper architecture, a folded path and book props. Perspective changes along short fixed camera rails when entering rooms or approaching a book or forge; battles remain still. The player explores by choosing visible objects, with mouse, touch and keyboard equivalents. Avoid recreating frantic free movement. Each of the eight truths must have its own identifiable room.
 

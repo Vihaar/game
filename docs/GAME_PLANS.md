@@ -16,11 +16,11 @@ Pack a tiny elevator. Each arrival insists they can fit. Drag and rotate passeng
 
 First prototype: adapt Matter's compound-body, stacking, and dragging examples through Phaser. Use five passenger silhouettes and one fixed elevator. Try top-down packing before ragdoll complexity. Add a visible rotation control, enclosure/doorway checks, scoring, and restart. Add a ladder, bicycle, and wedding cake after packing is fun. Target: 1–3 minutes.
 
-## The Fold: guided card roguelike
+## The Fold: the library before you
 
-Enter a magical paper library knowing nothing, thirsty to learn everything. Eight guided chapters teach Language, Life, Memory, Transformation, Cosmos, Truth, Self and Everything. The ending grants sincere complete understanding. Full permadeath resets a failed run's deck, forged cards, resources and progress; only recipe knowledge persists.
+You wake without a name or memories before an open library and begin its climb. Eight floors reveal Language, Life, Memory, Transformation, Cosmos, Truth, Self and Everything. The urge to learn emerges during play. Every floor becomes darker, emptier and more eerie. At the summit, complete understanding reveals that knowledge is a curse. Full permadeath resets the run's spells, resources and progress; only recipe knowledge persists.
 
-Battles are deliberate turns with visible intentions, once-per-turn basic attack/guard and an explicit End turn. There is no free walking, aiming, dodge timing or automatic damage while thinking. The game leads the camera between illustrated paper stages. Any two owned cards can be recursively forged during battle. Time clearly previews one extra enemy action; corruption, health and combined prices remain selectable. Powers and healing stay bounded. Three generated art directions are available for comparison before a final world palette is chosen. See `games/card-roguelike/NARRATIVE.md` and `ART_DIRECTION.md`. Optional runtime AI decorates cards only and stays disabled without configured credentials.
+The selected warm storybook papercraft style becomes a guided interactive 2.5D world: actual folded path and book props against distinct illustrated rooms. Inspect a book, approach the forge or enter the next binding with visible controls. Smooth bounded camera rails settle before turn-based battles; no free walking or dodge timing. A clean open grimoire holds rune inscriptions. Combine any two owned rune imprints into a spell, including previously forged spells, and cast prepared runes on your turn. Strike/Guard and End turn remain explicit. Forge prices remain previewed, powers bounded and healing scarce. The renderer and rule engine are reused. See games/card-roguelike/NARRATIVE.md, ART_DIRECTION.md and docs/FOLD_3D_RESEARCH.md.
 
 ## Shared constraints
 
