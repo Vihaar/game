@@ -1,54 +1,23 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Explore a first-person paper dungeon. Fuse the cards in your deck into stronger spells. A short open-source roguelike prototype.">
-  <title>The Fold · a card-crafting dungeon</title>
-</head>
-<body>
-  <main id="app">
-    <div id="world" aria-label="First-person dungeon view"></div>
-    <header class="hud">
-      <div class="wordmark"><span class="rune">✣</span> THE FOLD <span class="prototype">prototype</span></div>
-      <div id="stats" class="stats"></div>
-      <button id="help-button" class="small-button" aria-label="Show controls">?</button>
-    </header>
-    <section class="chapter"><p id="chapter-label">THE FIRST FOLD</p><h1 id="chapter-title">An unfinished spell.</h1><p id="objective"></p></section>
-    <div id="crosshair" aria-hidden="true">+</div>
-    <div id="targets" class="targets" aria-label="Choose an enemy"></div>
-    <div id="message" class="message" role="status" aria-live="polite"></div>
-    <section id="combat" class="combat" hidden>
-      <div class="turn-bar"><span id="energy"></span><span id="deck-count"></span><button id="end-turn">End turn <kbd>Enter</kbd></button></div>
-      <div id="hand" class="hand" aria-label="Your hand"></div>
-    </section>
-    <footer id="explore-controls" class="explore-controls"><span><kbd>WASD</kbd> walk <span class="separator">/</span> click the room to look <span class="separator">/</span> <kbd>Esc</kbd> release mouse</span><button id="forge-button">Open the forge <kbd>F</kbd></button></footer>
-    <dialog id="intro" class="panel intro" aria-labelledby="intro-title">
-      <p class="eyebrow">A FIRST-PERSON CARD-CRAFTING DUNGEON</p>
-      <h2 id="intro-title">The Fold<span>.</span></h2>
-      <p class="intro-copy">The library has folded in on itself.<br>Bring a deck. Leave with a spell nobody has seen.</p>
-      <div class="intro-cards" aria-hidden="true"><span>✦<small>EMBER</small></span><b>+</b><span>✦<small>EMBER</small></span><b>=</b><span class="fused">☀<small>FLARE</small></span></div>
-      <p>Explore three chambers. Fight with cards. Between battles, consume two cards to forge something stronger.</p>
-      <button id="start-button" class="primary">Enter the library</button>
-      <p class="fineprint">Desktop prototype · keyboard + mouse · about 5 minutes<br>Original card rules, built on the Three.js FPS example.</p>
-      <a class="source-link" href="https://github.com/Vihaar/game" target="_blank" rel="noreferrer">Help build it on GitHub</a>
-    </dialog>
-    <dialog id="forge" class="panel forge" aria-labelledby="forge-title">
-      <div class="panel-heading"><div><p class="eyebrow">THE SPELL FORGE</p><h2 id="forge-title">Two become one.</h2></div><button id="close-forge" aria-label="Close forge">Close <kbd>Esc</kbd></button></div>
-      <p>Pick two cards from your deck. Forging permanently consumes both copies. Your new spell joins the deck for the next battle.</p>
-      <div id="fusion-preview" class="fusion-preview" aria-live="polite"></div>
-      <button id="merge-button" class="primary" disabled>Choose two cards</button>
-      <h3>Your deck <span id="inventory-count"></span></h3>
-      <div id="inventory" class="inventory"></div>
-      <details><summary>Known recipes</summary><div id="recipes" class="recipes"></div></details>
-    </dialog>
-    <dialog id="reward" class="panel reward" aria-labelledby="reward-title">
-      <p class="eyebrow">A PAGE RECOVERED</p><h2 id="reward-title">The room exhales.</h2><p id="reward-copy"></p><div id="reward-choices" class="reward-choices"></div>
-    </dialog>
-    <dialog id="ending" class="panel ending" aria-labelledby="ending-title"><p class="eyebrow" id="ending-label"></p><h2 id="ending-title"></h2><p id="ending-copy"></p><button id="restart-button" class="primary">Start a new run</button><a class="source-link" href="https://github.com/Vihaar/game/issues" target="_blank" rel="noreferrer">Suggest what happens next</a></dialog>
-    <dialog id="help" class="panel help" aria-labelledby="help-title"><h2 id="help-title">A little field guide.</h2><p><strong>Explore:</strong> WASD to walk. Click the room for mouse look. Esc releases the mouse. Arrow keys also turn the camera. F opens the forge between battles.</p><p><strong>Fight:</strong> Movement pauses during an encounter. Click an enemy or press Q/E to choose a target. Click cards or press 1–5 to cast. Spend up to 3 ink each turn, then press Enter. Block expires after the enemies attack.</p><p><strong>Forge:</strong> Choose two distinct copies from your deck, preview the result, then forge. Both inputs are consumed. Nothing happens if the recipe is invalid.</p><p><strong>Win:</strong> Clear all three chambers. A new run shuffles enemies, drops, and the draw pile. Run progress resets on reload.</p><button id="close-help" class="primary">Got it</button></dialog>
-    <noscript>This game requires JavaScript and WebGL.</noscript>
-  </main>
-  <script type="module" src="/src/main.js"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#22334b"><meta name="description" content="A cursed papercraft library is consuming reality. Walk eight connected areas, dodge living paper, and forge any two cards into a new spell."><title>The Fold · the library is hungry</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M8 8h38l10 10v38H8z' fill='%23f1e6d2'/%3E%3Cpath d='M46 8v12h10M20 23l12 22 12-22' stroke='%2322334b' stroke-width='4' fill='none'/%3E%3C/svg%3E"></head>
+<body><main id="app">
+  <div id="world" aria-label="First-person papercraft library"></div><div id="vignette" aria-hidden="true"></div>
+  <header class="hud"><div class="wordmark">THE FOLD <span>the library is hungry</span></div><div id="stats" class="stats"></div><div class="hud-buttons"><button id="map-button">Map <kbd>M</kbd></button><button id="help-button" aria-label="Show controls">?</button></div></header>
+  <section class="chapter"><p id="area-label">THE INTAKE HALL</p><h1 id="area-title">An unfinished spell.</h1><p id="objective"></p><div id="area-progress" class="area-progress" aria-label="Areas cleared"></div></section>
+  <div id="enemy-label-layer" aria-label="Enemy health and next attacks"></div><div id="crosshair" aria-hidden="true">+</div><div id="threat-warning" class="threat-warning" hidden></div>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
+  <div id="channel-banner" class="channel-banner" hidden><span id="channel-copy"></span><span class="channel-track"><i id="channel-fill"></i></span><strong>Keep moving. You cannot attack or block while folding.</strong></div>
+  <aside id="forge" class="forge-panel" hidden aria-labelledby="forge-title"><header><div><p class="eyebrow">THE SPELL FORGE</p><h2 id="forge-title">Two become something else.</h2></div><button id="close-forge" aria-label="Close forge">Close <kbd>F / Esc</kbd></button></header>
+    <div class="forge-body"><p class="movement-note"><strong>Enemies do not wait.</strong> WASD moves · Space dodges · F closes.</p>
+    <div class="forge-mode-row"><label class="mode-label" for="forge-mode">The library's price</label><select id="forge-mode"></select></div><p id="mode-copy" class="mode-copy"></p>
+    <div id="fusion-preview" class="fusion-preview" aria-live="polite"></div>
+    <h3>Your deck <span id="inventory-count"></span></h3><div id="inventory" class="inventory"></div><details><summary>Discoveries in this browser</summary><div id="discoveries" class="discoveries"></div></details></div><div class="forge-commit"><p id="cost-preview" class="cost-preview"></p><button id="merge-button" class="primary" disabled>Choose two owned cards</button></div>
+  </aside>
+  <aside id="map" class="utility-panel" hidden aria-labelledby="map-title"><div class="panel-heading"><h2 id="map-title">The library unfolds.</h2><button id="close-map">Close <kbd>M / Esc</kbd></button></div><p>Real doorways connect every area. Clear the current room to break its next binding. Cleared rooms stay open.</p><div id="map-content"></div><p class="movement-note">Enemies keep moving while you read this.</p></aside>
+  <aside id="help" class="utility-panel" hidden aria-labelledby="help-title"><div class="panel-heading"><h2 id="help-title">Read the room.</h2><button id="close-help">Close</button></div><p><strong>Walk:</strong> WASD. Click the view for mouse look; Esc releases it. Arrows turn/move without mouse capture. Space is a short dodge, with no invincibility.</p><p><strong>Fight:</strong> J or left click repeats your basic attack. K or right click raises a brief block. Move out of the marked ground before the enemy's countdown ends. Quills travel after their windup; cover stops them.</p><p><strong>Spells:</strong> Click a card or press 1–5. T cycles the target. R redraws for 1 ink. Ink returns over time; healing is scarce.</p><p><strong>Forge:</strong> F opens this panel anywhere. Any two owned copies can combine, including already-forged cards. Read the price, then commit. There is no recipe-depth limit. A channel does not pause enemies, and locks attacking/blocking.</p><p><strong>Survive:</strong> Enemies show HP, the next move, its timer and damage above their heads. Corruption permanently increases incoming damage for this run. Reach all eight areas and defeat the Unbinder.</p></aside>
+  <footer class="action-dock"><div class="action-row"><div class="basics"><button id="basic-attack">Strike <kbd>J / click</kbd><small id="attack-cooldown"></small></button><button id="basic-block">Block <kbd>K / right click</kbd><small id="block-cooldown"></small></button><button id="dodge-button">Dodge <kbd>Space</kbd><small id="dodge-cooldown"></small></button></div><div class="spell-tools"><span id="energy"></span><button id="cycle-hand">Redraw <kbd>R</kbd></button><button id="forge-button">Forge <kbd>F</kbd></button></div></div><div id="hand" class="hand" aria-label="Spell cards in your hand"></div><div class="dock-caption"><span id="deck-count"></span><span><kbd>WASD</kbd> walk · <kbd>T</kbd> target · HP and next move float above each enemy</span></div></footer>
+  <dialog id="intro" class="panel intro" aria-labelledby="intro-title"><p class="eyebrow">A CURSED LIBRARY IS CONSUMING REALITY</p><h2 id="intro-title">The Fold<span>.</span></h2><p class="intro-copy">People become pages. Rooms fold into other rooms.<br>You have eight bindings to break, and a deck that can become anything.</p><div id="characters" class="characters"></div><p id="character-summary" class="character-summary"></p><label class="mode-label" for="run-forge-mode">Choose what forging costs this run</label><select id="run-forge-mode"></select><p id="run-mode-copy" class="mode-copy"></p><button id="start-button" class="primary">Enter the library</button><p class="fineprint">Eight connected areas · real-time combat · scarce healing<br>Desktop keyboard + mouse · hard, but every attack has a tell</p><a class="source-link" href="https://github.com/Vihaar/game" target="_blank" rel="noreferrer">Help build the next chapter</a></dialog>
+  <dialog id="reward" class="panel reward" aria-labelledby="reward-title"><p class="eyebrow">A BINDING BROKEN</p><h2 id="reward-title">A little more reality.</h2><p id="reward-copy"></p><div id="reward-choices" class="reward-choices"></div></dialog>
+  <dialog id="ending" class="panel ending" aria-labelledby="ending-title"><p id="ending-label" class="eyebrow"></p><h2 id="ending-title"></h2><p id="ending-copy"></p><button id="restart-button" class="primary">Choose another character</button><button id="wander-button" hidden>Walk the unbound library</button><a class="source-link" href="https://github.com/Vihaar/game/issues" target="_blank" rel="noreferrer">Tell us what should happen next</a></dialog>
+  <noscript>The Fold needs JavaScript and a browser with WebGL.</noscript>
+</main><script type="module" src="/src/main.js"></script></body></html>

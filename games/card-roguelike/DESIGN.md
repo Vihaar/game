@@ -1,13 +1,13 @@
-# The Fold: prototype direction
+# The Fold: world and combat direction
 
-Subject: a first-person library that has folded into a dungeon. The player's job is to turn a few mundane elemental cards into spells strong enough to open the last binding.
+A cursed library consumes reality. The authored route moves from Intake Hall through Mycelium Stacks, Flooded Index, Glasshouse of Errata, Astral Reading Room, Redaction Press and Shattered Archive to the Last Binding. Clearing each binding opens a physical doorway; rooms remain available for backtracking, and winning permits free exploration.
 
-Palette: ink `#162346`, slate `#6e84a7`, mist `#b9d5e1`, lilac `#af9de7`, ember `#f5a36b`, card paper `#f6e7ca`. Blue daylight and mauve stone keep the world readable. Paper is reserved for tangible cards rather than covering the entire interface.
+Follow [ART_DIRECTION.md](ART_DIRECTION.md): paper grain, angular folded-cardstock creatures, layered silhouettes and warm paper labels. Fraunces names cards/rooms; DM Sans carries dense costs and controls. Square atlas cells remain square. No neon, painted engraving or glossy fantasy materials.
 
-Typography: Fraunces for game title/card names; DM Sans for instructions, stats, and controls. Both have system fallbacks. Display type stays out of dense rule descriptions.
+The world fills the page. A compact battle chapter leaves room for projected HP and next-move labels. Reusable strike, block and dodge sit above the bottom hand. The forge is a right sheet with scrolling ingredients and a fixed cost/confirm footer. Its world keeps moving. Sheets release pointer capture but retain walking, dodging and closing; selecting a price returns focus to movement.
 
-Layout: the whole page is the dungeon. Health and chamber progress sit at the top. Enemy intentions sit above the room, the hand lives across the bottom, and crafting takes over with a focused modal. No landing-page sections.
+Every dangerous move has a locked spatial tell. Leave a target circle, sidestep a cleave, escape a ring, or avoid the three shown boss-volley lanes. Projectiles stop at the same cover actors use. There is no hidden dodge invulnerability or turn retaliation. Windup/recovery create opportunities to strike or spend both hands forging. Warnings include corruption exactly once.
 
-Signature: elemental paper cards with one oversized stamp and a cut-looking corner. The forge shows two physical inputs beside their output before either input is spent.
+Gate collisions use a separate replaceable Octree. Tests exercise production geometry rather than simplified collision mocks. Low-poly paper meshes, capped resolution, adjacent-room rendering and no dynamic shadows protect frame time. Ambient movement respects reduced-motion preference. Responsive cards do not imply touch movement.
 
-Critique before implementation: an early idea used a dark cavern and glowing green runes. Replaced with a blue paper-library chamber and warm card edges; the physical card vocabulary now belongs to the setting. Keep ambient bobbing subtle and disable it for reduced-motion preference. This is a desktop slice first; do not imply functional touch movement.
+Recipes and bounded statistics are deterministic local rules. Optional generated names/descriptions/art decorate discoveries without changing damage, healing, ownership or costs. Inserted metadata is escaped or assigned as text. The static atlas stays available when the optional endpoint is off.
