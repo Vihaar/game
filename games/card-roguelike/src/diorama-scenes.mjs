@@ -120,14 +120,19 @@ export function sceneBackdrop(index, style = "storybook", overrides = {}) {
 }
 
 /** Crop only the selected chapter, leaving source textures reusable and immutable. */
-export function sceneBackdropRegion(index, style = "storybook", overrides = {}) {
+export function sceneBackdropRegion(
+  index,
+  style = "storybook",
+  overrides = {},
+) {
   const scene = DIORAMA_SCENES[Math.max(0, Math.min(7, index))];
   if (
     style !== "storybook" ||
     overrides[style]?.[scene.id] ||
     overrides[scene.id] ||
     scene.panel === undefined
-  ) return null;
+  )
+    return null;
   return atlasRegion(scene.panel, 2, 2, 0.002);
 }
 
@@ -163,4 +168,3 @@ export function enemyLayout(count, aspect = 1.6) {
     scale: compact ? 0.76 : 1,
   }));
 }
-
