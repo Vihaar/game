@@ -382,9 +382,9 @@ export class WalkthroughLibrary {
           .add(new THREE.Vector3(0, actor.height + 0.25, 0))
       : null;
   }
-  update(dt, elapsed = 0, { reducedMotion = false } = {}) {
+  update(dt, elapsed = 0, { reducedMotion = false, presentationDelta = dt } = {}) {
     if (this.disposed) return;
-    this.rail.update(dt, reducedMotion);
+    this.rail.update(presentationDelta, reducedMotion);
     if (Math.abs(this.camera.aspect - this.lastAspect) > 0.001)
       this.fitCamera();
     for (const actor of this.actors) {

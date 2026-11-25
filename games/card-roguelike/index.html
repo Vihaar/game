@@ -52,6 +52,10 @@
         <span>A book to read. An idea to connect.</span
         ><button id="explore-forge-button">Forge <kbd>F</kbd></button>
       </div>
+      <div id="journey-status" class="journey-status" hidden role="status">
+        <span>Entering the library...</span
+        ><button id="skip-journey">Skip walk</button>
+      </div>
       <div class="advance-wrap">
         <button id="advance-button" class="primary" hidden></button>
       </div>
@@ -157,8 +161,9 @@
           <button id="close-help">Close</button>
         </header>
         <p>
-          Choose an enemy to target. Cast runes for ink, strike once, and raise
-          your reusable guard once each turn. When you are ready,
+          Choose an enemy to target. Select a spell on the left page, then cast
+          it from the right page for ink. Strike once, and raise your reusable
+          guard once each turn. When you are ready,
           <strong>End turn</strong> resolves every living enemy's shown move,
           refills ink, and prepares fresh inscriptions.
         </p>
@@ -191,41 +196,55 @@
       <footer class="action-dock grimoire" aria-label="Your open grimoire">
         <div class="book-cover" aria-hidden="true"></div>
         <div class="book-binding" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
         </div>
+        <nav class="book-tabs" aria-label="Grimoire sections">
+          <button id="spells-tab" class="active" aria-current="page">
+            Spells
+          </button>
+          <button id="forge-button">Inscribe <kbd>F</kbd></button>
+          <button id="book-journal-button">Journal <kbd>M</kbd></button>
+        </nav>
         <section class="grimoire-page grimoire-left">
+          <header class="book-page-heading">
+            <span class="page-flourish" aria-hidden="true"></span>
+            <h2>Prepared spells</h2>
+            <span class="page-flourish" aria-hidden="true"></span>
+          </header>
           <div
             id="stats"
             class="stats"
             aria-label="Your vitality, guard and ink"
           ></div>
-          <p class="eyebrow">THE GRIMOIRE</p>
-          <h2>Shape an answer.</h2>
-          <p class="grimoire-note">
-            Read their intentions.<br />Commit when you are ready.
-          </p>
-          <div class="basics">
-            <button id="basic-attack">Strike <kbd>J</kbd><small></small></button
-            ><button id="basic-block">Guard <kbd>K</kbd><small></small></button>
-          </div>
-          <div class="turn-tools">
-            <button id="forge-button">Combine runes <kbd>F</kbd></button>
-          </div>
-          <button id="end-turn" class="primary">
-            End turn <small id="turn-number"></small>
-          </button>
-        </section>
-        <section class="grimoire-page grimoire-right">
-          <div class="grimoire-heading">
-            <p class="eyebrow">PREPARED INSCRIPTIONS</p>
-            <span>Choose a rune to cast</span>
-          </div>
           <div
             id="hand"
             class="hand"
             aria-label="Prepared rune inscriptions"
           ></div>
+          <div class="basics">
+            <button id="basic-attack">Strike <kbd>J</kbd><small></small></button
+            ><button id="basic-block">Guard <kbd>K</kbd><small></small></button>
+          </div>
           <p id="grimoire-count" class="dock-caption"></p>
+        </section>
+        <section class="grimoire-page grimoire-right">
+          <div id="spell-focus" class="spell-focus">
+            <div class="spell-picture-frame">
+              <div class="spell-orbit" aria-hidden="true"></div>
+              <div id="spell-art"></div>
+              <span class="picture-corner first" aria-hidden="true"></span
+              ><span class="picture-corner last" aria-hidden="true"></span>
+            </div>
+            <h2 id="active-spell-name"></h2>
+            <p id="active-spell-effects"></p>
+            <p id="active-spell-description"></p>
+          </div>
+          <div class="spell-commit">
+            <button id="cast-prepared" class="primary"></button
+            ><button id="end-turn">
+              End turn <small id="turn-number"></small>
+            </button>
+          </div>
         </section>
       </footer>
       <dialog id="intro" class="panel intro">

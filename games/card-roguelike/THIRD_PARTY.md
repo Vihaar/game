@@ -35,3 +35,11 @@ The papercraft spell atlas was generated for this project with the built-in imag
 The interface requests Fraunces and DM Sans from Google Fonts with local system fallbacks. Both families are distributed under the SIL Open Font License. Font files are not vendored and the game remains usable if the request fails. These requests can be removed by using the fallback font stacks in `src/style.css`.
 
 Original card rules, UI, and geometry contributions are offered under the repository's MIT license.
+
+## Bundled manuscript font
+
+Almendra Regular and Italic, copyright 2011-2012 Ana Sanfelippo, are bundled unchanged in `public/fonts/` under the SIL Open Font License 1.1. Source: https://github.com/google/fonts/tree/main/ofl/almendra. The complete license is retained at `public/licenses/almendra-OFL.txt`. Retrieved 2026-11-24; local SHA256: Regular `b127a6121209353b53da9ce73bf9d350f74190d8384c28ede179e4fb9440f946`, Italic `972eb95dd030592755064c35e8e394b75423973d0b7dbfd759c7e36ef80bb7cb`.
+
+## Book layout reference
+
+Jonathan Silvestre's Ravenswatch Book Menu (https://jonsilvestre.artstation.com/projects/3EEa5D), with art direction by Valentin Andre-Terramorsi and book model by Alice Fernandez, informs the two-page selection/detail composition and bookmark navigation. No Ravenswatch images, icons, models or source code are included. The Fold's spell illustrations, page layers and controls are original SVG/CSS/JavaScript.

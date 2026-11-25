@@ -30,7 +30,7 @@ A cursed library is consuming reality. Rooms, people and spells are being rebuil
 | Moss paper   | `#6C9284` | Dew, rare healing, archive gardens  |
 | Violet paper | `#8577A5` | Wind, corruption, impossible rooms  |
 
-Keep colors as dyed paper, with slight fiber variation. Fraunces is the restrained chapter/display face; DM Sans is for readable controls and cards; system monospace is for numbers, timing and small ink-stamped labels. Existing font fallbacks must work without a network.
+Keep colors as dyed paper, with slight fiber variation. Almendra is the calligraphic chapter/display face; DM Sans is for readable controls and cards; system monospace is for numbers, timing and small ink-stamped labels. Existing font fallbacks must work without a network.
 
 ## Card illustrations
 
@@ -66,6 +66,14 @@ The starter atlas is generated with the built-in image tool. Its exact sheet pro
 
 ## Grimoire inscriptions
 
-The combat book uses original code-drawn SVG glyphs instead of raster medallions or emoji badges. Eight segmented forms share a 96-unit grid, rounded 3.2-unit strokes and generous open space. Each spell has separate cut-paper backing, raised edge, colored face, engraved strokes and animated light strokes. The book itself is coded as a separate cover, page stacks, individual leaves, folded corners and binding stitches; the archived full-book image is not used. Dark moss ink (`#344B49`) and muted writing (`#71644F`) sit on those paper layers. Fraunces carries spell names and resource values, DM Sans carries effects and shortcuts. All numeric fields use tabular lining figures. Resources share one row; every prepared spell reserves equal rows for its glyph, two-line name, effect and cost. Resource and action icons are original SVG illustrations.
+The combat book uses original code-drawn SVG glyphs instead of raster medallions or emoji badges. Eight segmented forms share a 96-unit grid, rounded 3.2-unit strokes and generous open space. Each spell has separate cut-paper backing, raised edge, colored face, engraved strokes and animated light strokes. The book itself is coded as a separate cover, page stacks, individual leaves, folded corners and binding stitches; the archived full-book image is not used. Dark moss ink (`#344B49`) and muted writing (`#71644F`) sit on those paper layers. Almendra carries spell names; DM Sans carries resource values, effects and shortcuts. All numeric fields use tabular lining figures. Resources share one row; every prepared spell reserves equal rows for its glyph, two-line name, effect and cost. Resource and action icons are original SVG illustrations.
 
 The signature is an inscription lighting segment by segment once when cast, coordinated with the existing world spell effect. Each family keeps its own silhouette. Forged spells retain the ingredient-derived family and gain bounded, deterministic peripheral marks. Discovered names cannot change glyph identity. Nothing Phone's segmented light language is an inspiration, with original shapes; no branding or hardware layouts are copied. Reduced motion uses a brief static illumination. There are no continuous idle pulses.
+
+## Revised book composition and typography
+
+Use the Ravenswatch book-menu composition closely: bookmark navigation above two individual leaves, a compact selection grid on the left, and one generous illustrated entry with its name, exact effects and cast action on the right. Reference: https://jonsilvestre.artstation.com/projects/3EEa5D. Keep the illustrated world visible above the book. The left page also holds a compact resource row and reusable Strike/Guard controls. Desktop uses a three-column spell grid; narrow screens retain two real pages with a two-column selection grid. Selection previews a spell without spending ink; the explicit Cast control commits it. Keyboard 1-5 remains direct cast.
+
+Almendra, a locally bundled calligraphic manuscript font by Ana Sanfelippo, replaces the ordinary display face for wizard headings, spell names, world labels and short passages. DM Sans remains the utility face for exact values, costs and effects, with tabular figures. World prompts use warm ivory `#FFF0C9` against a dark ink edge `#23343B`; manuscript text uses `#2D383A` against parchment. Avoid transparent-gradient text over detailed art. Never sacrifice legibility for calligraphy.
+
+Spell illustrations are assembled from separate original SVG silhouette, backing, fold, crease and animated edge layers. Fire reads as layered flame, water as a folded drop, stone as faceted rock, wind as curling paper strips. Keep consistent scale and construction across derived elemental families. The large preview adds separately coded diagram rings and frame corners. All cover, leaf, binding, ribbon, picture and control layers remain independent; no complete book image is used.

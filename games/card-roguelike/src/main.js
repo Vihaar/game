@@ -28,10 +28,13 @@ import {
 } from "./guided-rules.mjs";
 import { requestCardDiscovery } from "./card-art.mjs";
 import { chapterBook, worldAvailable } from "./world-interactions.mjs";
+import { settleTransition } from "./presentation-transition.mjs";
+import { spellIllustration } from "./spell-illustrations.mjs";
 import { bookIcon } from "./book-icons.mjs";
-import { spellGlyph, playGlyph } from "./spell-glyphs.mjs";
+import { playGlyph } from "./spell-glyphs.mjs";
 import "./style.css";
 import "./grimoire.css";
+import "./typography.css";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
   String(v ?? "").replace(
@@ -81,6 +84,7 @@ let worldBusy = false,
   panelTrigger = null,
   runEpoch = 0;
 let casting = 0;
+let preparedIndex = 0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45,
@@ -160,16 +164,48 @@ function runeMarkup(key, index, mode = "hand") {
   const rune = getCard(key);
   if (!rune) return "";
   const disabled =
-    mode === "hand" &&
-    (state.phase !== "battle" ||
-      state.forge ||
-      travelling ||
-      rune.cost > state.energy);
+    mode === "hand" && (state.phase !== "battle" || state.forge || travelling);
   const description = (rune.description || rune.text || "")
     .replace(/briefly/g, "this turn")
     .replace(/nearby enemies/g, "all enemies")
     .replace(/Draw a card/g, "Prepare a rune");
-  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellGlyph(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b>${bookIcon("ink")}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
+  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}${mode === "hand" && preparedIndex === index ? " prepared-selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : mode === "hand" ? `aria-pressed="${preparedIndex === index}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellIllustration(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b>${bookIcon("ink")}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
+}
+function renderPreparedSpell() {
+  $("#spell-focus").classList.remove("glyph-casting", "glyph-lit");
+  const spell = getCard(state.hand[preparedIndex]);
+  $("#spell-art").innerHTML = spell
+    ? spellIllustration(spell, { detailed: true })
+    : "";
+  $("#active-spell-name").textContent = spell?.name || "An unwritten page";
+  $("#active-spell-effects").textContent = spell
+    ? effects(spell)
+    : "Strike or guard, then end your turn.";
+  $("#active-spell-description").textContent = spell
+    ? (spell.description || spell.text || "")
+        .replace(/briefly/g, "this turn")
+        .replace(/Draw a card/g, "Prepare a rune")
+    : "Fresh spells arrive when the page turns.";
+  const button = $("#cast-prepared");
+  button.innerHTML = spell
+    ? `Cast ${esc(spell.name)} <span>${spell.cost} ${bookIcon("ink")}</span>`
+    : "No spell prepared";
+  button.setAttribute(
+    "aria-label",
+    spell ? `Cast ${spell.name}, ${spell.cost} ink` : "No spell prepared",
+  );
+  button.disabled =
+    !spell ||
+    spell.cost > state.energy ||
+    state.phase !== "battle" ||
+    Boolean(state.forge) ||
+    travelling ||
+    Boolean(casting);
+  for (const rune of document.querySelectorAll("#hand .rune")) {
+    const active = Number(rune.dataset.index) === preparedIndex;
+    rune.classList.toggle("prepared-selected", active);
+    rune.setAttribute("aria-pressed", String(active));
+  }
 }
 function renderCharacters() {
   $("#characters").innerHTML = Object.values(CHARACTERS)
@@ -224,10 +260,13 @@ function render() {
   $("#turn-number").textContent = `TURN ${state.turn}`;
   $("#grimoire-count").textContent =
     `${state.inventory.length} bound runes · ${state.hand.length} prepared · ${state.draw.length} unread · ${state.discard.length} resting`;
+  preparedIndex = Math.min(preparedIndex, Math.max(0, state.hand.length - 1));
   $("#hand").innerHTML =
     state.phase === "battle"
       ? state.hand.map((k, i) => runeMarkup(k, i)).join("")
       : '<p class="empty-hand">Your grimoire is quiet. Connect two runes before the next question.</p>';
+  renderPreparedSpell();
+  $("#journey-status").hidden = !travelling;
   $("#basic-attack").disabled =
     state.phase !== "battle" ||
     state.struckThisTurn ||
@@ -246,11 +285,15 @@ function render() {
     : `${state.character.blockAmount} guard · once`;
   $("#end-turn").disabled =
     state.phase !== "battle" || Boolean(state.forge) || travelling;
+  $("#book-journal-button").disabled = Boolean(casting) || travelling;
+  $("#spells-tab").disabled = Boolean(casting) || travelling;
   $("#advance-button").hidden = state.phase !== "explore" || !started;
   $("#advance-button").disabled = travelling || Boolean(state.forge);
   $("#advance-button").textContent = travelling
     ? "Turning the page…"
-    : `Enter ${AREAS[state.floor - 1].name}`;
+    : state.floor === 1
+      ? "Face the first guardian"
+      : "Continue the climb";
   $("#forge-button").disabled =
     !started || !["explore", "battle"].includes(state.phase) || travelling;
   $("#channel-banner").hidden = !state.forge;
@@ -280,7 +323,7 @@ function renderMap() {
             !travelling &&
             !state.forge &&
             copies > 0;
-          return `<div class="library-rune"><span>${spellGlyph(getCard(entry.key))}</span><div><strong>${esc(entry.name)}</strong><small>${entry.learned ? "Learned by the library" : `Observed ${entry.casts} / 3 casts`}</small></div><button data-forget="${esc(entry.key)}" ${canForget ? "" : "disabled"} aria-label="Forget ${esc(entry.name)}, losing all ${copies} owned copies">Forget<small>Lose ${copies} ${copies === 1 ? "copy" : "copies"}</small></button></div>`;
+          return `<div class="library-rune"><span>${spellIllustration(getCard(entry.key))}</span><div><strong>${esc(entry.name)}</strong><small>${entry.learned ? "Learned by the library" : `Observed ${entry.casts} / 3 casts`}</small></div><button data-forget="${esc(entry.key)}" ${canForget ? "" : "disabled"} aria-label="Forget ${esc(entry.name)}, losing all ${copies} owned copies">Forget<small>Lose ${copies} ${copies === 1 ? "copy" : "copies"}</small></button></div>`;
         })
         .join("")
     : '<p class="memory-empty">No spells observed yet.</p>';
@@ -318,7 +361,7 @@ function renderForge() {
   const tile = (k, empty) => {
     const c = k && getCard(k);
     return c
-      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal">${spellGlyph(c)}</span><strong>${esc(c.name)}</strong></span>`
+      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal">${spellIllustration(c)}</span><strong>${esc(c.name)}</strong></span>`
       : `<span class="fusion-tile empty">${empty}</span>`;
   };
   $("#fusion-preview").innerHTML =
@@ -378,6 +421,7 @@ function cast(index) {
   const result = guidedCast(state, index, state.target, random);
   if (result.ok) {
     playGlyph($('#hand [data-index="' + index + '"]'), { reducedMotion });
+    playGlyph($("#spell-focus"), { reducedMotion });
     spellEffects.cast(
       c,
       origin,
@@ -440,6 +484,23 @@ function checkPhase() {
   if (state.phase === "reward") showReward();
   if (["dead", "won"].includes(state.phase)) showEnding();
 }
+async function settleWalk(animate, timeoutMs = 12000) {
+  const epoch = runEpoch;
+  try {
+    await settleTransition(
+      animate,
+      () => {
+        if (epoch === runEpoch) diorama.rail.update(0, true);
+      },
+      { timeoutMs },
+    );
+  } catch {
+    if (epoch === runEpoch) {
+      diorama.setArea(areaIndex);
+      say("The path is ready. Continue when you are ready.");
+    }
+  }
+}
 async function advance({ focused = false } = {}) {
   if (worldBusy || travelling || state.phase !== "explore" || state.forge)
     return;
@@ -448,7 +509,10 @@ async function advance({ focused = false } = {}) {
   if (!focused) {
     worldBusy = true;
     try {
-      await diorama.focusWorld?.("binding", { reducedMotion });
+      await settleWalk(
+        () => diorama.focusWorld?.("binding", { reducedMotion }),
+        6000,
+      );
     } finally {
       worldBusy = false;
     }
@@ -456,7 +520,7 @@ async function advance({ focused = false } = {}) {
   if (epoch !== runEpoch || !started || state.phase !== "explore") return;
   travelling = true;
   render();
-  await diorama.travelTo(areaIndex, { reducedMotion });
+  await settleWalk(() => diorama.travelTo(areaIndex, { reducedMotion }), 18000);
   if (epoch !== runEpoch || !started) return;
   travelling = false;
   clearTimeout(messageTimer);
@@ -490,7 +554,7 @@ async function beginRun() {
   renderModes();
   render();
   const epoch = runEpoch;
-  await diorama.enterLibrary({ reducedMotion });
+  await settleWalk(() => diorama.enterLibrary({ reducedMotion }), 6000);
   if (epoch !== runEpoch || !started) return;
   travelling = false;
   render();
@@ -554,13 +618,20 @@ $("#advance-button").onclick = advance;
 $("#basic-attack").onclick = strike;
 $("#basic-block").onclick = guard;
 $("#end-turn").onclick = endTurn;
+$("#cast-prepared").onclick = () => cast(preparedIndex);
+$("#book-journal-button").onclick = () => togglePanel("map");
+$("#spells-tab").onclick = closePanels;
+$("#skip-journey").onclick = () => diorama.rail.update(0, true);
 $("#enemy-targets").onclick = (e) => {
   const b = e.target.closest("[data-enemy]");
   if (b) chooseTarget(Number(b.dataset.enemy));
 };
 $("#hand").onclick = (e) => {
   const b = e.target.closest("[data-index]");
-  if (b) cast(Number(b.dataset.index));
+  if (b && !casting) {
+    preparedIndex = Number(b.dataset.index);
+    renderPreparedSpell();
+  }
 };
 $("#library-memory-list").onclick = (e) => {
   const button = e.target.closest("[data-forget]");
@@ -628,7 +699,7 @@ $("#reward-choices").onclick = async (e) => {
   travelling = true;
   areaIndex = state.floor - 1;
   render();
-  await diorama.travelTo(areaIndex, { reducedMotion });
+  await settleWalk(() => diorama.travelTo(areaIndex, { reducedMotion }), 18000);
   if (epoch !== runEpoch || !started) return;
   travelling = false;
   render();
@@ -681,11 +752,18 @@ addEventListener("keydown", (e) => {
     return;
   if (e.code === "KeyJ") strike();
   if (e.code === "KeyK") guard();
-  if (e.code === "Enter" && e.target.tagName !== "BUTTON") endTurn();
+  if (e.code === "Enter" && e.target.tagName !== "BUTTON") {
+    if (state.phase === "explore") advance();
+    else endTurn();
+  }
   if (/^Digit[1-5]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
 });
 
 function syncWorldUI() {
+  $("#journey-status").hidden = !(travelling || worldBusy);
+  $("#journey-status span").textContent = travelling
+    ? "Following the library's path..."
+    : "Approaching the open page...";
   const visible = worldAvailable({
     started,
     phase: state.phase,
@@ -739,7 +817,7 @@ async function useWorld(id) {
   worldBusy = true;
   syncWorldUI();
   try {
-    await diorama.focusWorld?.(id, { reducedMotion });
+    await settleWalk(() => diorama.focusWorld?.(id, { reducedMotion }), 6000);
   } finally {
     worldBusy = false;
   }
@@ -813,7 +891,8 @@ let previous = performance.now(),
 renderer.setAnimationLoop((now) => {
   // The browser already paces this to display refresh. A second 60Hz threshold
   // skips ordinary frames when timestamps round just below 16.667ms.
-  const dt = Math.min(0.05, (now - previous) / 1000);
+  const presentationDelta = Math.max(0, (now - previous) / 1000);
+  const dt = Math.min(0.05, presentationDelta);
   previous = now;
   elapsed += dt;
   const result = tickGuidedForge(state, dt);
@@ -836,7 +915,7 @@ renderer.setAnimationLoop((now) => {
     checkPhase();
     render();
   }
-  diorama.update(dt, elapsed, { reducedMotion });
+  diorama.update(dt, elapsed, { reducedMotion, presentationDelta });
   spellEffects.update(dt, elapsed);
   if (casting) {
     casting = Math.max(0, casting - dt);
