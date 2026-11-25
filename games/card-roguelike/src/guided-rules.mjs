@@ -1,6 +1,18 @@
 // Guided, explicit-turn adapter. Reuses the original exact-copy/card/crafting model.
 import * as base from "./rules.mjs";
 export * from "./rules.mjs";
+import {
+  createLibraryLearning,
+  recordSuccessfulCast,
+  assignGuardianCopy,
+  copiedEnemyIntent,
+} from "./library-learning.mjs";
+export {
+  LIBRARY_LEARNING_POLICY,
+  learningSummary,
+  drainLibraryEvents,
+  forgetLearnedRune,
+} from "./library-learning.mjs";
 export const GUIDED_CHARACTERS = {
   binder: {
     ...base.CHARACTERS.binder,
@@ -47,6 +59,7 @@ export function newGuidedRun(id = "binder") {
   state.struckThisTurn = false;
   state.guardedThisTurn = false;
   state.enemyActions = 0;
+  state.libraryLearning = createLibraryLearning();
   return state;
 }
 export function guidedEnemies(areaIndex) {
@@ -99,6 +112,8 @@ export function guidedEnemies(areaIndex) {
   }));
 }
 export function enemyIntent(state, enemy) {
+  const copied = copiedEnemyIntent(state, enemy);
+  if (copied) return copied;
   const step = enemy.intentStep || 0;
   const pattern =
     enemy.type === "unbinder"
@@ -134,6 +149,7 @@ export function startGuidedBattle(
     state.guardedThisTurn = false;
     state.basicAttackCooldown = 0;
     state.basicBlockCooldown = 0;
+    assignGuardianCopy(state);
   }
   return ok;
 }
@@ -188,7 +204,7 @@ export function guidedCast(
   const before = state.enemies.map((e) => e.hp),
     card = base.getCard(state.hand[index]);
   const result = base.castCard(state, index, target, rng);
-  if (result.ok)
+  if (result.ok) {
     applyEnemyGuard(
       state,
       before,
@@ -198,6 +214,8 @@ export function guidedCast(
           : 0,
       ),
     );
+    result.libraryEvents = recordSuccessfulCast(state, result);
+  }
   return result;
 }
 function act(state, enemy) {
@@ -205,6 +223,12 @@ function act(state, enemy) {
   let result = { damage: 0, blocked: 0, dead: false };
   if (intent.amount) result = base.applyEnemyDamage(state, intent.amount);
   if (intent.type === "guard") enemy.guard = 3;
+  if (intent.type === "copied-spell") {
+    if (intent.block)
+      enemy.guard = Math.min(12, (enemy.guard || 0) + intent.block);
+    if (intent.heal) enemy.hp = Math.min(enemy.maxHp, enemy.hp + intent.heal);
+  }
+  if (enemy.copiedSpell) enemy.copyStep = ((enemy.copyStep || 0) + 1) % 3;
   enemy.intentStep = (enemy.intentStep || 0) + 1;
   state.enemyActions++;
   return { name: enemy.name, ...intent, ...result };
