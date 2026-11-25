@@ -1,5 +1,47 @@
 # Fold: 3D direction and reusable foundations
 
+## Actual 3D asset kits verified and downloaded (2026-11-24 follow-up)
+
+The user's latest requirement is a genuine3D walkable world with guided camera movement; images are an art baseline, not the playable room. Two primary-source Kenney downloads were fetched and inspected in an isolated research directory. No optional model files were copied into the root game.
+
+- **[Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit)**: actual archive `License.txt` says Furniture Kit2.0, CC0, personal/educational/commercial use, optional attribution. Includes DAE/FBX/GLB/OBJ/STL versions. The site's release metadata says1.0; prefer the downloaded artifact's own2.0 identifier for the manifest.
+- **[Kenney Castle Kit](https://kenney.nl/assets/castle-kit)**: archive `License.txt` says Castle Kit2.0, CC0, created2024-03-27, optional attribution. Includes FBX/GLB/OBJ and palette textures.
+- Quaternius was considered but not downloaded or represented as verified CC0 for a specific pack. Its current [official FAQ](https://quaternius.com/faq.html) says packs may be CC0 **or QAL**, so verify each pack's included license rather than assuming all assets are CC0.
+
+Isolated preserved source directory:
+`C:/Users/Owner/.codex/visualizations/2026/11/24/01a20f1e-8c57-7240-a681-973cdf15716e/kart-prediction/assets/kenney-3d/`
+
+Both original zip archives and extracted `License.txt` are retained. Useful inspected files:
+
+| Relative path beneath research directory | Size | Practical notes |
+|---|---:|---|
+| `furniture/Models/GLTF format/bookcaseOpen.glb` |18,020B|400position entries, one wood material, no external images. Bounds x0–0.4,y0–0.88,z−0.25–0. |
+| `furniture/Models/GLTF format/bookcaseClosedWide.glb` |23,140B|540position entries, one wood material, no external images. Bounds x0–0.8,y0–0.79,z−0.25–0. |
+| `furniture/Models/GLTF format/books.glb` |6,864B|Four material groups, no external images. Bounds approx0.15×0.104×0.095. Separate paper/cover colors suitable for restyling. |
+| `furniture/Models/GLTF format/desk.glb` |15,048B|Two meshes, wood/metal materials, no external images; additional drawer mesh is present. |
+| `castle/Models/GLB format/tower-square-arch.glb` |29,724B|544position entries, bounds approx0.93×1.01×0.93; uses external `Textures/colormap.png`. |
+| `castle/Models/GLB format/wall-doorway.glb` |37,560B|684position entries, bounds approx0.5×1.31×1.0; external palette texture. |
+| `castle/Models/GLB format/gate.glb` |13,880B|244position entries, bounds approx0.152×0.91×0.662; external palette texture. |
+| `castle/Models/GLB format/wall-narrow-gate.glb` |17,092B|296position entries; external palette texture. |
+
+The geometry/material/image/buffer data above were read from actual downloaded GLB JSON chunks, not inferred from preview pictures. Counts are glTF position accessor entries, not unique welded vertices or a frame-rate measurement. The furniture GLBs have embedded geometry and plain-color materials; castle GLBs retain an external image URI even though their geometry is embedded.
+
+**Practical integration guidance (engineering inference):** use Three's existing GLTFLoader, measure each loaded model with Box3 and normalize it once. These assets have different origins and scales; do not assume a bookshelf is already a2m centered object. Clone materials before recoloring individual instances so one chapter's curse palette cannot mutate another model. Reuse geometry and instance repeated shelf/book meshes rather than load a fresh file for each item. Keep a stable root scale, +Y up, and simplified collision boxes separate from decorative book geometry. Retain palette texture directory structure or remove the map deliberately when substituting authored paper materials.
+
+The selected source assets are practical optional bases for shelves/books/arches. They are not being shipped merely because they were downloaded: the active visual implementation can continue using original papercraft geometry and AI-generated material textures. No full mesh kit import is required to implement genuinely3D traversal.
+
+### Camera and navigation acceptance guidance
+
+These are proposed checks, not claims that a new world already passed them:
+
+1. One movement solver owns the player/camera anchor. Camera rails interpolate presentation toward it and never teleport the player through a collision wall.
+2. Validate every authored route endpoint and intermediate segment against floor/collider bounds, including the capsule radius. Raycast hit distance alone is insufficient if the camera/player has width.
+3. Give stairs separate walkable collision ramps or tested step handling; prevent downward floor probes from accepting undersides, side faces or a distant lower floor.
+4. Clamp movement timestep/accumulate fixed solver ticks; focus or travel promises must resolve on completion and cancellation, including reset and disposal.
+5. Keep the camera above the floor and outside walls at narrow turns; use a swept sphere/raycast fallback for occlusion, with a bounded near target rather than unbounded forward movement.
+6. Re-test route reachability at each chapter change, low/high frame rates, mobile aspect ratios, mid-travel restart, resizing during focus, and on failed texture/model loads. Pictures must not become collision or progression authority.
+
+
 Research checked 2026-11-24 against the repositories and first-party documentation below. No packages or skills installed and no game code changed for this research. This document separates inspected source evidence from recommendations.
 
 ## Recommendation

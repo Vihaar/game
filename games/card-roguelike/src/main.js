@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { GuidedDiorama } from "./diorama.js";
+import { WalkthroughLibrary } from "./walkthrough-library.js";
+import { SpellEffects } from "./spell-effects.js";
 import { AREAS } from "./areas.mjs";
 import {
   GUIDED_CHARACTERS as CHARACTERS,
@@ -74,6 +75,7 @@ let worldBusy = false,
   readChapters = new Set(),
   panelTrigger = null,
   runEpoch = 0;
+let casting = 0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45,
@@ -97,9 +99,14 @@ renderer.setPixelRatio(1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 $("#world").appendChild(renderer.domElement);
-const diorama = new GuidedDiorama(scene, camera, renderer, {
+const diorama = new WalkthroughLibrary(scene, camera, renderer, {
   style: "storybook",
   onEnemyClick: (index) => chooseTarget(index),
+});
+const spellEffects = new SpellEffects(scene, {
+  camera,
+  renderer,
+  reducedMotion,
 });
 function resize() {
   const s = Math.min(1, 1600 / innerWidth, 900 / innerHeight);
@@ -194,13 +201,14 @@ function renderEnemies() {
 }
 function render() {
   document.body.dataset.phase = travelling ? "travel" : state.phase;
+  document.body.classList.toggle("deep-library", areaIndex >= 4);
   const area = AREAS[areaIndex];
   $("#area-label").textContent = `FLOOR ${areaIndex + 1} / 8`;
   $("#area-title").textContent = area.name;
   $("#journey-caption").textContent =
     state.floor >= 3 ? "A thirst for knowledge" : "The library awaits";
   $("#objective").textContent = travelling
-    ? "The pages are finding their place."
+    ? "Follow the paper path."
     : state.phase === "battle"
       ? "Your turn. Take your time; nothing attacks until you commit."
       : area.subtitle;
@@ -303,6 +311,7 @@ function renderForge() {
     "New discoveries stay in this browser. Your run does not.";
 }
 function chooseTarget(index) {
+  if (casting) return;
   if (state.phase !== "battle" || state.enemies[index]?.hp <= 0) return;
   state.target = index;
   render();
@@ -316,18 +325,42 @@ function actionResult(result) {
   render();
 }
 function strike() {
+  if (casting) return;
   actionResult(guidedStrike(state));
 }
 function guard() {
+  if (casting) return;
   actionResult(guidedBlock(state));
 }
 function cast(index) {
+  if (casting) return;
   const c = getCard(state.hand[index]);
+  const target = diorama
+    .getEnemyAnchor(state.target)
+    ?.add(new THREE.Vector3(0, -1.0, 0));
+  const origin = camera.position
+    .clone()
+    .add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(0.8));
+  origin.y -= 0.6;
   const result = guidedCast(state, index, state.target, random);
-  if (result.ok) say(`${c.name}: ${effects(c)}.`);
+  if (result.ok) {
+    spellEffects.cast(
+      c,
+      origin,
+      c.damage && target
+        ? target
+        : origin.clone().add(new THREE.Vector3(0, 0.3, -0.2)),
+    );
+    say(`${c.name}: ${effects(c)}.`);
+    casting = reducedMotion ? 0.08 : c.damage ? 0.52 : 0.3;
+    for (const button of document.querySelectorAll(".grimoire button"))
+      button.disabled = true;
+    return;
+  }
   actionResult(result);
 }
 function endTurn() {
+  if (casting) return;
   const result = resolveEnemyTurn(state, random);
   if (!result.ok) {
     say(result.reason);
@@ -375,7 +408,8 @@ async function advance({ focused = false } = {}) {
   lastPhase = state.phase;
   render();
 }
-function beginRun() {
+async function beginRun() {
+  casting = 0;
   runEpoch++;
   for (const d of document.querySelectorAll("dialog[open]")) d.close();
   closePanels();
@@ -389,16 +423,19 @@ function beginRun() {
   started = true;
   worldBusy = false;
   readChapters = new Set();
-  travelling = false;
+  travelling = true;
   areaIndex = 0;
   selected = [];
   lastPhase = "explore";
   diorama.setArea(0);
   renderModes();
   render();
-  say(
-    "Read the open book, connect ideas at the forge, or ask the next question.",
-  );
+  const epoch = runEpoch;
+  await diorama.enterLibrary({ reducedMotion });
+  if (epoch !== runEpoch || !started) return;
+  travelling = false;
+  render();
+  $("#message").textContent = "";
 }
 function showReward() {
   rewardOptions = shuffle(["ember", "stone", "dew", "gust"], random).slice(
@@ -426,7 +463,7 @@ function showEnding() {
   dialog("#ending");
 }
 function togglePanel(id) {
-  if (!started || travelling || worldBusy) return;
+  if (!started || travelling || worldBusy || casting) return;
   const open = $("#" + id).hidden;
   closePanels();
   $("#" + id).hidden = !open;
@@ -698,6 +735,11 @@ renderer.setAnimationLoop((now) => {
   if (result.forged) {
     selected = [];
     const c = getCard(result.forged);
+    const origin = camera.position
+      .clone()
+      .add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(1.35));
+    origin.y -= 0.25;
+    spellEffects.forge(c, origin);
     say(
       `${c.name} folded.${result.action ? ` ${result.action.name}: ${result.action.damage} damage.` : ""}`,
     );
@@ -709,6 +751,14 @@ renderer.setAnimationLoop((now) => {
     render();
   }
   diorama.update(dt, elapsed, { reducedMotion });
+  spellEffects.update(dt, elapsed);
+  if (casting) {
+    casting = Math.max(0, casting - dt);
+    if (!casting) {
+      checkPhase();
+      render();
+    }
+  }
   positionTargets();
   syncWorldUI();
   renderer.render(scene, camera);
@@ -717,6 +767,7 @@ renderCharacters();
 renderModes();
 render();
 dialog("#intro");
+if (import.meta.env.DEV) window.__foldWorld = diorama;
 if (import.meta.env.DEV)
   window.__foldDebug = () => ({
     phase: state.phase,
@@ -737,6 +788,7 @@ if (import.meta.env.DEV)
     corruption: state.corruption,
     travelling,
     worldBusy,
+    casting,
     readChapters: [...readChapters],
     drawCalls: renderer.info.render.calls,
   });

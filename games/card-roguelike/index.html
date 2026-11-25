@@ -18,7 +18,6 @@
         <a class="wordmark" href="./"
           >THE FOLD <span id="journey-caption">The library awaits</span></a
         >
-        <div id="stats" class="stats"></div>
         <div class="hud-buttons">
           <button id="map-button">Journal <kbd>M</kbd></button
           ><button id="help-button" aria-label="Show controls">?</button>
@@ -38,17 +37,15 @@
       <nav id="world-hotspots" aria-label="Explore the paper library" hidden>
         <button id="world-read" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">✧</span
-          ><strong>Read the open book</strong
-          ><small>A question on the page</small>
+          ><strong>Read</strong><small>The open book</small>
         </button>
         <button id="world-forge" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">◇</span
-          ><strong>Connect two ideas</strong><small>Open the spell forge</small>
+          ><strong>Inscribe</strong><small>Combine runes</small>
         </button>
         <button id="world-binding" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">↗</span
-          ><strong>Ask the next question</strong
-          ><small>Continue your journey</small>
+          ><strong>Ascend</strong><small>Face the next binding</small>
         </button>
       </nav>
       <div class="explore-tools" hidden>
@@ -174,6 +171,11 @@
       </aside>
       <footer class="action-dock grimoire" aria-label="Your open grimoire">
         <section class="grimoire-page grimoire-left">
+          <div
+            id="stats"
+            class="stats"
+            aria-label="Your health and guard"
+          ></div>
           <p class="eyebrow">THE GRIMOIRE</p>
           <h2>Shape an answer.</h2>
           <p class="grimoire-note">
