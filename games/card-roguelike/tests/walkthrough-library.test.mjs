@@ -21,12 +21,11 @@ test("the playable world loads surface assets only and walks continuously into i
     };
     world = new WalkthroughLibrary(new Scene(), camera, renderer);
     await world.ready;
-    assert.equal(requests.length, 8);
+    assert.equal(requests.length, 7);
     assert.ok(
       requests.every(
         (url) =>
           url.includes("/3d/") ||
-          url.endsWith("enemy-atlas.webp") ||
           url.endsWith("prop-atlas.webp"),
       ),
       "no full-room picture is requested",
@@ -75,6 +74,10 @@ test("the playable world loads surface assets only and walks continuously into i
       "forgetting the fire discovery fades its scar",
     );
     world.setEnemies([{ id: "keeper", type: "warden", hp: 10 }]);
+    const feet = world.actors[0].group.position.clone().project(camera);
+    const label = world.getEnemyAnchor(0).project(camera);
+    assert.ok(feet.y > -0.1, "the full creature remains above the lower spellbook");
+    assert.ok(label.y < 0.92, "enemy intent remains below the top header");
     const battle = camera.position.clone();
     world.setEnemies([{ id: "keeper", type: "warden", hp: 4 }]);
     world.update(0.1);

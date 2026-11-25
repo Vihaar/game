@@ -1,3 +1,15 @@
+# Painted library, spell targeting and run choices
+
+Current slice: three floors, one nameless apprentice, spell-only combat, and a fixed 2 HP crafting price. Originals stay reusable; no Focus, corruption or extra enemy action is charged for combining. The book keeps only Spells and Combine tabs. Character selection and separate Strike/Guard actions are removed.
+
+Library materials carry local pigment shading and uneven ink contours. Six original enemy types are separate curved body, hood, face, eyes, arms and prop layers; the running world no longer loads the complete enemy atlas. Battle framing exposes their whole bodies above the book. No full-room or full-book image replaces the code-composed scene.
+
+Each floor offers normal archive and elite guardian routes with different relic timing. Six relics alter spells or recovery. Encounters vary by seed. Nine semantic combinations include Ricochet, Stolen Sentence and Borrowed Dawn; their animations follow actual targets and use the existing bounded effect pool. Contributor instructions live in SPELL_AUTHORING.md.
+
+Verification: all 142 repository tests pass (109 Fold, 27 kart, 3 soup, 3 elevator), with typecheck and four builds. A real DOM-driven browser run crafted three spells for exactly 6 HP, completed archive/elite/archive encounters at 24 HP before final recovery, encountered copied player spells, and reached the ending without basic actions. Separate UI checks selected an attack spell and clicked an enemy to cast; Ricochet resolved three real hits, Stolen Sentence copied a 7-damage telegraph into 3 guard and 4 HP damage, and Borrowed Dawn restored Focus from 2 to 3 before reducing the next turn to 2. Desktop and 390px mobile rendering showed the drawn enemies above the book and no JavaScript or shader errors. Full permadeath and multi-seed rule coverage remain in tests; human feedback is still needed for difficulty and pacing.
+
+---
+
 # Walk-through prototype: art direction review
 
 This branch is a design prototype, held back from the production site. The previous implementation put a full-room illustration behind a small camera movement. The first volumetric version then used crude geometry with decorative textures. Neither met the requested Shroom and Gloom level of scene composition.

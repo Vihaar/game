@@ -736,6 +736,7 @@ export function createPaintedEnemy(type, { boss = false } = {}) {
     if (node.isMesh || node.isLineSegments) metadata.meshCount++;
   });
   group.userData.paintedEnemy = metadata;
+  const hitTint = new THREE.Color();
   function update({
     hit = 0,
     intent = "idle",
@@ -762,15 +763,14 @@ export function createPaintedEnemy(type, { boss = false } = {}) {
       baseProp.z + (reducedMotion ? 0 : breath * 0.7),
     );
     pupils.position.x = reducedMotion ? 0 : Math.sin(elapsed * 0.65) * 0.008;
+    hitTint.setRGB(1, 1 - strength * 0.1, 1 - strength * 0.16);
     for (const material of materials) {
       material.opacity =
         material.userData.baseOpacity * Math.max(0, Math.min(1, opacity));
       if (material.isMeshBasicMaterial)
         material.color
           .setHex(material.userData.originalColor)
-          .multiply(
-            new THREE.Color(1, 1 - strength * 0.1, 1 - strength * 0.16),
-          );
+          .multiply(hitTint);
     }
   }
   function dispose() {

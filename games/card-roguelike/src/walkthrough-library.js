@@ -8,7 +8,7 @@ import {
   dressLibraryFloor,
   setLibraryKnowledgeScars,
 } from "./illustrated-library.mjs";
-import { ENEMY_ATLAS, atlasRegion } from "./diorama-scenes.mjs";
+import { createPaintedEnemy } from "./painted-enemies.mjs";
 
 const artUrl = (file) => `${import.meta.env?.BASE_URL ?? "./"}art/${file}`;
 const files = {
@@ -19,7 +19,6 @@ const files = {
   shelf: "3d/shelf-bay.webp",
   canopy: "3d/canopy.webp",
   props: "prop-atlas.webp",
-  enemies: ENEMY_ATLAS.file,
 };
 
 /** Real rooms, geometry and stair-connected camera travel. No room backdrop. */
@@ -104,8 +103,6 @@ export class WalkthroughLibrary {
           floor.setTextures?.(this.textures);
           dressLibraryFloor(floor, this.textures);
         }
-        if (key === "enemies")
-          for (const actor of this.actors) this.textureActor(actor);
       }),
     );
     this.setArea(0);
@@ -157,6 +154,7 @@ export class WalkthroughLibrary {
     this.scene.fog.color.copy(this.scene.background);
   }
   setArea(index) {
+    this.camera.clearViewOffset();
     this.routeEpoch++;
     this.rail.cancel();
     this.clearActors();
@@ -279,35 +277,19 @@ export class WalkthroughLibrary {
     this.lastAspect = this.camera.aspect;
     this.camera.updateProjectionMatrix();
     if (this.mode === "battle") {
+      // Off-axis framing reserves the lower canvas for the physical spellbook.
+      const width = 1000 * this.camera.aspect;
+      this.camera.setViewOffset(width, 1000, 0, 160, width, 1000);
       const pose = this.battlePose();
       this.camera.position.copy(pose.position);
       this.camera.lookAt(pose.target);
       this.camera.updateMatrixWorld();
     }
   }
-  textureActor(actor) {
-    const source = this.textures.enemies;
-    if (!source) return;
-    const region = atlasRegion(
-      Math.max(0, ENEMY_ATLAS.types.indexOf(actor.definition.type)),
-      3,
-      2,
-      0.004,
-      ENEMY_ATLAS.regions[actor.definition.type],
-    );
-    const map = source.clone();
-    map.repeat.fromArray(region.repeat);
-    map.offset.fromArray(region.offset);
-    map.needsUpdate = true;
-    actor.sprite.material.map?.dispose();
-    actor.sprite.material.map = map;
-    actor.sprite.material.needsUpdate = true;
-    actor.sprite.scale.x =
-      (source.image.width * region.sourceSize[0]) /
-      (source.image.height * region.sourceSize[1]);
-  }
   clearActors() {
-    for (const actor of this.actors)
+    for (const actor of this.actors) {
+      actor.visual.dispose();
+      actor.visual.group.removeFromParent();
       actor.group.traverse((node) => {
         node.geometry?.dispose();
         if (node.material) {
@@ -315,6 +297,7 @@ export class WalkthroughLibrary {
           node.material.dispose();
         }
       });
+    }
     this.cast.clear();
     this.actors = [];
   }
@@ -338,7 +321,8 @@ export class WalkthroughLibrary {
           new THREE.PlaneGeometry(height, height),
           new THREE.MeshBasicMaterial({
             transparent: true,
-            alphaTest: 0.08,
+            opacity: 0,
+            colorWrite: false,
             side: THREE.DoubleSide,
             depthWrite: false,
           }),
@@ -346,6 +330,19 @@ export class WalkthroughLibrary {
         sprite.position.y = height / 2;
         sprite.userData.enemyIndex = index;
         group.add(sprite);
+        const visual = createPaintedEnemy(definition.type, {
+          boss: definition.type === "unbinder",
+        });
+        group.add(visual.group);
+        const shadow = new THREE.Mesh(
+          new THREE.CircleGeometry(0.78, 32),
+          new THREE.MeshBasicMaterial({color: "#29313a", transparent: true, opacity: 0.16, depthWrite: false}),
+        );
+        shadow.name = "painted-enemy-contact-shadow";
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.scale.y = 0.45;
+        shadow.position.y = 0.018;
+        group.add(shadow);
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(0.66, 0.73, 40),
           new THREE.MeshBasicMaterial({
@@ -362,6 +359,8 @@ export class WalkthroughLibrary {
           definition: { ...definition },
           group,
           sprite,
+          visual,
+          intent: "idle",
           ring,
           height,
           alive: definition.hp > 0,
@@ -369,7 +368,6 @@ export class WalkthroughLibrary {
           defeat: 0,
         };
         this.cast.add(group);
-        this.textureActor(actor);
         return actor;
       });
     }
@@ -385,7 +383,10 @@ export class WalkthroughLibrary {
       this.mode = "battle";
       this.rail.cancel();
       this.fitCamera();
-    } else this.mode = "explore";
+    } else {
+      this.mode = "explore";
+      this.camera.clearViewOffset();
+    }
     return this;
   }
   setTarget(index) {
@@ -393,6 +394,9 @@ export class WalkthroughLibrary {
       (actor, i) => (actor.ring.visible = actor.alive && i === index),
     );
     return this;
+  }
+  setIntent(index, intent = "idle") {
+    if (this.actors[index]) this.actors[index].intent = intent;
   }
   getEnemyAnchor(index) {
     const actor = this.actors[index];
@@ -421,7 +425,13 @@ export class WalkthroughLibrary {
       actor.group.scale.y = actor.alive
         ? 1
         : Math.max(0.01, actor.defeat / 0.3);
-      actor.sprite.material.opacity = actor.alive ? 1 : actor.defeat / 0.3;
+      actor.visual.update({
+        hit: actor.hit / 0.22,
+        intent: actor.intent,
+        elapsed,
+        reducedMotion,
+        opacity: actor.alive ? 1 : actor.defeat / 0.3,
+      });
     }
   }
   dispose() {

@@ -20,9 +20,9 @@ First prototype: adapt Matter's compound-body, stacking, and dragging examples t
 
 The current playable slice is three floors: a welcoming IntakeHall, the AbandonedStacks and the threatening MirrorArchive. Guided paths connect exploration to turn-based fights. Learn Language, Memory and Self; the final guardian echoes the player's invented spells. Full permadeath resets owned power and learning while recipe metadata may persist.
 
-Seven source spells are reusable. Pick two, preview a meaningful benefit and Combine. Same-spell inputs work, new spells remain ingredients, and there is no depth cap. Combining is free between encounters; during fights it uses Focus and a previewed price. Six concept synergies supply replay, interruption, reflection, preparation and piercing. Repeated casts teach later guardians; forgetting sacrifices that power for this life. Fire discoveries leave code-layered scorch/ash marks. The older eight-chapter outline remains in the narrative document for later expansion.
+Seven source spells are reusable. Pick two, preview a meaningful benefit and Combine. Same-spell inputs work, new spells remain ingredients, and there is no depth cap. Every new combination costs 2 HP, in or out of battle, with no Focus cost or extra enemy action. Six concept synergies supply replay, interruption, reflection, preparation and piercing. Repeated casts teach later guardians; forgetting sacrifices that power for this life. Fire discoveries leave code-layered scorch/ash marks. The older eight-chapter outline remains in the narrative document for later expansion.
 
-The book and art use separate code-composed layers, hand-drawn/painted SVG spell illustrations, readable manuscript headings and explicit Focus labels. See games/card-roguelike/ART_DIRECTION.md, THREE_FLOOR_RULES.md and NARRATIVE.md.
+Play one nameless apprentice; all attack and defense comes from spells. Each floor offers an archive route with an immediate relic or a stronger guardian route with two victory relics. Encounters and relics vary by seed. The book, enemies and library use separate code-composed layers with painted shading, hand-drawn contours, readable manuscript headings and explicit Focus labels. See games/card-roguelike/ART_DIRECTION.md, THREE_FLOOR_RULES.md and NARRATIVE.md.
 
 ## Shared constraints
 
