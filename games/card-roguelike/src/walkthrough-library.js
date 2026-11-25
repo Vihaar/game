@@ -1,7 +1,13 @@
 import * as THREE from "three";
-import { createLibraryFloor } from "./library-architecture.mjs";
+import {
+  createLibraryFloor,
+  libraryMoodProgress,
+} from "./library-architecture.mjs";
 import { CameraRail } from "./camera-rail.mjs";
-import { dressLibraryFloor } from "./illustrated-library.mjs";
+import {
+  dressLibraryFloor,
+  setLibraryKnowledgeScars,
+} from "./illustrated-library.mjs";
 import { ENEMY_ATLAS, atlasRegion } from "./diorama-scenes.mjs";
 
 const artUrl = (file) => `${import.meta.env?.BASE_URL ?? "./"}art/${file}`;
@@ -31,6 +37,7 @@ export class WalkthroughLibrary {
     this.onEnemyClick = onEnemyClick;
     this.floors = new Map();
     this.textures = {};
+    this.discoveryFamilies = new Set();
     this.actors = [];
     this.areaIndex = 0;
     this.worldVisible = true;
@@ -126,6 +133,7 @@ export class WalkthroughLibrary {
       this.scene.add(floor.group);
       floor.setTextures?.(this.textures);
       dressLibraryFloor(floor, this.textures);
+      setLibraryKnowledgeScars(floor, this.discoveryFamilies);
     }
     return this.floors.get(index);
   }
@@ -135,17 +143,17 @@ export class WalkthroughLibrary {
       floor.group.visible = Math.abs(i - index) <= 1;
   }
   setMood(index) {
-    const t = index / 7;
+    const t = libraryMoodProgress(index);
     this.ambient.color.set("#fff0ce").lerp(new THREE.Color("#9a9bbd"), t);
-    this.ambient.groundColor.set("#63523c").lerp(new THREE.Color("#171625"), t);
-    this.ambient.intensity = 1.2 - t * 0.55;
+    this.ambient.groundColor.set("#63523c").lerp(new THREE.Color("#696276"), t);
+    this.ambient.intensity = 1.2 - t * 0.34;
     this.sun.color.set("#ffe7bc").lerp(new THREE.Color("#b4a8d4"), t);
-    this.sun.intensity = 2.6 - t * 1.5;
+    this.sun.intensity = 2.6 - t * 0.95;
     const floor = this.ensureFloor(index),
       base = floor.entrance;
     this.sun.position.set(-8, index * 5 + 12, base.z + 1);
     this.sun.target.position.set(0, index * 5, base.z - 14);
-    this.scene.background.set("#cab995").lerp(new THREE.Color("#10101e"), t);
+    this.scene.background.set("#cab995").lerp(new THREE.Color("#242536"), t);
     this.scene.fog.color.copy(this.scene.background);
   }
   setArea(index) {
@@ -161,6 +169,18 @@ export class WalkthroughLibrary {
     this.camera.lookAt(floor.battleTarget);
     this.camera.updateMatrixWorld();
     return this;
+  }
+  setDiscoveries(summary = {}) {
+    const families = Array.isArray(summary) ? summary : summary?.families;
+    this.discoveryFamilies = new Set(
+      Array.from(families ?? []).filter((family) => family === "fire"),
+    );
+    for (const floor of this.floors.values())
+      setLibraryKnowledgeScars(floor, this.discoveryFamilies);
+    return this;
+  }
+  resetDiscoveries() {
+    return this.setDiscoveries({ families: [] });
   }
   async enterLibrary({ reducedMotion = false } = {}) {
     const epoch = this.routeEpoch,
@@ -382,7 +402,11 @@ export class WalkthroughLibrary {
           .add(new THREE.Vector3(0, actor.height + 0.25, 0))
       : null;
   }
-  update(dt, elapsed = 0, { reducedMotion = false, presentationDelta = dt } = {}) {
+  update(
+    dt,
+    elapsed = 0,
+    { reducedMotion = false, presentationDelta = dt } = {},
+  ) {
     if (this.disposed) return;
     this.rail.update(presentationDelta, reducedMotion);
     if (Math.abs(this.camera.aspect - this.lastAspect) > 0.001)

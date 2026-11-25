@@ -13,6 +13,9 @@ export const LIBRARY_FLOOR_THEMES = [
   "broken",
   "vault",
 ];
+// The playable slice has three chapters; later internal rooms retain the final mood.
+export const libraryMoodProgress = (index) =>
+  Math.min(2, Math.max(0, Number(index) || 0)) / 2;
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const mix = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t);
 const vec = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -118,7 +121,7 @@ function grainTexture() {
 /** One actual room and its upward staircase, all in shared world coordinates. */
 export function createLibraryFloor(requestedIndex = 0) {
   const index = Math.max(0, Math.min(7, Math.trunc(requestedIndex) || 0)),
-    progress = index / 7;
+    progress = libraryMoodProgress(index);
   const baseY = index * 5,
     baseZ = -index * 36,
     theme = LIBRARY_FLOOR_THEMES[index];
@@ -134,8 +137,8 @@ export function createLibraryFloor(requestedIndex = 0) {
     panelMaterials: [],
     grimoireMaterials: [],
   };
-  const paper = mix("#eadbc0", "#61596e", progress),
-    wall = mix("#d9c6a5", "#454153", progress),
+  const paper = mix("#eadbc0", "#8b8399", progress),
+    wall = mix("#d9c6a5", "#716b80", progress),
     trim = mix("#f2e7d1", "#a59ab5", progress);
   const ink = mix("#455762", "#28273d", progress),
     leafColor = mix("#6b8b62", "#645969", progress);
@@ -160,10 +163,10 @@ export function createLibraryFloor(requestedIndex = 0) {
   const foliageMat = mat("#ffffff", { side: THREE.DoubleSide });
   const lanternMat = mat(mix("#f5ca7c", "#be9dad", progress), {
     emissive: mix("#c48435", "#50455e", progress),
-    emissiveIntensity: 0.27,
+    emissiveIntensity: 0.27 * (1 - progress * 0.65),
   });
   const bookMats = Array.from({ length: 4 }, () =>
-    mat("#ffffff", {}, "bookMaterials"),
+    mat(mix("#ffffff", "#9d98aa", progress), {}, "bookMaterials"),
   );
   const panelMats = Array.from({ length: 4 }, () =>
     mat(trim, {}, "panelMaterials"),
@@ -237,6 +240,11 @@ export function createLibraryFloor(requestedIndex = 0) {
       new THREE.CylinderGeometry(0.24, 0.3, 0.65, 6),
       lanternMat,
     );
+  const unlitLanterns = batch(
+    "unlit-paper-lanterns",
+    lanterns.geometry,
+    mat("#53515f"),
+  );
   instance(slabs, 0, -0.16, 0, 18.5, 0.32, 28.5);
   for (const side of [-1, 1])
     instance(boards, side * 8.85, 0.17, 0, 0.24, 0.3, 28);
@@ -368,6 +376,11 @@ export function createLibraryFloor(requestedIndex = 0) {
   ];
   for (const side of [-1, 1])
     for (let bay = 0; bay < 4; bay++) {
+      if (
+        (progress >= 0.5 && side === 1 && bay === 1) ||
+        (progress === 1 && side === -1 && bay === 2)
+      )
+        continue;
       const z = -9 + bay * 6;
       for (let shelf = 0; shelf < 5; shelf++)
         instance(boards, side * 8.02, 0.22 + shelf * 0.82, z, 1.05, 0.11, 4.8);
@@ -375,14 +388,14 @@ export function createLibraryFloor(requestedIndex = 0) {
         instance(boards, side * 8.02, 2.02, z + end * 2.4, 1.06, 4.0, 0.12);
       for (let shelf = 0; shelf < 4; shelf++)
         for (let bookIndex = 0; bookIndex < 20; bookIndex++) {
-          if (index >= 5 && (bookIndex * 7 + shelf * 3 + bay) % 5 < index - 4)
+          if ((bookIndex * 7 + shelf * 3 + bay) % 10 < Math.round(progress * 6))
             continue;
           const height = 0.5 + ((bookIndex * 11 + shelf * 7 + bay) % 5) * 0.048;
           const bz = z - 2.14 + bookIndex * 0.224,
             by = 0.31 + shelf * 0.82 + height / 2;
           const tilt =
             (bookIndex % 7 === 0 ? 0.08 : 0) +
-            (index >= 5 ? Math.sin(bookIndex * 3 + bay) * 0.11 : 0);
+            Math.sin(bookIndex * 3 + bay) * progress * 0.16;
           const tint = mix(
             bookPalette[(bookIndex + shelf + bay) % bookPalette.length],
             "#4b435b",
@@ -434,7 +447,7 @@ export function createLibraryFloor(requestedIndex = 0) {
             );
         }
       // A few face-out volumes expose their generated full-cover designs in real 3D.
-      if (index < 5 || bay % 2 === 0) {
+      if (progress < 0.5 || bay % 2 === 0) {
         instance(
           pageEdges,
           side * 7.47,
@@ -473,7 +486,7 @@ export function createLibraryFloor(requestedIndex = 0) {
         );
       for (let i = 1; i < points.length; i++) {
         beam(rails, points[i - 1], points[i], 0.021);
-        if (index < 5 || i % 3 === 0) {
+        if (progress === 0 || i % (progress === 1 ? 3 : 2) === 0) {
           instance(
             leaves,
             points[i].x,
@@ -504,12 +517,63 @@ export function createLibraryFloor(requestedIndex = 0) {
       }
     }
   for (const side of [-1, 1])
-    for (const z of [-9.5, -1.5, 7]) {
-      instance(lanterns, side * 5.6, 4.05, z);
+    for (const [lampIndex, z] of [-9.5, -1.5, 7].entries()) {
+      const extinguished =
+        progress === 1 ||
+        (progress >= 0.5 && (lampIndex + (side === 1 ? 1 : 0)) % 2 === 0);
+      instance(extinguished ? unlitLanterns : lanterns, side * 5.6, 4.05, z);
       beam(rails, vec(side * 5.6, 4.4, z), vec(side * 5.6, 5.8, z), 0.018);
       for (const y of [3.72, 4.38])
         instance(rails, side * 5.6, y, z, 0.31, 0.045, 0.31);
     }
+  if (progress > 0) {
+    const tornPage = extrude(
+      shape([
+        [-0.25, 0],
+        [0.22, 0.03],
+        [0.31, 0.18],
+        [0.2, 0.22],
+        [0.3, 0.3],
+        [0.23, 0.46],
+        [-0.23, 0.5],
+        [-0.16, 0.31],
+        [-0.27, 0.23],
+      ]),
+      0.008,
+    );
+    const torn = batch(
+      "torn-hanging-pages",
+      tornPage,
+      mat(mix("#c8bba3", "#a49cab", progress)),
+    );
+    const fallen = batch("fallen-paper-fragments", tornPage, pageMat);
+    for (let i = 0; i < Math.round(22 * progress); i++)
+      instance(
+        torn,
+        (i % 2 ? 1 : -1) * (3.4 + (i % 4) * 0.48),
+        3.55 - (i % 3) * 0.23,
+        10 - i * 1.1,
+        1.2,
+        1.35,
+        1,
+        0.16,
+        i * 1.1,
+        Math.sin(i) * 0.28,
+      );
+    for (let i = 0; i < Math.round(38 * progress); i++)
+      instance(
+        fallen,
+        (i % 2 ? 1 : -1) * (2.8 + (i % 5) * 0.42),
+        0.045,
+        11 - i * 0.59,
+        1.5,
+        1.4,
+        1,
+        -Math.PI / 2,
+        0,
+        i * 1.7,
+      );
+  }
   // Read and forge stations are modeled books and folded-paper plinths, not pictures.
   const pedestal = new THREE.CylinderGeometry(0.78, 0.92, 0.16, 8),
     pedestalStem = new THREE.CylinderGeometry(0.36, 0.62, 0.95, 8);
@@ -727,6 +791,7 @@ export function createLibraryFloor(requestedIndex = 0) {
     group,
     index,
     theme,
+    moodProgress: progress,
     baseY,
     baseZ,
     materials,

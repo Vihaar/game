@@ -56,6 +56,24 @@ test("the playable world loads surface assets only and walks continuously into i
     assert.equal(await stale, false);
     world.update(10);
     assert.equal(world.areaIndex, 0);
+    world.setDiscoveries({ families: ["fire"] });
+    for (const floor of world.floors.values())
+      assert.equal(floor.knowledgeScars.visible, true);
+    assert.equal(
+      world.ensureFloor(3).knowledgeScars.visible,
+      true,
+      "later floors inherit the in-run choice",
+    );
+    world.resetDiscoveries();
+    for (const floor of world.floors.values())
+      assert.equal(floor.knowledgeScars.visible, false);
+    world.setDiscoveries({ families: ["fire"] });
+    world.setDiscoveries({ families: [] });
+    assert.equal(
+      world.ensureFloor(0).knowledgeScars.visible,
+      false,
+      "forgetting the fire discovery fades its scar",
+    );
     world.setEnemies([{ id: "keeper", type: "warden", hp: 10 }]);
     const battle = camera.position.clone();
     world.setEnemies([{ id: "keeper", type: "warden", hp: 4 }]);
