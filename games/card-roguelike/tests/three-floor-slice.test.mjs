@@ -380,3 +380,5 @@ test("all three classes can complete a legal three-floor fusion run, with a lear
     assert.ok(s.hp > 0);
   }
 });
+
+test('an interrupt needs a living target and cannot consume Focus or teach on an invalid selection',()=>{const s=battle(['hushwall']);const before=structuredClone(s);assert.equal(guidedCast(s,0,999,rng).ok,false);assert.deepEqual(s,before)});

@@ -613,7 +613,7 @@ export function castCard(
         card.all ? CARD_LIMITS.areaDamage : CARD_LIMITS.damage,
         Math.max(0, card.damage || 0),
       );
-  if (resolvedDamage && !card.all && (!target || target.hp <= 0))
+  if ((resolvedDamage || card.interrupt) && !card.all && (!target || target.hp <= 0))
     return { ok: false, reason: "Choose a living enemy first." };
   state.energy -= card.cost;
   const copyId = state.handCopyIds.splice(handIndex, 1)[0];

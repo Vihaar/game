@@ -40,4 +40,4 @@ For reusable guided runs, `forgetLearnedRune` adds the exact key to `state.forgo
 
 ## Checks
 
-Twelve new focused tests prove all six semantics,250actual consecutive reusable fusions, unique output ownership, preparation limits/latest-output availability, copied effects, paid combat/free exploration economics, permanent-in-life forgetting, final reward omission, and complete legal three-floor runs for all three characters with learned guardian echoes. Legacy base-rule tests remain green. Parent UI/world browser validation is a separate integration step.
+Thirteen new focused tests prove all six semantics,250actual consecutive reusable fusions, unique output ownership, preparation limits/latest-output availability, copied effects, paid combat/free exploration economics, permanent-in-life forgetting, final reward omission, and complete legal three-floor runs for all three characters with learned guardian echoes. Legacy base-rule tests remain green. Parent UI/world browser validation is a separate integration step.
