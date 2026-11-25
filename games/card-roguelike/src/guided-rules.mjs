@@ -92,6 +92,7 @@ export function newGuidedRun(id = "binder") {
   state.reflect = 0;
   state.lastAttack = null;
   state.nextTurnEnergyPenalty = 0;
+  state.borrowedDawnTurn = null;
   state.forgottenRuneKeys = [];
   return state;
 }
@@ -220,6 +221,12 @@ export function startGuidedBattle(state, rng = Math.random, defs = null) {
     state.basicBlockCooldown = 0;
     state.reflect = 0;
     state.lastAttack = null;
+    state.borrowedDawnTurn = null;
+    state.energy = Math.max(
+      0,
+      state.energy - (state.nextTurnEnergyPenalty || 0),
+    );
+    state.nextTurnEnergyPenalty = 0;
     state.relicUses = {};
     prepareEssentials(state, true);
     assignGuardianCopy(state);
@@ -282,8 +289,27 @@ export function guidedCast(
 ) {
   const before = state.enemies.map((e) => e.hp),
     card = base.getCard(state.hand[index]);
+  if (card?.borrowFocus && state.borrowedDawnTurn === state.turn)
+    return {
+      ok: false,
+      reason:
+        "You already borrowed Focus this turn. End the turn before borrowing again.",
+    };
+  const announced =
+    card?.stealIntent && state.enemies[target]?.hp > 0
+      ? enemyIntent(state, state.enemies[target])
+      : null;
+  const stolenDamage = announced
+    ? announced.damage > 0
+      ? Math.min(8, Math.max(2, announced.damage))
+      : 3
+    : null;
+  const firstGuard = state.enemies[target]?.guard || 0;
   const result = base.castCard(state, index, target, rng);
   if (result.ok) {
+    // Guard and reflection settle before a provisional lethal hit ends the battle.
+    if (state.phase === "reward") state.phase = "battle";
+    if (card.stealIntent) result.resolvedDamage = stolenDamage;
     state.relicUses ||= {};
     const has = (id) => state.relics?.includes(id);
     if (
@@ -318,6 +344,79 @@ export function guidedCast(
       ),
       { pierce: Boolean(card.pierce) },
     );
+    const hits = [];
+    if (card.ricochet) {
+      const firstDamage = result.resolvedDamage;
+      hits.push({
+        targetIndex: target,
+        enemyId: state.enemies[target].id,
+        damage: firstDamage,
+        blocked: Math.min(firstGuard, firstDamage),
+        hpDamage: before[target] - state.enemies[target].hp,
+      });
+      for (let spark = 1; spark < 3 && state.phase !== "dead"; spark++) {
+        const living = state.enemies
+          .map((enemy, i) => ({ enemy, i }))
+          .filter(({ enemy }) => enemy.hp > 0);
+        if (!living.length) break;
+        const roll = Number(rng());
+        const { enemy, i } =
+          living[
+            Math.min(
+              living.length - 1,
+              Math.max(
+                0,
+                Math.floor((Number.isFinite(roll) ? roll : 0) * living.length),
+              ),
+            )
+          ];
+        const blocked = Math.min(enemy.guard || 0, 2),
+          hp = enemy.hp;
+        enemy.guard = Math.max(0, (enemy.guard || 0) - blocked);
+        enemy.hp = Math.max(0, enemy.hp - (2 - blocked));
+        const reflected = Math.min(enemy.reflect || 0, blocked);
+        if (reflected) {
+          enemy.reflect -= reflected;
+          base.applyEnemyDamage(state, reflected, { ignoreCorruption: true });
+        }
+        hits.push({
+          targetIndex: i,
+          enemyId: enemy.id,
+          damage: 2,
+          blocked,
+          hpDamage: hp - enemy.hp,
+        });
+      }
+      result.resolvedDamage = hits.reduce((sum, hit) => sum + hit.damage, 0);
+      if (state.phase !== "dead" && !base.livingEnemies(state).length)
+        state.phase = "reward";
+      if (state.enemies[state.target]?.hp <= 0)
+        state.target = Math.max(
+          0,
+          state.enemies.findIndex((enemy) => enemy.hp > 0),
+        );
+    }
+    let focusGained = 0;
+    if (card.borrowFocus) {
+      const beforeFocus = state.energy;
+      state.energy = Math.min(
+        state.maxEnergy,
+        state.energy + Math.min(2, card.borrowFocus),
+      );
+      focusGained = state.energy - beforeFocus;
+      state.nextTurnEnergyPenalty = Math.min(
+        2,
+        (state.nextTurnEnergyPenalty || 0) + 1,
+      );
+      state.borrowedDawnTurn = state.turn;
+    }
+    if (state.phase !== "dead" && !base.livingEnemies(state).length)
+      state.phase = "reward";
+    if (state.enemies[state.target]?.hp <= 0)
+      state.target = Math.max(
+        0,
+        state.enemies.findIndex((enemy) => enemy.hp > 0),
+      );
     if (result.resolvedDamage)
       state.lastAttack = {
         damage: result.resolvedDamage,
@@ -333,6 +432,10 @@ export function guidedCast(
       state.reflect = Math.min(6, (state.reflect || 0) + card.reflect);
     result.extras = {
       effect: card.effect || null,
+      hits,
+      stolenDamage: card.stealIntent ? stolenDamage : 0,
+      focusGained,
+      focusDebt: card.borrowFocus ? 1 : 0,
       replayedDamage: card.replay ? result.resolvedDamage : 0,
       interruptedEnemyId: card.interrupt ? state.enemies[target]?.id : null,
       reflectGranted: card.reflect || 0,
@@ -370,7 +473,7 @@ function act(state, enemy) {
       enemy.reflect = Math.min(6, (enemy.reflect || 0) + intent.reflect);
     if (intent.focusDrain)
       state.nextTurnEnergyPenalty = Math.min(
-        1,
+        2,
         (state.nextTurnEnergyPenalty || 0) + intent.focusDrain,
       );
   }

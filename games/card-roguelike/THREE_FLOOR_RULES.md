@@ -39,9 +39,9 @@ Before each battle, choose one of two routes. `guidedRouteOptions(state)` return
 | bloodbookmark | Red Bookmark | A battle combination grants 3 guard, still costing 2 HP. |
 | quietlamp | The Last Reading Lamp | Recover 1 extra HP after victory. |
 
-## Six distinct synergies
+## Nine distinct synergies
 
-All six are available from the initial source imprints and cost1Focus to cast.
+All nine are available from the initial source imprints and cost1Focus to cast.
 
 | Inputs | Result | Exact benefit |
 | --- | --- | --- |
@@ -51,6 +51,9 @@ All six are available from the initial source imprints and cost1Focus to cast.
 | Gust + Memory | Recall Wind |2damage; prepares up to2inscriptions within5slots. |
 | Ember + Silence | Quiet Pyre |5damage that ignores enemy guard without consuming it. |
 | Stone + Mirror | Mirror Ward |6guard; reflects up to2guarded incoming damage. |
+| Ember + Mirror | Ricochet | Three 2-damage sparks: chosen enemy first, then two seeded-random living targets. Guard applies per hit. |
+| Memory + Mirror | Stolen Sentence | Deal selected enemy’s announced attack damage, clamped2–8;3for a non-attack. |
+| Dew + Memory | Borrowed Dawn | Restore2Focus (maximum3), prepare1; next turn loses1Focus. Once per turn across all descendants. |
 
 Arbitrary later fusions deterministically retain a semantic parent's perk rather than falling back to unrelated random stats. The selected perk and parent concept weights are commutative across input order and fresh caches. Damage/guard/healing remain capped; numerical generic fusions improve slot economy without poor damage/guard per Focus. Existing Flare/Bastion become8power for2Focus; Firestorm costs2; Mist costs1.
 
@@ -62,4 +65,8 @@ For reusable guided runs, `forgetLearnedRune` adds the exact key to `state.forgo
 
 ## Checks
 
-The Fold suite proves all six spell semantics, 250 consecutive fusions with a deliberately enlarged test health budget, unique ownership, preparation limits, copied effects, fixed 2 HP economics, nonlethal rejection, permanent-in-life forgetting, route risk/reward, all six relic mechanics, final reward timing, and a complete legal spells-only three-floor run through an elite encounter with learned guardian echoes. No combat-state cheats or free basics are used in that win test. Legacy base-rule tests remain green. Parent UI/world browser validation is a separate integration step.
+The Fold suite proves all nine spell semantics, 250 consecutive fusions with a deliberately enlarged test health budget, unique ownership, preparation limits, copied effects, fixed 2 HP economics, nonlethal rejection, permanent-in-life forgetting, route risk/reward, all six relic mechanics, final reward timing, and a complete legal spells-only three-floor run through an elite encounter with learned guardian echoes. No combat-state cheats or free basics are used in that win test. Legacy base-rule tests remain green. Parent UI/world browser validation is a separate integration step.
+
+## Extending magic
+
+See SPELL_AUTHORING.md for exact integration steps, deterministic recipes, three distinctive newer mechanics, copied adaptations, cast result hit logs and loop-prevention tests. Every new rule must survive recursive combination without turning into unrelated generic stats.

@@ -177,6 +177,40 @@ Object.assign(CARDS, {
     fused: true,
     text: "Deal 5 damage, ignoring enemy guard.",
   },
+  ricochet: {
+    name: "Ricochet",
+    glyph: "✦",
+    kind: "ember",
+    cost: 1,
+    damage: 2,
+    ricochet: 3,
+    effect: "ricochet",
+    fused: true,
+    text: "Three sparks deal 2 damage each: first to your target, then twice to random living enemies. Each spark meets guard separately.",
+  },
+  stolensentence: {
+    name: "Stolen Sentence",
+    glyph: "↶",
+    kind: "gust",
+    cost: 1,
+    damage: 3,
+    stealIntent: true,
+    effect: "stolensentence",
+    fused: true,
+    text: "Deal your target’s announced attack damage (2–8). Deal 3 if it is not attacking.",
+  },
+  borroweddawn: {
+    name: "Borrowed Dawn",
+    glyph: "◒",
+    kind: "dew",
+    cost: 1,
+    draw: 1,
+    borrowFocus: 2,
+    focusDebt: 1,
+    effect: "focusdebt",
+    fused: true,
+    text: "Restore 2 Focus now, up to your maximum, and prepare 1 spell. Next turn has 1 less Focus. Once per turn across all versions.",
+  },
   mirrorward: {
     name: "Mirror Ward",
     glyph: "⬡",
@@ -190,6 +224,9 @@ Object.assign(CARDS, {
   },
 });
 export const SYNERGY_RECIPES = [
+  { inputs: ["ember", "mirror"], output: "ricochet" },
+  { inputs: ["memory", "mirror"], output: "stolensentence" },
+  { inputs: ["dew", "memory"], output: "borroweddawn" },
   { inputs: ["ember", "memory"], output: "afterflame" },
   { inputs: ["stone", "silence"], output: "hushwall" },
   { inputs: ["dew", "mirror"], output: "silvertide" },
@@ -613,7 +650,11 @@ export function castCard(
         card.all ? CARD_LIMITS.areaDamage : CARD_LIMITS.damage,
         Math.max(0, card.damage || 0),
       );
-  if ((resolvedDamage || card.interrupt) && !card.all && (!target || target.hp <= 0))
+  if (
+    (resolvedDamage || card.interrupt) &&
+    !card.all &&
+    (!target || target.hp <= 0)
+  )
     return { ok: false, reason: "Choose a living enemy first." };
   state.energy -= card.cost;
   const copyId = state.handCopyIds.splice(handIndex, 1)[0];
@@ -728,9 +769,11 @@ function forgeSelection(state, firstIndex, secondIndex) {
       reason: "Already inscribed; use it as an ingredient. Nothing spent.",
     };
   const fixedHealthCost = state.forgePolicy?.fixedHealthCost;
-  const mode = fixedHealthCost ? "health" : Object.hasOwn(FORGE_MODES, state.forgeMode)
-      ? state.forgeMode
-      : "time",
+  const mode = fixedHealthCost
+      ? "health"
+      : Object.hasOwn(FORGE_MODES, state.forgeMode)
+        ? state.forgeMode
+        : "time",
     policy = FORGE_MODES[mode];
   const free = retainInputs && state.phase === "explore" && !fixedHealthCost;
   const inkCost = free

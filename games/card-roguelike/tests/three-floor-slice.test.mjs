@@ -81,7 +81,7 @@ function cast(s, key) {
   assert.equal(result.ok, true, result.reason);
   return result;
 }
-test("six concept recipes are accessible from the starter imprints, commutative, distinct and describe their benefit", () => {
+test("nine concept recipes are accessible from the starter imprints, commutative, distinct and describe their benefit", () => {
   const s = newGuidedRun();
   assert.equal(s.totalFloors, 3);
   assert.equal(GUIDED_FLOOR_COUNT, 3);
@@ -93,7 +93,7 @@ test("six concept recipes are accessible from the starter imprints, commutative,
   }
   assert.equal(
     new Set(SYNERGY_RECIPES.map((r) => getCard(r.output).effect)).size,
-    6,
+    9,
   );
 });
 test("health-priced exploration combinations keep every source ID and allow A+A from one imprint", () => {

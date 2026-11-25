@@ -144,6 +144,8 @@ const validKey = (key) =>
 function effectsText(card) {
   return [
     card.damage &&
+      !card.ricochet &&
+      !card.stealIntent &&
       `Deal ${card.damage} damage${card.all ? " to nearby enemies" : ""}.`,
     card.block && `Gain ${card.block} block briefly.`,
     card.heal && `Restore ${card.heal} health.`,
@@ -152,6 +154,12 @@ function effectsText(card) {
     card.interrupt && "Interrupt the target’s next announced move.",
     card.reflect && `Reflect up to ${card.reflect} guarded damage this turn.`,
     card.pierce && "Ignores enemy guard.",
+    card.ricochet &&
+      "Three 2-damage sparks: first at your target, then two seeded-random living targets; each meets guard separately.",
+    card.stealIntent &&
+      "Deals the target’s announced attack damage (2–8), or 3 when it is not attacking.",
+    card.borrowFocus &&
+      "Restore 2 Focus now, up to your maximum; next turn has 1 less Focus. Once per turn across all versions.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -301,6 +309,34 @@ export function createCraftingSystem(cards, recipes) {
         card.damage = 2;
         card.draw = 2;
         card.cost = 1;
+      }
+      if (["ricochet", "stolensentence", "focusdebt"].includes(card.effect)) {
+        for (const key of [
+          "damage",
+          "block",
+          "heal",
+          "all",
+          "draw",
+          "replay",
+          "interrupt",
+          "reflect",
+          "pierce",
+        ])
+          delete card[key];
+        card.cost = 1;
+        if (card.effect === "ricochet") {
+          card.damage = 2;
+          card.ricochet = 3;
+        }
+        if (card.effect === "stolensentence") {
+          card.damage = 3;
+          card.stealIntent = true;
+        }
+        if (card.effect === "focusdebt") {
+          card.draw = 1;
+          card.borrowFocus = 2;
+          card.focusDebt = 1;
+        }
       }
       if (card.effect === "pierce") {
         card.damage = 6;

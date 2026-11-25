@@ -42,11 +42,16 @@ function snapshot(card, characterId, resolvedDamage) {
     invented: Boolean(card.fused || card.generated),
     sourceCharacterId: characterId,
     damage: bounded(
-      card.replay ? resolvedDamage : card.damage,
+      card.replay || card.ricochet || card.stealIntent
+        ? resolvedDamage
+        : card.damage,
       LIBRARY_LEARNING_POLICY.maxCopiedDamage,
     ),
     effect: card.effect || null,
     replay: Boolean(card.replay),
+    ricochet: bounded(card.ricochet, 3),
+    stealIntent: Boolean(card.stealIntent),
+    borrowFocus: bounded(card.borrowFocus, 2),
     pierce: Boolean(card.pierce),
     interrupt: bounded(card.interrupt, 1),
     reflect: bounded(card.reflect, 4),
@@ -166,10 +171,12 @@ function copyDetails(state, spell) {
     heal = bounded(spell.heal, LIBRARY_LEARNING_POLICY.maxCopiedHeal);
   const damage = amount ? amount + corruptionDamageBonus(state) : 0;
   const reflect = bounded(spell.reflect, 4),
-    focusDrain = bounded(spell.interrupt, 1),
+    focusDrain = bounded(spell.interrupt || (spell.borrowFocus ? 1 : 0), 1),
     pierce = Boolean(spell.pierce);
   const effects = [
-    damage ? `${damage} damage` : "",
+    damage
+      ? `${damage} damage${spell.ricochet ? " in up to 3 sparks" : spell.stealIntent ? " stolen from your observed attack" : ""}`
+      : "",
     block ? `${block} guard` : "",
     heal ? `${heal} heal` : "",
     reflect ? `reflect ${reflect} guarded damage` : "",
