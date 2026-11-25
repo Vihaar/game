@@ -1850,3 +1850,349 @@ body[data-phase="explore"] .message {
 .inventory .rune-effects {
   font-size: 0.63rem;
 }
+
+/* In-world typography: the room carries the interface, without label cards. */
+body {
+  --world-text: #293b40;
+  --world-halo: #f1e2c3;
+}
+body.deep-library {
+  --world-text: #ede2cf;
+  --world-halo: #111522;
+}
+.hud {
+  padding: 1.25rem 1.6rem;
+  gap: 0.7rem;
+}
+.wordmark,
+.stats,
+.chapter,
+.hud-buttons button,
+.enemy-target,
+.enemy-target.targeted,
+.world-hotspot,
+.world-hotspot:hover:not(:disabled),
+.message,
+.explore-tools > span,
+.explore-tools > button,
+.advance-wrap button {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--world-text);
+  text-shadow:
+    0 1px 2px var(--world-halo),
+    0 0 9px var(--world-halo);
+}
+.wordmark {
+  padding: 0;
+  letter-spacing: 0.14em;
+  font:
+    500 1.1rem "Fraunces",
+    Georgia,
+    serif;
+}
+.wordmark span {
+  display: none;
+}
+.stats {
+  margin: 0 0 0 auto;
+  padding: 0;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+.stats > span:first-child,
+.stats > span:last-child {
+  display: none;
+}
+.stats strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.hud-buttons {
+  gap: 0.8rem;
+}
+.hud-buttons button {
+  padding: 0.2rem 0;
+  font-size: 0.75rem;
+}
+.hud-buttons kbd {
+  display: none;
+}
+.chapter {
+  left: 1.6rem;
+  top: 4.5rem;
+  max-width: 260px;
+  padding: 0;
+}
+.chapter h1,
+body[data-phase="battle"] .chapter h1 {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  margin: 0.25rem 0;
+  letter-spacing: -0.01em;
+}
+.chapter > p:first-child {
+  font-size: 0.59rem;
+  letter-spacing: 0.15em;
+  margin: 0;
+  opacity: 0.75;
+}
+.chapter #objective,
+.chapter #knowledge-progress {
+  display: none;
+}
+.paper-edge {
+  border: 0;
+  box-shadow: inset 0 0 70px #17232220;
+}
+.world-hotspot {
+  min-height: 44px;
+  width: 112px;
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+.world-hotspot::after {
+  display: none;
+}
+.world-hotspot strong {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+.world-hotspot .hotspot-mark {
+  color: inherit;
+  opacity: 0.85;
+  font-size: 0.9rem;
+}
+.world-hotspot small {
+  display: none;
+  color: inherit;
+  font-size: 0.65rem;
+}
+.world-hotspot:hover small,
+.world-hotspot:focus-visible small {
+  display: block;
+}
+.world-hotspot:hover:not(:disabled) {
+  transform: translate(-50%, calc(-100% - 1px));
+}
+.world-hotspot strong,
+.wordmark {
+  background-image: linear-gradient(
+    110deg,
+    #4c6b62 10%,
+    #a67c40 35%,
+    #7776a1 55%,
+    #4c6b62 80%
+  );
+  background-size: 260% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.deep-library .world-hotspot strong,
+.deep-library .wordmark {
+  background-image: linear-gradient(
+    110deg,
+    #c3d3c4 10%,
+    #e9c68d 35%,
+    #bdb0dd 55%,
+    #c3d3c4 80%
+  );
+}
+.world-hotspot:hover strong,
+.world-hotspot:focus-visible strong,
+.wordmark:hover {
+  animation: ink-shimmer 5s ease-in-out infinite;
+}
+@keyframes ink-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.enemy-target {
+  width: 148px;
+  padding: 0.2rem 0.35rem;
+  gap: 0.18rem;
+  font-size: 0.67rem;
+}
+.enemy-target.targeted {
+  outline: none;
+}
+.enemy-target.targeted strong::before {
+  content: "✧ ";
+  color: #a27647;
+}
+.enemy-target strong {
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.enemy-target .target-marker {
+  display: none;
+}
+.enemy-target b {
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+.hp-track {
+  height: 2px;
+  background: #8f86765c;
+  width: 70%;
+  align-self: center;
+}
+.hp-track i {
+  background: #a77758;
+}
+.message {
+  padding: 0;
+  font-size: 0.75rem;
+  bottom: 285px;
+  max-width: min(70vw, 550px);
+}
+.explore-tools > span {
+  display: none;
+}
+.explore-tools {
+  left: 1.6rem;
+  bottom: 1.2rem;
+}
+.explore-tools > button {
+  padding: 0.15rem 0;
+  opacity: 0.7;
+  font-size: 0.65rem;
+}
+.advance-wrap button {
+  padding: 0.3rem 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.grimoire-heading > span,
+.grimoire .eyebrow,
+.grimoire .dock-caption {
+  display: none;
+}
+.grimoire h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+.grimoire {
+  box-shadow: 0 10px 35px #17232225;
+}
+.rune:hover .rune-seal {
+  filter: drop-shadow(0 0 5px #c9a66b66);
+}
+@media (max-width: 650px) {
+  .hud {
+    padding: 0.9rem 0.8rem;
+    gap: 0.6rem;
+  }
+  .wordmark {
+    font-size: 0.85rem;
+  }
+  .stats {
+    gap: 0.35rem;
+    font-size: 0.65rem;
+  }
+  .stats strong {
+    font-size: 0.78rem;
+  }
+  .hud-buttons {
+    gap: 0.6rem;
+  }
+  .hud-buttons button {
+    font-size: 0.7rem;
+  }
+  .chapter {
+    left: 0.85rem;
+    top: 3.5rem;
+  }
+  .chapter h1,
+  body[data-phase="battle"] .chapter h1 {
+    font-size: 0.92rem;
+  }
+  .enemy-target {
+    width: 116px;
+  }
+  .enemy-target strong {
+    font-size: 0.85rem;
+  }
+  .enemy-target b {
+    font-size: 0.64rem;
+  }
+  .world-hotspot {
+    width: 92px;
+  }
+  .world-hotspot strong {
+    font-size: 1rem;
+  }
+  .world-hotspot small {
+    font-size: 0.6rem;
+  }
+  .explore-tools {
+    left: 0.8rem;
+  }
+  .grimoire .rune-effects {
+    font-size: 0.72rem;
+  }
+  .grimoire .rune-cost {
+    font-size: 0.68rem;
+  }
+  .message {
+    font-size: 0.7rem;
+    max-width: 82vw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-hotspot strong,
+  .wordmark {
+    animation: none !important;
+  }
+}
+/* Keep shimmer crisp: color travels through ink, never a fuzzy glow cloud. */
+.world-hotspot strong {
+  text-shadow: none;
+  filter: drop-shadow(0 1px 0.4px #f6e7c7b3);
+}
+.wordmark {
+  background-image: linear-gradient(
+    110deg,
+    #f1e6ce 10%,
+    #d2ad79 40%,
+    #c4b5d1 65%,
+    #f1e6ce 90%
+  );
+  text-shadow: none;
+  filter: drop-shadow(0 1px 1px #19252bc9);
+}
+.hud .stats,
+.hud .hud-buttons button {
+  color: #f4e8cf;
+  text-shadow: 0 1px 2px #172129;
+}
+.enemy-target,
+.enemy-target strong,
+.enemy-target b {
+  color: #f7eddb;
+  text-shadow:
+    0 1px 2px #172129,
+    0 0 4px #172129;
+}
+.explore-tools,
+.advance-wrap {
+  display: none !important;
+}
+.hud {
+  justify-content: flex-end;
+}
+.wordmark,
+.chapter {
+  display: none;
+}
+.hud-buttons {
+  opacity: 0.8;
+}

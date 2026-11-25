@@ -7,16 +7,16 @@ export const CHAPTER_BOOKS = Object.freeze([
       "On the open page, a mark becomes a sound, and a sound becomes an idea. You trace the shape of a word. The world is still unfamiliar, but now you can ask it a question.",
   },
   {
-    title: "Roots between pages",
-    question: "How does life connect?",
+    title: "Footprints in the dust",
+    question: "What does this place remember?",
     passage:
-      "Fine paper roots run from one book to another. A fallen leaf feeds a new shoot. Nothing here grows entirely alone. You follow one thread and find that it passes through your own shadow.",
+      "The lamps are cold. Empty shelves lean over dust that nobody has disturbed for years. Yet one line of footprints follows yours exactly. In the margin of a closed book, someone has written the name of your newest spell.",
   },
   {
-    title: "What the water keeps",
-    question: "What survives time?",
+    title: "The reader in the glass",
+    question: "Who taught the guardians?",
     passage:
-      "The flooded index reflects a room that no longer exists. A remembered voice changes what you notice in the present. The page asks what a memory carries. When you look up, you can no longer remember the corridor you entered through.",
+      "Water covers the lowest shelves. In its reflection a guardian raises your hand, wearing the sleeve you woke in. Every keeper was an answer you left behind. The library did not learn your spells alone. It learned to become you.",
   },
   {
     title: "The shape of becoming",
@@ -28,7 +28,7 @@ export const CHAPTER_BOOKS = Object.freeze([
     title: "A small rule, a vast sky",
     question: "What holds the cosmos together?",
     passage:
-      "Pinprick stars hang on almost invisible threads. Move one, and a distant constellation answers. You begin to see the pattern of the whole sky. Its threads tighten, and the stars seem to notice you in return.",
+      "Pinprick stars hang on almost invisible threads. Move one, and a distant constellation answers. The same pattern runs through your grimoire and the guardians' spells. You thought the library was studying magic. It has been studying the magician.",
   },
   {
     title: "A margin for doubt",
@@ -40,13 +40,13 @@ export const CHAPTER_BOOKS = Object.freeze([
     title: "The reader in the mirror",
     question: "Who is doing the learning?",
     passage:
-      "Between torn pages, a reflection turns when you turn. You have studied the world, but every question has also revealed the one asking it. The reflection knows the next question before you ask it. The library is learning you, too.",
+      "Between torn pages, a reflection raises its hand. Your hand. It wears the first guardian's torn sleeve. Behind it stand every keeper you defeated, each bearing a part of your face. These were your abandoned answers, preserved as bodies. You have been fighting yourself.",
   },
   {
     title: "The last open page",
     question: "How does everything fit together?",
     passage:
-      "The book opens to eight pages at once. Language, life, memory, change, the cosmos, truth and self reach toward one another. One unanswered question remains: what can still shelter you when nothing is unknown? The pages tremble, but they do not close.",
+      "The book opens to eight pages at once. Your handwriting fills them all. Every discovery, every guardian, every version of you reaches the same answer. The library learned to become you. Now you understand everything it contains. There is no one left to ask, and nothing left that you can bear not to know.",
   },
 ]);
 export function chapterBook(index) {

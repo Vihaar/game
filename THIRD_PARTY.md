@@ -20,3 +20,5 @@ Record source URLs, authors, license texts, commit revisions, and local paths wh
 - The Fold: official Three.js FPS example, MIT, pinned upstream sources retained under games/card-roguelike/vendor; see its THIRD_PARTY.md.
 - Soup and elevator: official Matter.js examples, MIT; each game retains pinned upstream source and notices.
 - Requested Discord avatars: separate third-party images under games/server-kart/public/portraits, excluded from MIT code licensing. No chats, account credentials, or private profile metadata are included.
+
+- The Fold bundles unchanged Almendra Regular/Italic by Ana Sanfelippo under SIL OFL 1.1. Source, hashes and license location are recorded in games/card-roguelike/THIRD_PARTY.md.

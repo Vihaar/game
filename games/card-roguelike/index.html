@@ -11,14 +11,63 @@
     />
   </head>
   <body>
+    <svg
+      class="paint-toolbox"
+      width="0"
+      height="0"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <filter id="hand-ink" x="-.08" y="-.08" width="1.16" height="1.16">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency=".055"
+            numOctaves="2"
+            seed="11"
+            result="grain"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="grain"
+            scale="1.2"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+        <filter
+          id="painted-pigment"
+          x="-.08"
+          y="-.08"
+          width="1.16"
+          height="1.16"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency=".045 .18"
+            numOctaves="3"
+            seed="19"
+            result="grain"
+          />
+          <feColorMatrix in="grain" type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="linear" slope=".28" intercept=".72" />
+            <feFuncG type="linear" slope=".28" intercept=".72" />
+            <feFuncB type="linear" slope=".28" intercept=".72" />
+          </feComponentTransfer>
+          <feComposite in2="SourceAlpha" operator="in" result="pigment" />
+          <feBlend in="SourceGraphic" in2="pigment" mode="multiply" />
+        </filter>
+      </defs>
+    </svg>
     <main id="app">
       <div id="world" aria-label="Guided papercraft library diorama"></div>
       <div class="paper-edge" aria-hidden="true"></div>
       <header class="hud">
+        <span id="run-floor" class="run-floor" hidden></span>
         <a class="wordmark" href="./"
           >THE FOLD <span id="journey-caption">The library awaits</span></a
         >
-        <div id="stats" class="stats"></div>
         <div class="hud-buttons">
           <button id="map-button">Journal <kbd>M</kbd></button
           ><button id="help-button" aria-label="Show controls">?</button>
@@ -38,22 +87,24 @@
       <nav id="world-hotspots" aria-label="Explore the paper library" hidden>
         <button id="world-read" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">✧</span
-          ><strong>Read the open book</strong
-          ><small>A question on the page</small>
+          ><strong>Read</strong><small>The open book</small>
         </button>
         <button id="world-forge" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">◇</span
-          ><strong>Connect two ideas</strong><small>Open the spell forge</small>
+          ><strong>Combine</strong><small>Make a new spell</small>
         </button>
         <button id="world-binding" class="world-hotspot">
           <span class="hotspot-mark" aria-hidden="true">↗</span
-          ><strong>Ask the next question</strong
-          ><small>Continue your journey</small>
+          ><strong>Ascend</strong><small>Face the next binding</small>
         </button>
       </nav>
       <div class="explore-tools" hidden>
         <span>A book to read. An idea to connect.</span
         ><button id="explore-forge-button">Forge <kbd>F</kbd></button>
+      </div>
+      <div id="journey-status" class="journey-status" hidden role="status">
+        <span>Entering the library...</span
+        ><button id="skip-journey">Skip walk</button>
       </div>
       <div class="advance-wrap">
         <button id="advance-button" class="primary" hidden></button>
@@ -70,7 +121,7 @@
         <header>
           <div>
             <p class="eyebrow">THE OPEN SPELLBOOK</p>
-            <h2 id="forge-title" tabindex="-1">Inscribe a new spell.</h2>
+            <h2 id="forge-title" tabindex="-1">Combine spells.</h2>
           </div>
           <button id="close-forge" aria-label="Close forge">
             Close <kbd>F / Esc</kbd>
@@ -78,19 +129,17 @@
         </header>
         <div class="forge-body">
           <section class="forge-leaf forge-left">
-            <p class="movement-note">
-              Take your time. Only the price you confirm can trigger an enemy
-              move.
-            </p>
-            <div class="forge-mode-row">
-              <label for="forge-mode">The library's price</label
-              ><select id="forge-mode"></select>
-            </div>
-            <p id="mode-copy" class="mode-copy"></p>
+            <p class="movement-note">Choose two spells. Keep the originals.</p>
             <div id="fusion-preview" class="fusion-preview"></div>
+
+            <section
+              id="fusion-benefit"
+              class="fusion-benefit"
+              aria-live="polite"
+            ></section>
           </section>
           <section class="forge-leaf forge-right">
-            <h3>Your grimoire <span id="inventory-count"></span></h3>
+            <h3>Your spells <span id="inventory-count"></span></h3>
             <div id="inventory" class="inventory"></div>
             <details>
               <summary>Discoveries in this browser</summary>
@@ -101,7 +150,7 @@
         <footer class="forge-commit">
           <p id="cost-preview"></p>
           <button id="merge-button" class="primary" disabled>
-            Choose two rune imprints
+            Choose two spells
           </button>
         </footer>
       </aside>
@@ -134,6 +183,21 @@
           </div>
           <button id="close-map">Close</button>
         </header>
+        <section class="library-memory" aria-labelledby="library-memory-title">
+          <h3 id="library-memory-title">What the library remembers</h3>
+          <p>
+            Three casts teach a spell to the library. A guardian on a later
+            floor can use it against you.
+          </p>
+          <div id="library-memory-list"></div>
+          <p class="forget-note">
+            Between battles, you may tear out a spell. You lose every owned
+            copy; the library loses its memory of that spell.
+          </p>
+        </section>
+        <h3 class="journal-climb-title">Relics</h3>
+        <ul id="relic-list" class="relic-list"></ul>
+        <h3 class="journal-climb-title">The climb</h3>
         <ol id="map-content"></ol>
       </aside>
       <aside
@@ -147,23 +211,22 @@
           <button id="close-help">Close</button>
         </header>
         <p>
-          Choose an enemy to target. Cast runes for ink, strike once, and raise
-          your reusable guard once each turn. When you are ready,
+          Select an attack spell on the left page, then click the enemy to cast it. You can also choose a target and use the Cast button. Spells cost Focus. Attack and defend with your spells. When you are ready,
           <strong>End turn</strong> resolves every living enemy's shown move,
-          refills ink, and prepares fresh inscriptions.
+          refills Focus, and prepares fresh inscriptions.
         </p>
         <p>
           Guard lasts until enemy resolution. Nothing attacks or refills while
           you think. There is no walking, aiming, dodge timer or mouse capture.
         </p>
         <p>
-          <strong>Forge:</strong> combine two distinct rune imprints, including
-          forged inscriptions. Check the exact price before confirming. The Time
-          price lets one named enemy perform its shown move immediately. Other
-          modes exchange health or permanent corruption.
+          <strong>Combine:</strong> select any two reusable imprints, including
+          the same idea twice or a spell you already forged. The ingredients
+          stay in your book. Each new combination costs 2 HP, in or out of battle. You cannot combine if it would end your life. Repeated
+          casting teaches your inventions to the library.
         </p>
         <p>
-          <strong>Keys:</strong> 1–5 casts · J strikes · K guards · F forge · M
+          <strong>Keys:</strong> 1&ndash;5 casts &middot; F combines &middot; M
           journal. All actions also have visible buttons.
         </p>
         <p>
@@ -171,37 +234,60 @@
           grimoire, forged spells and knowledge progress. Recipe discoveries
           remain in this browser. Each cleared binding heals just 1 HP.
         </p>
+        <p>
+          Repeated casting teaches the library your spells. Check the journal to
+          see what it remembers. Later guardians announce copied magic before
+          using it. Between battles you can forget a spell, losing every copy
+          and erasing its danger.
+        </p>
       </aside>
       <footer class="action-dock grimoire" aria-label="Your open grimoire">
-        <section class="grimoire-page grimoire-left">
-          <p class="eyebrow">THE GRIMOIRE</p>
-          <h2>Shape an answer.</h2>
-          <p class="grimoire-note">
-            Read their intentions.<br />Commit when you are ready.
-          </p>
-          <div class="basics">
-            <button id="basic-attack">Strike <kbd>J</kbd><small></small></button
-            ><button id="basic-block">Guard <kbd>K</kbd><small></small></button>
-          </div>
-          <div class="turn-tools">
-            <span id="energy"></span
-            ><button id="forge-button">Combine runes <kbd>F</kbd></button>
-          </div>
-          <button id="end-turn" class="primary">
-            End turn <small id="turn-number"></small>
+        <div class="book-cover" aria-hidden="true"></div>
+        <div class="book-binding" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <nav class="book-tabs" aria-label="Grimoire sections">
+          <button id="spells-tab" class="active" aria-current="page">
+            Spells
           </button>
-        </section>
-        <section class="grimoire-page grimoire-right">
-          <div class="grimoire-heading">
-            <p class="eyebrow">PREPARED INSCRIPTIONS</p>
-            <span>Choose a rune to cast</span>
-          </div>
+          <button id="forge-button">Combine <kbd>F</kbd></button>
+        </nav>
+        <section class="grimoire-page grimoire-left">
+          <header class="book-page-heading">
+            <span class="page-flourish" aria-hidden="true"></span>
+            <h2>Prepared spells</h2>
+            <span class="page-flourish" aria-hidden="true"></span>
+          </header>
+          <div
+            id="stats"
+            class="stats"
+            aria-label="Your vitality, guard and Focus"
+          ></div>
           <div
             id="hand"
             class="hand"
-            aria-label="Prepared rune inscriptions"
+            aria-label="Prepared spells"
           ></div>
           <p id="grimoire-count" class="dock-caption"></p>
+        </section>
+        <section class="grimoire-page grimoire-right">
+          <div id="spell-focus" class="spell-focus">
+            <div class="spell-picture-frame">
+              <div class="spell-orbit" aria-hidden="true"></div>
+              <div id="spell-art"></div>
+              <span class="picture-corner first" aria-hidden="true"></span
+              ><span class="picture-corner last" aria-hidden="true"></span>
+            </div>
+            <h2 id="active-spell-name"></h2>
+            <p id="active-spell-effects"></p>
+            <p id="active-spell-description"></p>
+          </div>
+          <div class="spell-commit">
+            <button id="cast-prepared" class="primary"></button
+            ><button id="end-turn">
+              End turn <small id="turn-number"></small>
+            </button>
+          </div>
         </section>
       </footer>
       <dialog id="intro" class="panel intro">
@@ -211,18 +297,10 @@
           No name. No memories.<br />Only a library before you.<br />And a
           stairway leading up.
         </p>
-        <details class="path-settings">
-          <summary>Choose your path</summary>
-          <div id="characters" class="characters"></div>
-          <p id="character-summary"></p>
-          <label for="run-forge-mode">The price of inscription</label
-          ><select id="run-forge-mode"></select>
-          <p id="run-mode-copy" class="mode-copy"></p>
-        </details>
         <button id="start-button" class="primary">Begin the climb</button>
         <p class="fineprint">
-          Turn-based rune magic · full permadeath<br />Take your time. Enemies
-          wait for your turn.
+          Three floors &middot; turn-based magic &middot; full permadeath<br />Focus
+          powers your spells and refills each turn. Combining costs 2 HP.
         </p>
         <a
           href="https://github.com/Vihaar/game"
@@ -236,6 +314,12 @@
         <h2 id="reward-title"></h2>
         <p id="reward-copy"></p>
         <div id="reward-choices" class="reward-choices"></div>
+      </dialog>
+      <dialog id="route" class="panel route-panel" aria-labelledby="route-title">
+        <p id="route-floor" class="eyebrow"></p>
+        <h2 id="route-title">Two ways deeper.</h2>
+        <p>Choose what to risk before the next binding.</p>
+        <div id="route-choices" class="route-choices"></div>
       </dialog>
       <dialog id="ending" class="panel ending">
         <p id="ending-label" class="eyebrow"></p>
