@@ -100,14 +100,104 @@ const SHAPES = {
     crease:
       "M80 19V34M36 51 48 58M124 51 112 58M36 111 48 104M80 145V129M124 111 112 104",
   },
+  ricochet: {
+    paper: "#bd6547",
+    light: "#efc185",
+    dark: "#743e3e",
+    outline:
+      "M28 26C30 39 43 45 42 58C41 69 32 74 24 67C16 61 18 52 23 46C26 42 25 34 28 26ZM91 15C91 31 105 36 103 49C101 60 89 64 82 54C76 45 83 36 85 31C87 26 85 21 91 15ZM134 45C134 59 147 65 143 77C139 87 127 88 123 78C119 70 126 63 128 58C129 53 130 49 134 45ZM80 70 119 108 80 149 42 108Z",
+    fold: "M28 44Q20 61 28 65Q38 61 30 54ZM91 32Q80 50 90 54Q101 48 93 42ZM134 63Q124 77 134 80Q143 76 136 70Z",
+    crease:
+      "M21 85Q35 71 47 72M49 66 44 73 52 75M60 42Q69 30 77 33M72 27 78 33 72 39M108 58Q118 57 121 63M120 57 122 64 116 64",
+    details: [
+      {
+        d: "M80 77 111 108 80 141 49 108Z",
+        fill: "#7fadb0",
+        stroke: "#3e6570",
+      },
+      {
+        d: "M80 77 65 108 80 141 91 108ZM49 108H111",
+        fill: "#d0d7c5",
+        opacity: ".7",
+        stroke: "#e4dbbc",
+      },
+      { d: "M80 78V140M50 108H110", fill: "none", stroke: "#4b6873" },
+    ],
+  },
+  stolensentence: {
+    paper: "#9b7e9c",
+    light: "#e5ccb0",
+    dark: "#554159",
+    outline:
+      "M34 33Q16 30 18 48Q19 61 32 58L37 125Q34 144 52 148H91Q110 142 104 128L96 119 90 47Q91 31 74 30ZM108 20 141 46 141 121 108 147 91 132 95 41Z",
+    fold: "M34 33Q25 48 32 58L37 125Q34 144 52 148Q38 134 54 123H96L90 47Q68 57 49 45ZM105 126Q93 120 86 129Q84 138 91 145Q108 141 105 126Z",
+    crease: "M44 64H72M46 79H69M48 96H67M54 123H86M24 46H34",
+    details: [
+      {
+        d: "M108 30 132 49 132 116 108 135 100 128 104 46Z",
+        fill: "#78a0a6",
+        stroke: "#405f70",
+      },
+      {
+        d: "M108 31 104 88 132 49V68L104 113 108 135 132 116V85L104 128Z",
+        fill: "#d3d7cd",
+        opacity: ".55",
+      },
+      {
+        d: "M53 84C82 52 118 102 111 74C107 62 96 65 102 74M56 84Q68 80 77 89M78 89Q91 99 101 94",
+        fill: "none",
+        stroke: "#3f394d",
+        width: "4",
+      },
+      {
+        d: "M75 66Q89 58 91 69Q88 76 83 74ZM93 108Q105 102 108 110Q105 119 99 116Z",
+        fill: "#3f394d",
+      },
+    ],
+  },
+  borroweddawn: {
+    paper: "#ae8857",
+    light: "#f0d4a0",
+    dark: "#6c5144",
+    outline:
+      "M34 24Q79 17 126 24L126 38 115 41C114 62 103 78 89 89L89 99C103 111 115 126 116 142L128 145V157H33V145L44 142C45 126 57 111 71 99V89C57 79 45 62 44 41L34 38ZM53 42Q58 70 80 84Q103 68 106 42ZM80 105Q57 124 54 141H106Q101 124 80 105Z",
+    fold: "M34 24H126L113 30H47ZM36 146H127L112 151H48ZM71 88 80 96 89 88V100L80 108 71 100Z",
+    crease: "M44 41H115M54 141H106M80 96V119M49 30H112M47 151H112",
+    details: [
+      {
+        d: "M54 44Q62 72 80 83Q101 67 105 44ZM80 108Q60 127 57 138H103Q99 124 80 108Z",
+        fill: "#8ba9ab",
+        opacity: ".7",
+        stroke: "#54757b",
+      },
+      {
+        d: "M61 66A19 19 0 0 1 99 66L94 70H66Z",
+        fill: "#e7b56d",
+        stroke: "#8c6551",
+      },
+      {
+        d: "M80 36V43M59 43 64 48M101 43 96 48M54 61H61M100 61H107M70 70H91M80 88V117",
+        fill: "none",
+        stroke: "#f0cf91",
+        width: "2.2",
+      },
+      { d: "M80 115 98 135H62Z", fill: "#dbb57e", stroke: "#9a7756" },
+    ],
+  },
 };
 let illustrationSerial = 0;
 export function spellIllustration(card = {}, { detailed = false } = {}) {
   const glyph = glyphModel(card),
     shape = SHAPES[card.key] || SHAPES[card.kind] || SHAPES[glyph.family];
   const paintId = `spell-paint-${++illustrationSerial}`;
+  const details = (shape.details || [])
+    .map(
+      (detail) =>
+        `<path class="illustration-detail" d="${detail.d}" fill="${detail.fill}" opacity="${detail.opacity || 1}"${detail.stroke ? ` stroke="${detail.stroke}" stroke-width="${detail.width || 1.1}"` : ""}/>`,
+    )
+    .join("");
   const orbit = detailed
     ? `<g class="illustration-notes" fill="none" stroke="${shape.dark}" stroke-width=".7" opacity=".28"><circle cx="80" cy="88" r="64"/><circle cx="80" cy="88" r="70" stroke-dasharray="2 7"/><path d="M8 88H152M80 10V164M27 35 133 141M27 141 133 35"/></g>`
     : "";
-  return `<svg class="spell-illustration spell-glyph" data-family="${glyph.family}" viewBox="0 0 160 174" aria-hidden="true" focusable="false" style="--glyph-color:${shape.light}"><defs><linearGradient id="${paintId}" x1=".15" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${shape.light}"/><stop offset=".35" stop-color="${shape.paper}"/><stop offset=".72" stop-color="${shape.paper}"/><stop offset="1" stop-color="${shape.dark}"/></linearGradient></defs>${orbit}<g class="sculpture-shadow" transform="translate(3 5)"><path d="${shape.outline}" fill="${shape.dark}" stroke="${shape.dark}" stroke-width="2"/></g><g class="sculpture-paper"><path d="${shape.outline}" fill="url(#${paintId})" stroke="${shape.dark}" stroke-width="1.8"/><path d="${shape.fold}" fill="${shape.light}" opacity=".58" stroke="${shape.light}" stroke-width="1.2"/><path d="${shape.crease}" fill="none" stroke="${shape.dark}" opacity=".5" stroke-width="1"/><path d="${shape.outline}" transform="translate(.5 -.4)" fill="none" stroke="${shape.light}" opacity=".25" stroke-width=".65"/></g><g class="glyph-light" fill="none" stroke="${shape.light}" stroke-width="2"><path d="${shape.outline}" pathLength="1" style="--segment:0"/><path d="${shape.crease}" pathLength="1" style="--segment:1"/></g></svg>`;
+  return `<svg class="spell-illustration spell-glyph" data-family="${glyph.family}" viewBox="0 0 160 174" aria-hidden="true" focusable="false" style="--glyph-color:${shape.light}"><defs><linearGradient id="${paintId}" x1=".15" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${shape.light}"/><stop offset=".35" stop-color="${shape.paper}"/><stop offset=".72" stop-color="${shape.paper}"/><stop offset="1" stop-color="${shape.dark}"/></linearGradient></defs>${orbit}<g class="sculpture-shadow" transform="translate(3 5)"><path d="${shape.outline}" fill="${shape.dark}" stroke="${shape.dark}" stroke-width="2"/></g><g class="sculpture-paper"><path d="${shape.outline}" fill="url(#${paintId})" stroke="${shape.dark}" stroke-width="1.8"/><path d="${shape.fold}" fill="${shape.light}" opacity=".58" stroke="${shape.light}" stroke-width="1.2"/><path d="${shape.crease}" fill="none" stroke="${shape.dark}" opacity=".5" stroke-width="1"/><path d="${shape.outline}" transform="translate(.5 -.4)" fill="none" stroke="${shape.light}" opacity=".25" stroke-width=".65"/>${details}</g><g class="glyph-light" fill="none" stroke="${shape.light}" stroke-width="2"><path d="${shape.outline}" pathLength="1" style="--segment:0"/><path d="${shape.crease}" pathLength="1" style="--segment:1"/></g></svg>`;
 }
