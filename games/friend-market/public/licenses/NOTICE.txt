@@ -1,0 +1,6 @@
+FRIEND MARKET — NOTICES
+Original source code: MIT, see friend-market.txt.
+Vite vanilla starter/build tooling: see create-vite.txt. Official templates CC0; tooling MIT.
+Existing Vihaar/game configuration and seeded generator: source-project.txt.
+Portrait images: requested third-party visual assets, EXCLUDED from the source MIT grant. No ownership of underlying artwork or likenesses is claimed. Replace with images you have permission to use in remixes. See ../portraits/CREDITS.md.
+Source and full provenance: https://github.com/Vihaar/game/tree/main/games/friend-market
