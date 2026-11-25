@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import "./style.css";
+import { createPointerControls } from "./pointer-controls.mjs";
 import {
   WORLD,
   STATIONS,
@@ -28,6 +29,12 @@ let state = null,
   localBrief = false;
 const input = { dx: 0, dy: 0, run: false };
 const keyboardHeld = new Set();
+const pointerControls = createPointerControls();
+function syncPointers(value = pointerControls.snapshot()) {
+  input.dx = value.dx;
+  input.dy = value.dy;
+  held = value.held;
+}
 const seed = () => (query.has("seed") ? Number(query.get("seed")) : Date.now());
 const plane = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M43 24L28 18V7Q25 2 22 7V18L6 24V28L22 25V37L16 41V44L25 41L34 44V41L28 37V25L43 28Z" fill="currentColor"/></svg>`;
 const header = () =>
@@ -35,6 +42,7 @@ const header = () =>
 const icon = (id) => (id === "sign" ? "↗" : id === "bag" ? "▣" : "→");
 function home() {
   keyboardHeld.clear();
+  syncPointers(pointerControls.reset());
   game?.destroy(true);
   game = null;
   state = null;
@@ -44,6 +52,7 @@ function home() {
 }
 function start(role) {
   keyboardHeld.clear();
+  syncPointers(pointerControls.reset());
   state = newAirport({ role, seed: seed() });
   rng = seededRandom(state.seed + 47);
   destination = null;
@@ -319,6 +328,7 @@ function launch() {
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, pixelArt: false },
     fps: { target: 30 },
+    input: { activePointers: 2 },
     audio: { noAudio: true },
   });
 }
@@ -410,33 +420,34 @@ app.addEventListener("change", (e) => {
   if (e.target.id === "traveler-select" && e.target.value !== "")
     selectTraveler(Number(e.target.value));
 });
-app.addEventListener("pointerdown", (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  if (b.dataset.action === "interact") {
-    held = true;
-    b.setPointerCapture?.(e.pointerId);
+app.addEventListener("pointerdown", (event) => {
+  const button = event.target.closest("button");
+  if (!button || button.disabled) return;
+  const control =
+    button.dataset.action === "interact" ? "interact" : button.dataset.dir;
+  if (!control) return;
+  event.preventDefault();
+  if (control !== "interact") destination = null;
+  syncPointers(pointerControls.press(event.pointerId, control));
+  button.setPointerCapture?.(event.pointerId);
+});
+function releasePointer(event) {
+  syncPointers(pointerControls.release(event.pointerId));
+}
+// Secondary touches do not always synthesize a click while another finger is held.
+app.addEventListener("pointerup", (event) => {
+  if (event.pointerType !== "touch" || event.isPrimary) return;
+  const button = event.target.closest("button");
+  if (button?.dataset.action === "inspect" && !button.disabled) {
+    event.preventDefault();
+    inspection();
   }
-  if (b.dataset.dir) {
-    e.preventDefault();
-    destination = null;
-    input.dx =
-      b.dataset.dir === "left" ? -1 : b.dataset.dir === "right" ? 1 : 0;
-    input.dy = b.dataset.dir === "up" ? -1 : b.dataset.dir === "down" ? 1 : 0;
-    b.setPointerCapture?.(e.pointerId);
-  }
 });
-window.addEventListener("pointerup", () => {
-  held = false;
-  input.dx = input.dy = 0;
-});
-window.addEventListener("pointercancel", () => {
-  held = false;
-  input.dx = input.dy = 0;
-});
+window.addEventListener("pointerup", releasePointer);
+window.addEventListener("pointercancel", releasePointer);
+window.addEventListener("lostpointercapture", releasePointer);
 window.addEventListener("blur", () => {
-  held = false;
-  input.dx = input.dy = 0;
+  syncPointers(pointerControls.reset());
   keyboardHeld.clear();
 });
 window.addEventListener("keydown", (event) => {
