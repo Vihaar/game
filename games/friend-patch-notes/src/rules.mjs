@@ -1,7 +1,7 @@
 export const FRIENDS={mike:{name:'Mike',portrait:'mike.webp',color:'#b87a48'},torin:{name:'Torin',portrait:'torin.png',color:'#337f7b'},jonah:{name:'Jonah',portrait:'jonah.png',color:'#8661a6'},grant:{name:'Grant',portrait:'grant.png',color:'#c05c61'}};
 export const PATCHES={
  mike_scale:{friend:'mike',name:'Mike is now 30% more Mike',text:'+30 maximum HP, +3 damage. Also physically larger.',hp:30,damage:3,size:.17},
- mike_reach:{friend:'mike',name:'Server-wide permissions',text:'Mike attacks from 50% farther away. Cooldown −15%.',reach:35,haste:.15},
+ mike_reach:{friend:'mike',name:'Server-wide permissions',text:'Mike attacks almost twice as far. Cooldown −15%.',reach:35,haste:.15},
  mike_tax:{friend:'mike',name:'Hosting fees',text:'Mike heals 5 HP whenever he lands a hit.',lifesteal:5},
  torin_dash:{friend:'torin',name:'Unscheduled movement',text:'Torin dashes toward a target every 3 seconds. Next hit +8 damage.',dash:1},
  torin_haste:{friend:'torin',name:'Removed the speed limit',text:'Torin moves 45% faster and attacks 20% faster.',speed:.45,haste:.2},
