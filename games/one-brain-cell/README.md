@@ -24,7 +24,7 @@ Solo: choose one department; AI fills the others. Same-keyboard mode enables all
 
 ## Online rooms
 
-Choose Online, host a room, and share its six-character code or Copy room invite. Friends join a department and replace its AI, including during a delivery. The host starts/restarts and simulates physics; guests send controls and receive small pose snapshots. Keep the host tab open. Leaving a department restores AI. There is no host migration.
+Choose Online, host a room, and share its six-character code or Copy room invite. Friends join a department and replace its AI, including during a delivery. The host starts/restarts and simulates physics; guests send controls and receive small pose snapshots. Keep the host tab open and visible; backgrounding the host pauses this prototype. Leaving a department restores AI. There is no host migration.
 
 Offline modes require no service. Online uses PeerJS 1.5.5's public signaling and direct WebRTC data channels, without accounts or keys. Some restrictive networks need a TURN relay; this prototype supplies no private relay and cannot promise universal connectivity. Connection errors remain visible and offline modes stay available.
 

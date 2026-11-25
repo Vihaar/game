@@ -357,7 +357,7 @@ $("#share").onclick = async () => {
   link.searchParams.set("room", room.code);
   try {
     await navigator.clipboard.writeText(link.href);
-    $("#network").textContent = "Invite copied. Keep the host tab open.";
+    $("#network").textContent = "Invite copied. Keep the host tab open and visible.";
   } catch {
     $("#network").textContent = "Share this code: " + room.code;
   }

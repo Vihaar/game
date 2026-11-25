@@ -49,7 +49,7 @@ The finish-line checkout is a **joke with imaginary MikeCoins**. It never collec
 
 ## Friend arcade modes
 
-The new friend games are small first playable prototypes. Friend Market and Friend Patch Notes are solo. Group Chat Court has solo AI and two-person pass-and-play on the same device. Read each game's visible mode labels and README for local co-op controls; do not assume that a shared URL connects players online. One Brain Cell also offers PeerJS online rooms; the host must remain open. Kart remains the established online racing game. All purchases, currencies, accusations and airport objectives are fictional; none collects money or private messages.
+The new friend games are small first playable prototypes. Friend Market and Friend Patch Notes are solo. Group Chat Court has solo AI and two-person pass-and-play on the same device. Read each game's visible mode labels and README for local co-op controls; do not assume that a shared URL connects players online. One Brain Cell also offers PeerJS online rooms; the host tab must remain open and visible. Kart remains the established online racing game. All purchases, currencies, accusations and airport objectives are fictional; none collects money or private messages.
 
 ## Existing foundations first
 
