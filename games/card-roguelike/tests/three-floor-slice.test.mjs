@@ -9,6 +9,7 @@ import {
   newGuidedRun,
   GUIDED_FLOOR_COUNT,
   guidedRewardOptions,
+  guidedChooseRoute,
   ensureCardCopies,
   prepareCopy,
   startGuidedBattle,
@@ -95,22 +96,22 @@ test("six concept recipes are accessible from the starter imprints, commutative,
     6,
   );
 });
-test("free exploration combinations keep every source ID and allow A+A from one imprint", () => {
+test("health-priced exploration combinations keep every source ID and allow A+A from one imprint", () => {
   const s = newGuidedRun();
   s.energy = 0;
   setMode(s, "all");
   const original = [...s.inventoryCopyIds],
     hp = s.hp;
   const p = guidedForgePreview(s, 0, 0);
-  assert.equal(p.free, true);
+  assert.equal(p.free, false);
   assert.equal(p.retainInputs, true);
   assert.equal(p.inkCost, 0);
-  assert.equal(p.healthCost, 0);
+  assert.equal(p.healthCost, 2);
   assert.equal(p.corruptionGain, 0);
   assert.equal(p.enemyAction, null);
   forge(s, "ember");
   assert.equal(s.energy, 0);
-  assert.equal(s.hp, hp);
+  assert.equal(s.hp, hp - 2);
   assert.equal(s.corruption, 0);
   assert.ok(original.every((id) => s.inventoryCopyIds.includes(id)));
   assert.equal(s.inventory.length, 8);
@@ -126,6 +127,7 @@ function setMode(s, mode) {
 }
 test("real repeated fusion can continue indefinitely without shrinking the grimoire, duplicating outputs or losing semantic perks", () => {
   const s = newGuidedRun();
+  s.hp = s.maxHp = 10000; // Exercise recipe depth independently of the finite health budget.
   let key = forge(s, "ember", "memory");
   const baseIds = [...s.inventoryCopyIds];
   for (let i = 0; i < 250; i++) {
@@ -158,18 +160,18 @@ test("generated perk selection and powers are independent of input order or a fr
   assert.equal(x, y);
   assert.deepEqual(a.getCard(x), b.getCard(y));
 });
-test("battle forging charges one Focus plus the chosen punishment, keeps sources and prepares output within five slots", () => {
+test("battle forging charges only two HP, keeps sources and prepares output within five slots", () => {
   for (const mode of ["time", "health", "corruption", "all"]) {
     const s = newGuidedRun();
     startGuidedBattle(s, rng);
     s.forgeMode = mode;
     const before = [...s.inventoryCopyIds],
       p = guidedForgePreview(s, 0, 0);
-    assert.equal(p.inkCost, 1);
+    assert.equal(p.inkCost, 0);
     assert.ok(p.benefit);
-    assert.equal(Boolean(p.enemyAction), ["time", "all"].includes(mode));
+    assert.equal(p.enemyAction, null);
     forge(s, "ember");
-    assert.equal(s.energy, 2);
+    assert.equal(s.energy, 3);
     assert.ok(before.every((id) => s.inventoryCopyIds.includes(id)));
     assert.ok(s.hand.includes("flare"));
     owned(s);
@@ -315,8 +317,8 @@ test("the third mirror boss ends the run without an irrelevant final reward, whi
   assert.equal(takeReward(legacy, null), false);
 });
 
-test("all three classes can complete a legal three-floor fusion run, with a learned spell mirrored by a later guardian", () => {
-  for (const character of ["binder", "warden", "runner"]) {
+test("the nameless apprentice can complete a legal spells-only three-floor fusion run, with a learned spell mirrored by a later guardian", () => {
+  for (const character of ["binder"]) {
     const s = newGuidedRun(character);
     forge(s, "stone", "mirror");
     forge(s, "ember", "memory");
@@ -325,6 +327,7 @@ test("all three classes can complete a legal three-floor fusion run, with a lear
       copied = false;
     while (!["won", "dead"].includes(s.phase) && steps++ < 100) {
       if (s.phase === "explore") {
+        guidedChooseRoute(s, s.floor === 2 ? "guardian" : "archive", rng);
         startGuidedBattle(s, rng);
         copied ||= s.enemies.some((enemy) => enemy.copiedSpell);
         assert.ok(s.hand.includes(s.latestForgedKey));
@@ -335,8 +338,6 @@ test("all three classes can complete a legal three-floor fusion run, with a lear
           .map((e, i) => ({ ...e, i }))
           .filter((e) => e.hp > 0)
           .sort((a, b) => a.hp - b.hp)[0].i;
-        guidedStrike(s, target);
-        if (s.phase === "battle") guidedBlock(s);
         for (let n = 0; n < 12 && s.phase === "battle"; n++) {
           target = s.enemies
             .map((e, i) => ({ ...e, i }))
@@ -381,4 +382,9 @@ test("all three classes can complete a legal three-floor fusion run, with a lear
   }
 });
 
-test('an interrupt needs a living target and cannot consume Focus or teach on an invalid selection',()=>{const s=battle(['hushwall']);const before=structuredClone(s);assert.equal(guidedCast(s,0,999,rng).ok,false);assert.deepEqual(s,before)});
+test("an interrupt needs a living target and cannot consume Focus or teach on an invalid selection", () => {
+  const s = battle(["hushwall"]);
+  const before = structuredClone(s);
+  assert.equal(guidedCast(s, 0, 999, rng).ok, false);
+  assert.deepEqual(s, before);
+});

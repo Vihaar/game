@@ -1,6 +1,14 @@
 // Guided, explicit-turn adapter. Reuses the original exact-copy/card/crafting model.
 import * as base from "./rules.mjs";
 export * from "./rules.mjs";
+import { grantGuidedRelics } from "./guided-progression.mjs";
+export {
+  GUIDED_RELICS,
+  guidedRelicInfo,
+  guidedRelics,
+  guidedRouteOptions,
+  guidedChooseRoute,
+} from "./guided-progression.mjs";
 import {
   createLibraryLearning,
   recordSuccessfulCast,
@@ -32,45 +40,24 @@ export function guidedRewardOptions(state) {
 export const GUIDED_CHARACTERS = {
   binder: {
     ...base.CHARACTERS.binder,
+    name: "The Nameless Apprentice",
     description:
-      "32 health · 3 ink each turn · 3 strike · 4 guard. A balanced spellbinder.",
-  },
-  warden: {
-    ...base.CHARACTERS.warden,
-    description:
-      "40 health · 3 ink each turn · 2 strike · 6 guard. A patient defender.",
-  },
-  runner: {
-    ...base.CHARACTERS.runner,
-    description:
-      "26 health · 4 ink each turn · 3 strike · 3 guard. More spells, less room for mistakes.",
+      "32 HP · 3 Focus each turn. Discover who you were through the spells you learn.",
   },
 };
 export const GUIDED_FORGE_MODES = {
-  time: {
-    ...base.FORGE_MODES.time,
-    description:
-      "In battle, one enemy immediately performs its shown move after the fold. Outside battle, a short safe animation.",
-  },
-  corruption: {
-    ...base.FORGE_MODES.corruption,
-    description:
-      "No extra enemy move. Gain 1 corruption: enemy attacks grow stronger for this run.",
-  },
   health: {
     ...base.FORGE_MODES.health,
-    description: "No extra enemy move. Pay 2 health, never lethal.",
-  },
-  all: {
-    ...base.FORGE_MODES.all,
-    description: "One extra enemy move in battle, 2 health and 1 corruption.",
+    label: "2 HP",
+    description:
+      "Every combination costs 2 HP. No Focus or extra enemy turn. Never lethal.",
   },
 };
 export function newGuidedRun(id = "binder") {
-  const state = base.newRun(id);
+  const state = base.newRun("binder");
   state.combatMode = "guided";
   state.character = { ...GUIDED_CHARACTERS[state.characterId] };
-  state.maxEnergy = id === "runner" ? 4 : 3;
+  state.maxEnergy = 3;
   state.energy = state.maxEnergy;
   state.struckThisTurn = false;
   state.guardedThisTurn = false;
@@ -91,7 +78,17 @@ export function newGuidedRun(id = "binder") {
   state.copyKeys = {};
   state.copySerial = 0;
   base.ensureCardCopies(state);
-  state.forgePolicy = { ...state.forgePolicy, reusable: true };
+  state.forgePolicy = {
+    ...state.forgePolicy,
+    reusable: true,
+    fixedHealthCost: 2,
+    inkCost: 0,
+  };
+  state.forgeMode = "health";
+  state.relics = [];
+  state.routeChoice = null;
+  state.lastRelics = [];
+  state.relicUses = {};
   state.reflect = 0;
   state.lastAttack = null;
   state.nextTurnEnergyPenalty = 0;
@@ -184,11 +181,37 @@ export function enemyIntent(state, enemy) {
             : `${type === "heavy" ? "Heavy strike" : "Attack"} · ${amount + base.corruptionDamageBonus(state)} damage`,
   };
 }
-export function startGuidedBattle(
-  state,
-  rng = Math.random,
-  defs = guidedEnemies(state.floor - 1),
-) {
+export function startGuidedBattle(state, rng = Math.random, defs = null) {
+  if (!defs) {
+    defs = guidedEnemies(state.floor - 1);
+    if (
+      state.routeChoice?.floor === state.floor &&
+      rng() >= 0.5 &&
+      state.floor < 3
+    ) {
+      defs = defs.map((enemy, i) => ({
+        ...enemy,
+        name:
+          state.floor === 1
+            ? ["The Unread", "Keeper of Lost Names"][i]
+            : ["The Redacted", "The Unfinished Thought"][i],
+        type: i ? "scribe" : "eater",
+        hp: enemy.hp + (i ? -1 : 1),
+        intentStep: i ? 0 : 1,
+      }));
+    }
+    if (
+      state.routeChoice?.floor === state.floor &&
+      state.routeChoice.id === "guardian"
+    )
+      defs = defs.map((enemy) => ({
+        ...enemy,
+        name: "Sealed " + enemy.name,
+        hp: Math.ceil(enemy.hp * 1.2),
+        damage: enemy.damage + 1,
+        elite: true,
+      }));
+  }
   const ok = base.startBattle(state, rng, defs);
   if (ok) {
     state.struckThisTurn = false;
@@ -197,46 +220,44 @@ export function startGuidedBattle(
     state.basicBlockCooldown = 0;
     state.reflect = 0;
     state.lastAttack = null;
+    state.relicUses = {};
+    prepareEssentials(state, true);
     assignGuardianCopy(state);
   }
   return ok;
 }
-export function guidedStrike(state, target = state.target) {
-  if (state.struckThisTurn)
-    return {
-      ok: false,
-      reason: "Your strike is used. End the turn to ready it.",
-    };
-  state.basicAttackCooldown = 0;
-  const before = state.enemies.map((e) => e.hp);
-  const result = base.basicAttack(state, target);
-  if (result.ok) {
-    state.struckThisTurn = true;
-    state.lastAttack = {
-      damage: state.character.basicDamage,
-      key: null,
-      kind: "physical",
-    };
-    applyEnemyGuard(
-      state,
-      before,
-      state.enemies.map((e, i) =>
-        i === target ? state.character.basicDamage || 3 : 0,
-      ),
-    );
-  }
-  return result;
+export function guidedStrike() {
+  return { ok: false, reason: "Choose a spell from your grimoire." };
 }
-export function guidedBlock(state) {
-  if (state.guardedThisTurn)
-    return {
-      ok: false,
-      reason: "Your guard is used. End the turn to ready it.",
-    };
-  state.basicBlockCooldown = 0;
-  const result = base.basicBlock(state);
-  if (result.ok) state.guardedThisTurn = true;
-  return result;
+export function guidedBlock() {
+  return { ok: false, reason: "Cast a guard spell from your grimoire." };
+}
+function prepareEssentials(state, firstHand = false) {
+  // Preserve both core spells and the newest invention within the five-slot hand.
+  const desired = [
+    ...new Set(
+      ["ember", "stone", firstHand ? state.latestForgedKey : null].filter(
+        Boolean,
+      ),
+    ),
+  ]
+    .map((key) =>
+      state.inventoryCopyIds.find((id) => state.copyKeys[id] === key),
+    )
+    .filter(Boolean);
+  for (const id of desired) {
+    if (state.handCopyIds.includes(id)) continue;
+    if (state.hand.length >= state.preparedLimit) {
+      const at = state.handCopyIds.findIndex(
+        (candidate) => !desired.includes(candidate),
+      );
+      if (at >= 0) {
+        state.discard.push(state.hand.splice(at, 1)[0]);
+        state.discardCopyIds.push(state.handCopyIds.splice(at, 1)[0]);
+      }
+    }
+    base.prepareCopy(state, id);
+  }
 }
 function applyEnemyGuard(state, before, damage, { pierce = false } = {}) {
   state.enemies.forEach((enemy, i) => {
@@ -263,6 +284,30 @@ export function guidedCast(
     card = base.getCard(state.hand[index]);
   const result = base.castCard(state, index, target, rng);
   if (result.ok) {
+    state.relicUses ||= {};
+    const has = (id) => state.relics?.includes(id);
+    if (
+      result.resolvedDamage &&
+      has("emberseal") &&
+      !state.relicUses.emberseal
+    ) {
+      result.resolvedDamage += 2;
+      state.relicUses.emberseal = true;
+    }
+    if (
+      card.block &&
+      has("marginward") &&
+      state.relicUses.marginward !== state.turn
+    ) {
+      state.block = Math.min(base.COMBAT_POLICY.blockCap, state.block + 2);
+      state.relicUses.marginward = state.turn;
+    }
+    if (card.block && has("mirrorthread"))
+      state.reflect = Math.min(6, (state.reflect || 0) + 1);
+    if (card.draw && has("dogear") && !state.relicUses.dogear) {
+      state.energy = Math.min(state.maxEnergy, state.energy + 1);
+      state.relicUses.dogear = true;
+    }
     applyEnemyGuard(
       state,
       before,
@@ -364,6 +409,7 @@ export function resolveEnemyTurn(state, rng = Math.random) {
     state.hand = [];
     state.handCopyIds = [];
     base.drawCards(state, 5, rng);
+    prepareEssentials(state);
   }
   return { ok: true, actions, dead: state.phase === "dead" };
 }
@@ -379,12 +425,9 @@ export function guidedForgePreview(state, a, b) {
         "",
       effect: base.getCard(preview.output)?.effect || "power",
     };
-  const costsTurn =
-    state.phase === "battle" && ["time", "all"].includes(state.forgeMode);
-  const enemy = costsTurn ? base.livingEnemies(state)[0] : null;
   return {
     ...preview,
-    duration: preview.free ? 0.25 : costsTurn ? 0.7 : 0.35,
+    duration: 0.35,
     parents: [state.inventory[a], state.inventory[b]],
     effect: base.getCard(preview.output).effect || "power",
     benefit: base.getCard(preview.output).text,
@@ -393,16 +436,7 @@ export function guidedForgePreview(state, a, b) {
       state.phase === "battle" && state.hand.length >= 5
         ? state.hand.at(-1)
         : null,
-    enemyAction: enemy
-      ? {
-          id: enemy.id,
-          name: enemy.name,
-          ...enemyIntent(
-            { ...state, corruption: preview.corruptionAfter },
-            enemy,
-          ),
-        }
-      : null,
+    enemyAction: null,
   };
 }
 export function beginGuidedForge(state, a, b) {
@@ -432,5 +466,25 @@ export function tickGuidedForge(state, dt) {
     const enemy = state.enemies.find((e) => e.id === extra.id && e.hp > 0);
     if (enemy) action = act(state, enemy);
   }
+  if (
+    forged &&
+    state.phase === "battle" &&
+    state.relics?.includes("bloodbookmark")
+  )
+    state.block = Math.min(base.COMBAT_POLICY.blockCap, state.block + 3);
   return { forged, action };
+}
+
+export function takeReward(state, reward, rng = Math.random) {
+  const route = state.routeChoice;
+  const ok = base.takeReward(state, reward);
+  if (!ok) return false;
+  state.lastRelics =
+    route?.id === "guardian" && !route.rewardGranted
+      ? grantGuidedRelics(state, 2, rng)
+      : [];
+  if (state.relics?.includes("quietlamp"))
+    state.hp = Math.min(state.maxHp, state.hp + 1);
+  state.routeChoice = null;
+  return true;
 }

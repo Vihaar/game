@@ -9,6 +9,7 @@ import {
   resolveEnemyTurn,
   enemyIntent,
   ensureCardCopies,
+  prepareCopy,
   takeReward,
   getCard,
   recipeFor,
@@ -56,15 +57,12 @@ function train(s, key = "flare", count = 3) {
   return result;
 }
 function clearRoom(s) {
-  s.enemies.forEach((e) => {
-    e.hp = 1;
-    e.guard = 0;
+  // Learning scenarios advance floors without recording an unrelated extra spell.
+  s.enemies.forEach((enemy) => {
+    enemy.hp = 0;
+    enemy.guard = 0;
   });
-  for (let i = 0; i < s.enemies.length; i++) {
-    s.struckThisTurn = false;
-    guidedStrike(s, i);
-  }
-  assert.equal(s.phase, "reward");
+  s.phase = "reward";
   takeReward(s, "dew");
   return s;
 }
@@ -137,7 +135,11 @@ test("a later guardian announces a learned invention, prepares before copying, r
   assert.equal(cast.amount, 6);
   assert.equal(cast.damage, 8);
   assert.match(cast.label, /Flare.*8 damage/);
-  guidedBlock(s);
+  prepareCopy(
+    s,
+    s.inventoryCopyIds.find((id) => s.copyKeys[id] === "stone"),
+  );
+  guidedCast(s, s.hand.indexOf("stone"), 0, rng);
   const result = resolveEnemyTurn(s, rng);
   assert.equal(result.actions[0].blocked, 4);
   assert.equal(result.actions[0].damage, 4);
@@ -181,26 +183,28 @@ test("copied defensive and mixed spells announce bounded guard/healing as well a
     assert.equal(enemy.guard, intent.block);
   }
 });
-test("time-price forging previews and executes the same copied move with the future corruption bonus", () => {
+test("health-priced combining does not trigger a copied move or change its announced timing", () => {
   const s = fixture();
   train(s);
   const enemy = nextRoom(s);
   resolveEnemyTurn(s, rng);
   setForgeMode(s, "all");
   const preview = guidedForgePreview(s, 0, 1);
-  assert.equal(preview.enemyAction.type, "copied-spell");
-  assert.equal(preview.enemyAction.damage, 7);
-  assert.match(preview.enemyAction.label, /Flare.*7 damage/);
+  assert.equal(preview.enemyAction, null);
+  assert.equal(preview.healthCost, 2);
+  const intent = enemyIntent(s, enemy),
+    step = enemy.copyStep,
+    hp = s.hp;
   beginGuidedForge(s, 0, 1);
-  const hp = s.hp;
   let result;
   for (let i = 0; i < 20 && s.forge; i++) result = tickGuidedForge(s, 0.1);
   assert.ok(result.forged);
-  assert.equal(result.action.type, "copied-spell");
-  assert.equal(result.action.damage, 7);
-  assert.equal(s.hp, hp - 2 - 7);
-  assert.equal(enemy.copyStep, 2);
+  assert.equal(result.action, null);
+  assert.equal(s.hp, hp - 2);
+  assert.equal(enemy.copyStep, step);
+  assert.deepEqual(enemyIntent(s, enemy), intent);
 });
+
 test("forgetting sacrifices all exact owned copies in every pile and removes only that spell danger without refunds", () => {
   const s = fixture();
   train(s);

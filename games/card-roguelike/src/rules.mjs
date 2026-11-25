@@ -725,13 +725,14 @@ function forgeSelection(state, firstIndex, secondIndex) {
       output,
       alreadyOwned: true,
       retainInputs: true,
-      reason: "Already inscribed; use it as an ingredient. No Focus spent.",
+      reason: "Already inscribed; use it as an ingredient. Nothing spent.",
     };
-  const mode = Object.hasOwn(FORGE_MODES, state.forgeMode)
+  const fixedHealthCost = state.forgePolicy?.fixedHealthCost;
+  const mode = fixedHealthCost ? "health" : Object.hasOwn(FORGE_MODES, state.forgeMode)
       ? state.forgeMode
       : "time",
     policy = FORGE_MODES[mode];
-  const free = retainInputs && state.phase === "explore";
+  const free = retainInputs && state.phase === "explore" && !fixedHealthCost;
   const inkCost = free
     ? 0
     : Math.max(
@@ -748,7 +749,7 @@ function forgeSelection(state, firstIndex, secondIndex) {
           ),
         )
       : policy.duration;
-  const healthCost = free ? 0 : policy.healthCost,
+  const healthCost = fixedHealthCost || (free ? 0 : policy.healthCost),
     corruptionBefore = Math.max(0, Math.min(8, state.corruption || 0)),
     corruptionAfter = Math.min(
       8,
