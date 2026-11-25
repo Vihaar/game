@@ -22,9 +22,13 @@ import {
   takeReward,
   shuffle,
   applyCardDiscovery,
+  learningSummary,
+  drainLibraryEvents,
+  forgetLearnedRune,
 } from "./guided-rules.mjs";
 import { requestCardDiscovery } from "./card-art.mjs";
 import { chapterBook, worldAvailable } from "./world-interactions.mjs";
+import { bookIcon } from "./book-icons.mjs";
 import { spellGlyph, playGlyph } from "./spell-glyphs.mjs";
 import "./style.css";
 import "./grimoire.css";
@@ -52,7 +56,7 @@ const KNOWLEDGE = [
   ],
   [
     "Self",
-    "You remember who is asking, and why the library feels like a return.",
+    "Every guardian was a version of you. You have been fighting the answers you abandoned.",
   ],
   [
     "Everything",
@@ -165,7 +169,7 @@ function runeMarkup(key, index, mode = "hand") {
     .replace(/briefly/g, "this turn")
     .replace(/nearby enemies/g, "all enemies")
     .replace(/Draw a card/g, "Prepare a rune");
-  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellGlyph(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b> ink</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
+  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellGlyph(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b>${bookIcon("ink")}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
 }
 function renderCharacters() {
   $("#characters").innerHTML = Object.values(CHARACTERS)
@@ -216,7 +220,7 @@ function render() {
   $("#knowledge-progress").textContent =
     state.floor >= 3 ? `${state.floor - 1} truths understood` : "";
   $("#stats").innerHTML =
-    `<span class="book-resource"><small>Vitality</small><strong>${state.hp}<span> / ${state.maxHp}</span></strong></span><span class="book-resource"><small>Guard</small><strong>${state.block}</strong></span><span class="book-resource" id="energy"><small>Ink</small><strong>${state.energy}<span> / ${state.maxEnergy}</span></strong></span>`;
+    `<span class="book-resource"><small>${bookIcon("vitality")}Vitality</small><strong>${state.hp}<span> / ${state.maxHp}</span></strong></span><span class="book-resource"><small>${bookIcon("guard")}Guard</small><strong>${state.block}</strong></span><span class="book-resource" id="energy"><small>${bookIcon("ink")}Ink</small><strong>${state.energy}<span> / ${state.maxEnergy}</span></strong></span>`;
   $("#turn-number").textContent = `TURN ${state.turn}`;
   $("#grimoire-count").textContent =
     `${state.inventory.length} bound runes · ${state.hand.length} prepared · ${state.draw.length} unread · ${state.discard.length} resting`;
@@ -263,6 +267,35 @@ function renderMap() {
     (truth, i) =>
       `<li class="${i === areaIndex ? "current" : ""}"><span>${i + 1}</span><strong>${esc(truth[0])}</strong><small>${esc(AREAS[i].name)} · ${i < learned ? "Understood" : i === state.floor - 1 ? "A question awaits" : "Not yet learned"}</small><p>${i < learned ? esc(truth[1]) : "An unanswered page."}</p></li>`,
   ).join("");
+  const entries = learningSummary(state);
+  $("#library-memory-list").innerHTML = entries.length
+    ? entries
+        .map((entry) => {
+          const copies = state.inventory.filter(
+            (key) => key === entry.key,
+          ).length;
+          const canForget =
+            entry.learned &&
+            state.phase === "explore" &&
+            !travelling &&
+            !state.forge &&
+            copies > 0;
+          return `<div class="library-rune"><span>${spellGlyph(getCard(entry.key))}</span><div><strong>${esc(entry.name)}</strong><small>${entry.learned ? "Learned by the library" : `Observed ${entry.casts} / 3 casts`}</small></div><button data-forget="${esc(entry.key)}" ${canForget ? "" : "disabled"} aria-label="Forget ${esc(entry.name)}, losing all ${copies} owned copies">Forget<small>Lose ${copies} ${copies === 1 ? "copy" : "copies"}</small></button></div>`;
+        })
+        .join("")
+    : '<p class="memory-empty">No spells observed yet.</p>';
+}
+function libraryNotice() {
+  return drainLibraryEvents(state)
+    .map((event) => {
+      if (event.type === "spell-learned")
+        return `The library has learned ${event.name}. A later guardian may use it.`;
+      if (event.type === "guardian-copied")
+        return `This guardian remembers ${event.name}. Read its next move.`;
+      return "";
+    })
+    .filter(Boolean)
+    .join(" ");
 }
 function renderForge() {
   $("#forge-mode").value = state.forgeMode;
@@ -352,7 +385,7 @@ function cast(index) {
         ? target
         : origin.clone().add(new THREE.Vector3(0, 0.3, -0.2)),
     );
-    say(`${c.name}: ${effects(c)}.`);
+    say(`${c.name}: ${effects(c)}. ${libraryNotice()}`);
     casting = reducedMotion ? 0.08 : 0.52;
     for (const button of document.querySelectorAll(".grimoire button"))
       button.disabled = true;
@@ -367,16 +400,39 @@ function endTurn() {
     say(result.reason);
     return;
   }
+  showCopiedMagic(result.actions);
   say(
     result.actions
       .map(
         (a) =>
-          `${a.name}: ${a.damage ? `${a.damage} damage${a.blocked ? `, ${a.blocked} guarded` : ""}` : a.label}`,
+          `${a.name}: ${a.type === "copied-spell" ? `${a.label}${a.blocked ? `, ${a.blocked} guarded` : ""}` : a.damage ? `${a.damage} damage${a.blocked ? `, ${a.blocked} guarded` : ""}` : a.label}`,
       )
       .join(" · "),
   );
   checkPhase();
   render();
+}
+function showCopiedMagic(actions) {
+  for (const action of actions) {
+    if (action.type !== "copied-spell") continue;
+    const index = state.enemies.findIndex(
+      (enemy) =>
+        enemy.name === action.name &&
+        enemy.copiedSpell?.key === action.spellKey,
+    );
+    const origin =
+      index >= 0 &&
+      diorama.getEnemyAnchor(index)?.add(new THREE.Vector3(0, -0.7, 0));
+    const spell = getCard(action.spellKey);
+    if (!origin || !spell) continue;
+    spellEffects.cast(
+      spell,
+      origin,
+      action.amount
+        ? camera.position.clone().add(new THREE.Vector3(0, -0.4, 0))
+        : origin.clone().add(new THREE.Vector3(0, 0.3, 0)),
+    );
+  }
 }
 function checkPhase() {
   if (state.phase === lastPhase) return;
@@ -408,6 +464,8 @@ async function advance({ focused = false } = {}) {
   startGuidedBattle(state, random);
   lastPhase = state.phase;
   render();
+  const notice = libraryNotice();
+  if (notice) say(notice);
 }
 async function beginRun() {
   casting = 0;
@@ -460,7 +518,7 @@ function showEnding() {
     ? "The last answer."
     : "The library keeps this life.";
   $("#ending-copy").textContent =
-    `${state.character.name} · ${won ? 8 : state.floor - 1} / 8 bindings · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "You remember your name. You know why you came. You know everything—and you cannot unknow it. Every voice in every book speaks at once. The library is silent. Your mind never will be." : "Your runes, forged inscriptions, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
+    `${state.character.name} · ${won ? 8 : state.floor - 1} / 8 bindings · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "The hand that wrote your grimoire wrote every guardian. Their spells were yours. Their faces were yours. You have been fighting yourself the whole way up. Now you remember every life and understand every answer. You know everything, and you cannot unknow it. The library is silent. Your mind never will be." : "Your runes, forged inscriptions, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
   dialog("#ending");
 }
 function togglePanel(id) {
@@ -485,6 +543,12 @@ $("#characters").onclick = (e) => {
     renderCharacters();
   }
 };
+for (const [id, icon] of [
+  ["basic-attack", "strike"],
+  ["basic-block", "guard"],
+  ["forge-button", "forge"],
+])
+  $("#" + id).insertAdjacentHTML("afterbegin", bookIcon(icon));
 $("#start-button").onclick = beginRun;
 $("#advance-button").onclick = advance;
 $("#basic-attack").onclick = strike;
@@ -497,6 +561,26 @@ $("#enemy-targets").onclick = (e) => {
 $("#hand").onclick = (e) => {
   const b = e.target.closest("[data-index]");
   if (b) cast(Number(b.dataset.index));
+};
+$("#library-memory-list").onclick = (e) => {
+  const button = e.target.closest("[data-forget]");
+  if (!button || button.disabled || casting || worldBusy) return;
+  const name = getCard(button.dataset.forget)?.name || "the spell";
+  const result = forgetLearnedRune(state, button.dataset.forget, {
+    travelling,
+  });
+  if (!result.ok) {
+    say(result.reason);
+    return;
+  }
+  drainLibraryEvents(state);
+  say(
+    `You tear out ${name}, losing ${result.removedCount} ${result.removedCount === 1 ? "copy" : "copies"}. The library forgets it too.`,
+  );
+  render();
+  renderMap();
+  $("#library-memory-title").tabIndex = -1;
+  $("#library-memory-title").focus();
 };
 for (const id of ["forge", "help", "map"]) {
   $("#" + id + "-button").onclick = () => togglePanel(id);
@@ -736,13 +820,14 @@ renderer.setAnimationLoop((now) => {
   if (result.forged) {
     selected = [];
     const c = getCard(result.forged);
+    if (result.action) showCopiedMagic([result.action]);
     const origin = camera.position
       .clone()
       .add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(1.35));
     origin.y -= 0.25;
     spellEffects.forge(c, origin);
     say(
-      `${c.name} folded.${result.action ? ` ${result.action.name}: ${result.action.damage} damage.` : ""}`,
+      `${c.name} folded.${result.action ? ` ${result.action.name}: ${result.action.label}${result.action.blocked ? `, ${result.action.blocked} guarded` : ""}.` : ""}`,
     );
     requestCardDiscovery(c, result.forged, forgeParents, (metadata) => {
       applyCardDiscovery(result.forged, metadata);
@@ -781,6 +866,7 @@ if (import.meta.env.DEV)
     inventory: [...state.inventory],
     inventoryIds: [...state.inventoryCopyIds],
     hand: [...state.hand],
+    learning: learningSummary(state),
     enemies: state.enemies.map((e) => ({
       ...e,
       intent: enemyIntent(state, e),

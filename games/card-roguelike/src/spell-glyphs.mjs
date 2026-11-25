@@ -97,10 +97,21 @@ export function glyphModel(card = {}) {
 
 export function spellGlyph(card = {}) {
   const { family, color, segments } = glyphModel(card);
+  const surfaces = {
+    fire: ["#684338", "#f5d7ac"],
+    water: ["#345a60", "#d3eee5"],
+    stone: ["#5c5946", "#eee0b9"],
+    wind: ["#3e615c", "#e0eadb"],
+    light: ["#6a5c3a", "#fff0bc"],
+    shadow: ["#493e58", "#e3d6f1"],
+    lightning: ["#584769", "#eedfff"],
+    vine: ["#425b43", "#deedbe"],
+  };
+  const [surface, inscription] = surfaces[family];
   const paths = segments
     .map((d, i) => `<path d="${d}" pathLength="1" style="--segment:${i}"/>`)
     .join("");
-  return `<svg class="spell-glyph" data-family="${family}" viewBox="0 0 96 96" fill="none" aria-hidden="true" focusable="false" style="--glyph-color:${color}"><g class="glyph-engraving">${paths}</g><g class="glyph-light">${paths}</g></svg>`;
+  return `<svg class="spell-glyph" data-family="${family}" viewBox="0 0 96 96" fill="none" aria-hidden="true" focusable="false" style="--glyph-color:${color};--glyph-inscription:${inscription}"><g class="glyph-mount"><path d="M12 13 77 10 88 23 85 83 74 92 12 87 7 75 8 25Z" fill="#8a714e" stroke="#67533e" stroke-width="1"/><path d="M12 8 77 5 88 18 85 78 74 87 12 82 7 70 8 20Z" fill="#d3bd8c" stroke="#f5e2ba" stroke-width="1"/><path d="M17 13 73 11 82 21 79 74 71 80 18 76 13 67 14 24Z" fill="${surface}" stroke="#263a3a" stroke-width="1"/><path d="M20 18 70 16M19 70 69 75" stroke="#f6dfaf" stroke-opacity=".35" stroke-width="1"/></g><g class="glyph-engraving" transform="translate(12 9) scale(.75)">${paths}</g><g class="glyph-light" transform="translate(12 9) scale(.75)">${paths}</g></svg>`;
 }
 
 export function playGlyph(button, { reducedMotion = false } = {}) {

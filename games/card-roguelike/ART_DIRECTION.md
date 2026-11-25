@@ -8,6 +8,17 @@ A cursed library is consuming reality. Rooms, people and spells are being rebuil
 
 **A spell is a tiny paper sculpture lifted from the page.** Show the folded construction, not a painting of the subject. Card art and enemies share the same sharp folds, layered cut edges and visible material thickness. Spells combine by visibly stacking and folding their ingredients.
 
+## Mandatory construction rule: everything is layered
+
+**Build everything from separate layers assembled with code. Never use a single finished image as the world, a room, the grimoire, a spell, or an interface.** This is a user requirement, not an optional visual treatment.
+
+- Build the book from separate covers, page stacks, individual leaves, binding, tabs, inscriptions, glyph pieces, resource icons and controls. Their depth, overlap, shadows and movement belong in code.
+- Build environments from separate architecture, shelves, books, foliage, creatures, props, materials and lighting. The camera must move through actual spatial layers.
+- Build spells from separate glyph strokes, cut-paper shapes, projectiles, trails, particles and impacts. Animate those parts independently in code.
+- AI images may supply individual isolated assets or material textures. Keep those assets separate and composite them with SVG, CSS, canvas or Three.js. An AI-generated picture of the complete composition is a reference only, never the playable implementation.
+- Preserve useful silhouettes, paper thickness, occlusion and restrained shadows at each layer. Layers must create readable physical structure, rather than adding decorative clutter.
+- New designs and reviews must identify their component layers. Reject a flattened replacement even if its standalone image looks attractive.
+
 ## Palette and type
 
 | Material     | Color     | Use                                 |
@@ -55,6 +66,6 @@ The starter atlas is generated with the built-in image tool. Its exact sheet pro
 
 ## Grimoire inscriptions
 
-The combat book uses original code-drawn SVG glyphs instead of miniature raster medallions or emoji badges. Eight segmented forms share a 96-unit grid, rounded 3.2-unit strokes and generous open space. Dark moss ink (`#344B49`) sits on the existing physical paper asset; muted writing is `#71644F`. Fraunces carries spell names and resource values, DM Sans carries effects and shortcuts. All numeric fields use tabular lining figures. Resources share one row; every prepared spell reserves equal rows for its glyph, two-line name, effect and cost.
+The combat book uses original code-drawn SVG glyphs instead of raster medallions or emoji badges. Eight segmented forms share a 96-unit grid, rounded 3.2-unit strokes and generous open space. Each spell has separate cut-paper backing, raised edge, colored face, engraved strokes and animated light strokes. The book itself is coded as a separate cover, page stacks, individual leaves, folded corners and binding stitches; the archived full-book image is not used. Dark moss ink (`#344B49`) and muted writing (`#71644F`) sit on those paper layers. Fraunces carries spell names and resource values, DM Sans carries effects and shortcuts. All numeric fields use tabular lining figures. Resources share one row; every prepared spell reserves equal rows for its glyph, two-line name, effect and cost. Resource and action icons are original SVG illustrations.
 
 The signature is an inscription lighting segment by segment once when cast, coordinated with the existing world spell effect. Each family keeps its own silhouette. Forged spells retain the ingredient-derived family and gain bounded, deterministic peripheral marks. Discovered names cannot change glyph identity. Nothing Phone's segmented light language is an inspiration, with original shapes; no branding or hardware layouts are copied. Reduced motion uses a brief static illumination. There are no continuous idle pulses.

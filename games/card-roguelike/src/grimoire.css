@@ -1,13 +1,70 @@
 /* One book, one alignment system. Ink stays still until a spell is invoked. */
+.library-memory {
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #806d4944;
+}
+.library-memory h3 {
+  font:
+    500 1.15rem "Fraunces",
+    Georgia,
+    serif;
+  margin: 0 0 0.5rem;
+}
+.library-memory > p {
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.library-rune {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #806d4922;
+}
+.library-rune > span {
+  width: 40px;
+  height: 40px;
+}
+.library-rune strong {
+  display: block;
+  font:
+    500 1rem "Fraunces",
+    Georgia,
+    serif;
+  overflow-wrap: anywhere;
+}
+.library-rune small {
+  display: block;
+  font-size: 0.68rem;
+  margin-top: 0.2rem;
+  color: #71644f;
+}
+.library-rune button {
+  background: none;
+  box-shadow: none;
+  border: 0;
+  color: #6e4438;
+  font-size: 0.8rem;
+  padding: 0.4rem 0 0.4rem 0.6rem;
+}
+.library-rune button:focus-visible {
+  outline: 2px solid #886740;
+  outline-offset: 2px;
+}
+.forget-note,
+.memory-empty {
+  color: #71644f;
+}
 .grimoire {
   --book-ink: #344b49;
   --book-muted: #71644f;
   width: min(1100px, calc(100vw - 3rem));
   min-height: 248px;
   grid-template-columns: 1fr 1fr;
-  padding: 1.15rem 2.1rem 1.1rem;
-  background: transparent url("/art/3d/grimoire-open.webp") center / 100% 100%
-    no-repeat;
+  padding: 0.6rem 0.8rem 1.1rem;
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -19,18 +76,110 @@
   display: none;
 }
 .grimoire-page {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(
+    100deg,
+    #d9c59e,
+    #f3e8cf 12%,
+    #ede0bd 90%,
+    #c5ac80
+  );
+  border: 1px solid #c3aa7e;
+  border-radius: 28px 5px 5px 8px;
+  box-shadow:
+    inset 0 2px 1px #fff6dd,
+    0 3px #d4c298,
+    0 4px #8f7958,
+    0 6px #e0cda8,
+    0 7px #8f7958,
+    0 9px #c0a97e;
+}
+.grimoire-page::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid #9a7f4f22;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+}
+.grimoire-page::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  top: 0;
+  left: 0;
+  background: linear-gradient(
+    135deg,
+    #a58a5b 0%,
+    #d2be99 48%,
+    #fcf1d6 52%,
+    #d6c29b 100%
+  );
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  filter: drop-shadow(1px 2px 1px #6b533740);
+  pointer-events: none;
+}
+.book-cover {
+  position: absolute;
+  inset: 9px 0 0;
+  border: 3px solid #9c7a50;
+  border-radius: 22px 22px 7px 7px;
+  background: linear-gradient(
+    90deg,
+    #283f40,
+    #4a625a 48%,
+    #263b3d 50%,
+    #40584f
+  );
+  box-shadow:
+    0 -2px #bd9a64,
+    0 5px #172d30,
+    0 8px #93683d,
+    0 11px #1c3133,
+    0 16px 24px #14252b55;
+  z-index: -2;
+}
+.book-binding {
+  position: absolute;
+  top: 27px;
+  bottom: 30px;
+  left: calc(50% - 7px);
+  width: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  z-index: 3;
+  pointer-events: none;
+}
+.book-binding i {
+  display: block;
+  height: 5px;
+  width: 14px;
+  border: 2px solid #956b49;
+  border-top-color: #e2b47a;
+  border-radius: 50%;
+  transform: rotate(-9deg);
+  box-shadow: 0 2px 1px #483d2933;
+}
+.book-icon {
+  display: inline-block;
+  width: 19px;
+  height: 19px;
+  flex: none;
+  vertical-align: middle;
 }
 .grimoire-left {
-  padding: 0.6rem 2.4rem 0.4rem;
+  padding: 1rem 1.7rem 0.6rem 1.5rem;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
   gap: 0.5rem;
 }
 .grimoire-right {
-  padding: 0.6rem 0.5rem 0.4rem 1.5rem;
+  padding: 1rem 1rem 0.6rem 1.5rem;
+  border-radius: 5px 28px 8px 5px;
   align-content: center;
 }
 .grimoire .eyebrow,
@@ -63,6 +212,11 @@
   font-size: 0.65rem;
   line-height: 1;
   letter-spacing: 0.06em;
+}
+.book-resource small .book-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 0.3rem;
 }
 .grimoire .book-resource strong {
   display: block;
@@ -99,7 +253,7 @@
 }
 .grimoire .basics button {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 22px 1fr auto;
   text-align: left;
   align-items: baseline;
   column-gap: 0.3rem;
@@ -130,10 +284,12 @@
 .grimoire .turn-tools button {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: .4rem;
   align-items: baseline;
   font-size: 0.86rem;
 }
+.grimoire .turn-tools button kbd { margin-left: auto; }
 .grimoire #end-turn {
   border-top: 1px solid #806d4944;
   display: flex;
@@ -227,7 +383,20 @@
   stroke-width: 3.2;
 }
 .glyph-engraving {
-  stroke: #3e5551;
+  stroke: var(--glyph-inscription, #3e5551);
+  filter: drop-shadow(0 1px 0 #111e28);
+}
+.glyph-mount {
+  filter: drop-shadow(0 3px 2px #35423b45);
+}
+.rune:hover .rune-seal {
+  filter: none;
+}
+.rune:not(:disabled):hover .glyph-mount {
+  transform: translateY(-2px);
+}
+.glyph-mount {
+  transition: transform 0.18s ease;
 }
 .glyph-light {
   stroke: var(--glyph-color);
@@ -310,6 +479,15 @@
 .rune-cost b {
   font-weight: 600;
 }
+.rune-cost > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.rune-cost .book-icon {
+  width: 13px;
+  height: 13px;
+}
 .rune .rune-cost kbd {
   font-size: 0.6rem;
   color: #81745e;
@@ -356,6 +534,15 @@
   }
 }
 @media (max-width: 650px) {
+  .book-binding {
+    left: 1px;
+    width: 10px;
+    top: 22px;
+    bottom: 30px;
+  }
+  .book-binding i {
+    width: 10px;
+  }
   .grimoire {
     width: calc(100vw - 0.4rem);
     grid-template-columns: 1fr;
@@ -405,6 +592,16 @@
   .grimoire .basics small {
     font-size: 0.58rem;
     min-height: 1.4em;
+  }
+  .grimoire .basics button > .book-icon,
+  .grimoire .turn-tools button > .book-icon {
+    display: block;
+    margin: 0 auto 0.2rem;
+    width: 20px;
+    height: 20px;
+  }
+  .grimoire #end-turn {
+    align-self: center;
   }
   .grimoire .basics kbd,
   .grimoire .turn-tools kbd,

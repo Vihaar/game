@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="preload" as="image" href="./art/3d/grimoire-open.webp" />
     <meta name="theme-color" content="#e9dfcd" />
     <title>The Fold · the library awaits</title>
     <meta
@@ -132,6 +131,19 @@
           </div>
           <button id="close-map">Close</button>
         </header>
+        <section class="library-memory" aria-labelledby="library-memory-title">
+          <h3 id="library-memory-title">What the library remembers</h3>
+          <p>
+            Three casts teach a spell to the library. A guardian on a later
+            floor can use it against you.
+          </p>
+          <div id="library-memory-list"></div>
+          <p class="forget-note">
+            Between battles, you may tear out a spell. You lose every owned
+            copy; the library loses its memory of that spell.
+          </p>
+        </section>
+        <h3 class="journal-climb-title">The climb</h3>
         <ol id="map-content"></ol>
       </aside>
       <aside
@@ -169,8 +181,18 @@
           grimoire, forged spells and knowledge progress. Recipe discoveries
           remain in this browser. Each cleared binding heals just 1 HP.
         </p>
+        <p>
+          Repeated casting teaches the library your spells. Check the journal to
+          see what it remembers. Later guardians announce copied magic before
+          using it. Between battles you can forget a spell, losing every copy
+          and erasing its danger.
+        </p>
       </aside>
       <footer class="action-dock grimoire" aria-label="Your open grimoire">
+        <div class="book-cover" aria-hidden="true"></div>
+        <div class="book-binding" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
         <section class="grimoire-page grimoire-left">
           <div
             id="stats"
