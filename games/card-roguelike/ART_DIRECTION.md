@@ -10,14 +10,14 @@ A cursed library is consuming reality. Rooms, people and spells are being rebuil
 
 ## Palette and type
 
-| Material | Color | Use |
-| --- | --- | --- |
-| Warm paper | `#F1E6D2` | Cards, page surfaces, enemy labels |
-| Cut edge | `#CBB797` | Fibers, folded seams, quiet borders |
-| Book ink | `#22334B` | Text, deep room shapes, outlines |
-| Ember paper | `#E7774F` | Fire, attack windups, health danger |
-| Moss paper | `#6C9284` | Dew, rare healing, archive gardens |
-| Violet paper | `#8577A5` | Wind, corruption, impossible rooms |
+| Material     | Color     | Use                                 |
+| ------------ | --------- | ----------------------------------- |
+| Warm paper   | `#F1E6D2` | Cards, page surfaces, enemy labels  |
+| Cut edge     | `#CBB797` | Fibers, folded seams, quiet borders |
+| Book ink     | `#22334B` | Text, deep room shapes, outlines    |
+| Ember paper  | `#E7774F` | Fire, attack windups, health danger |
+| Moss paper   | `#6C9284` | Dew, rare healing, archive gardens  |
+| Violet paper | `#8577A5` | Wind, corruption, impossible rooms  |
 
 Keep colors as dyed paper, with slight fiber variation. Fraunces is the restrained chapter/display face; DM Sans is for readable controls and cards; system monospace is for numbers, timing and small ink-stamped labels. Existing font fallbacks must work without a network.
 
@@ -52,3 +52,9 @@ The signature is the path through an oversized open book: the learner moves from
 Original spell-card miniature, [SUBJECT AND TWO INGREDIENTS]. A physically handmade layered papercraft diorama, folded and scored cardstock, visible paper thickness and fibers, crisp cut edges, curled strips, tiny construction imperfections. Consistent elevated three-quarter tabletop view, soft directional shadows, centered strong silhouette with breathing room. Warm ivory paper ground, book-ink blue, restrained coral, moss teal and muted violet dyed paper. All effects are cut paper. No text, frame, engraving, painting, chrome, plastic, neon glow, real people or brands.
 
 The starter atlas is generated with the built-in image tool. Its exact sheet prompt and asset provenance live in `public/art/README.md`. Optional runtime AI must use this same direction; combat stats never come from an art model.
+
+## Grimoire inscriptions
+
+The combat book uses original code-drawn SVG glyphs instead of miniature raster medallions or emoji badges. Eight segmented forms share a 96-unit grid, rounded 3.2-unit strokes and generous open space. Dark moss ink (`#344B49`) sits on the existing physical paper asset; muted writing is `#71644F`. Fraunces carries spell names and resource values, DM Sans carries effects and shortcuts. All numeric fields use tabular lining figures. Resources share one row; every prepared spell reserves equal rows for its glyph, two-line name, effect and cost.
+
+The signature is an inscription lighting segment by segment once when cast, coordinated with the existing world spell effect. Each family keeps its own silhouette. Forged spells retain the ingredient-derived family and gain bounded, deterministic peripheral marks. Discovered names cannot change glyph identity. Nothing Phone's segmented light language is an inspiration, with original shapes; no branding or hardware layouts are copied. Reduced motion uses a brief static illumination. There are no continuous idle pulses.

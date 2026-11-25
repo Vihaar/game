@@ -21,12 +21,13 @@ import {
   enemyIntent,
   takeReward,
   shuffle,
-  corruptionDamageBonus,
   applyCardDiscovery,
 } from "./guided-rules.mjs";
-import { cardArtStyle, requestCardDiscovery } from "./card-art.mjs";
+import { requestCardDiscovery } from "./card-art.mjs";
 import { chapterBook, worldAvailable } from "./world-interactions.mjs";
+import { spellGlyph, playGlyph } from "./spell-glyphs.mjs";
 import "./style.css";
+import "./grimoire.css";
 const $ = (s) => document.querySelector(s);
 const esc = (v) =>
   String(v ?? "").replace(
@@ -164,7 +165,7 @@ function runeMarkup(key, index, mode = "hand") {
     .replace(/briefly/g, "this turn")
     .replace(/nearby enemies/g, "all enemies")
     .replace(/Draw a card/g, "Prepare a rune");
-  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(description)}"><span class="rune-seal" style="${esc(cardArtStyle(rune, key))}"><span class="rune-glyph" aria-hidden="true">${esc(rune.glyph || "◇")}</span></span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost">${rune.cost} ink${mode === "hand" ? ` · <kbd>${index + 1}</kbd>` : ""}</span></button>`;
+  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellGlyph(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b> ink</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
 }
 function renderCharacters() {
   $("#characters").innerHTML = Object.values(CHARACTERS)
@@ -215,8 +216,7 @@ function render() {
   $("#knowledge-progress").textContent =
     state.floor >= 3 ? `${state.floor - 1} truths understood` : "";
   $("#stats").innerHTML =
-    `<span>${esc(state.character.name)}</span><strong>${state.hp} / ${state.maxHp} HP</strong><span>${state.block} guard</span><span>Curse ${state.corruption} <small>(+${corruptionDamageBonus(state)} damage)</small></span>`;
-  $("#energy").textContent = `${state.energy} / ${state.maxEnergy} ink`;
+    `<span class="book-resource"><small>Vitality</small><strong>${state.hp}<span> / ${state.maxHp}</span></strong></span><span class="book-resource"><small>Guard</small><strong>${state.block}</strong></span><span class="book-resource" id="energy"><small>Ink</small><strong>${state.energy}<span> / ${state.maxEnergy}</span></strong></span>`;
   $("#turn-number").textContent = `TURN ${state.turn}`;
   $("#grimoire-count").textContent =
     `${state.inventory.length} bound runes · ${state.hand.length} prepared · ${state.draw.length} unread · ${state.discard.length} resting`;
@@ -285,7 +285,7 @@ function renderForge() {
   const tile = (k, empty) => {
     const c = k && getCard(k);
     return c
-      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal" style="${esc(cardArtStyle(c, k))}"></span><strong>${esc(c.name)}</strong></span>`
+      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal">${spellGlyph(c)}</span><strong>${esc(c.name)}</strong></span>`
       : `<span class="fusion-tile empty">${empty}</span>`;
   };
   $("#fusion-preview").innerHTML =
@@ -344,6 +344,7 @@ function cast(index) {
   origin.y -= 0.6;
   const result = guidedCast(state, index, state.target, random);
   if (result.ok) {
+    playGlyph($('#hand [data-index="' + index + '"]'), { reducedMotion });
     spellEffects.cast(
       c,
       origin,
@@ -352,7 +353,7 @@ function cast(index) {
         : origin.clone().add(new THREE.Vector3(0, 0.3, -0.2)),
     );
     say(`${c.name}: ${effects(c)}.`);
-    casting = reducedMotion ? 0.08 : c.damage ? 0.52 : 0.3;
+    casting = reducedMotion ? 0.08 : 0.52;
     for (const button of document.querySelectorAll(".grimoire button"))
       button.disabled = true;
     return;
