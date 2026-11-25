@@ -1,6 +1,6 @@
 {
   "name": "vihaar-game",
-  "description": "Four small open-source browser games, built on established engines and examples.",
+  "description": "An open-source browser arcade built on established engines and examples.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
