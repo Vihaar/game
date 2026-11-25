@@ -1,0 +1,8 @@
+# Foundations and notices
+
+- **Matter.js 0.20.0**, Liam Brummitt and contributors, MIT. Existing engine/body/constraint/input conventions are adapted from this repository's Soup/Elevator games and the actual official `compound.js`, `manipulation.js`, and `ballPool.js` examples, pinned to [liabru/matter-js b8ee71cd7f9b49f53639ddaedd6254f1929bcbe5](https://github.com/liabru/matter-js/tree/b8ee71cd7f9b49f53639ddaedd6254f1929bcbe5/examples). Exact snapshots and full notice remain in `upstream/`; public notice in `public/licenses/matter-js.txt`.
+- **PeerJS 1.5.5**, Michelle Bu, Eric Zhang and contributors, MIT. Supplies the existing WebRTC/signaling infrastructure. [Primary docs](https://peerjs.com/client/api/peer), [public signaling](https://peerjs.com/server/cloud), [source](https://github.com/peers/peerjs/tree/v1.5.5). Its full notice and bundled runtime dependency notices are in `public/licenses/`.
+- **Mike portrait**, copied from the authorized Server Kart `public/portraits/mike.webp`. It is the user-requested Mike server icon. This third-party asset is excluded from the code MIT license. No ownership or rights to underlying artwork are claimed; replace it with an image you have permission to use when remixing. No Discord credentials/messages/IDs are included.
+- **Vite**, MIT, build tooling under its distributed license. Original game rules, UI, canvas workshop/sofa/character art and small room protocol are this repository's MIT code.
+
+Primary upstream search and review completed before implementing this game on 2026-11-24. Matter supplies collision solving; PeerJS supplies transport. Neither system was reimplemented.
