@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { atlasRegion } from "./diorama-scenes.mjs";
 import { AREAS } from "./areas.mjs";
 import { libraryMoodProgress } from "./library-architecture.mjs";
+import { paintWorldMaterial } from "./painted-world-material.mjs";
 
 function extinguishIllustratedLamps(material, progress) {
   if (!progress) return;
@@ -44,7 +45,7 @@ export function dressLibraryFloor(floor, { shelf, canopy, props } = {}) {
   const maps = [],
     geometries = [],
     materials = [];
-  const make = (map, width, height, x, y, z, rotation = 0) => {
+  const make = (map, width, height, x, y, z, rotation = 0, painted = true) => {
     const geometry = new THREE.PlaneGeometry(width, height);
     const material = new THREE.MeshBasicMaterial({
       map,
@@ -55,6 +56,12 @@ export function dressLibraryFloor(floor, { shelf, canopy, props } = {}) {
       depthWrite: true,
       toneMapped: false,
     });
+    if (painted)
+      paintWorldMaterial(material, {
+        illustration: true,
+        progress,
+        seed: x * 0.8 + z * 0.23,
+      });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
     mesh.rotation.y = rotation;
@@ -79,9 +86,14 @@ export function dressLibraryFloor(floor, { shelf, canopy, props } = {}) {
   for (const [bay, z] of [10.7, 3.4, -4.3, -11.6].entries()) {
     if ((progress >= 0.5 && bay === 2) || (progress === 1 && bay === 0))
       continue;
-    const asset = make(canopy, 14.1, 7.94, 0, 4.0, z);
+    const asset = make(canopy, 14.1, 7.94, 0, 4.0, z, 0, false);
     asset.name = "independent-illustrated-canopy";
     extinguishIllustratedLamps(asset.material, progress);
+    paintWorldMaterial(asset.material, {
+      illustration: true,
+      progress,
+      seed: z * 0.23,
+    });
   }
   for (const [index, x] of [
     [0, -4.8],
@@ -118,7 +130,8 @@ export function dressLibraryFloor(floor, { shelf, canopy, props } = {}) {
     const inscription = new THREE.CanvasTexture(canvas);
     inscription.colorSpace = THREE.SRGBColorSpace;
     maps.push(inscription);
-    make(inscription, 4.3, 0.54, 0, 5.25, -13.4).name = "doorway-inscription";
+    make(inscription, 4.3, 0.54, 0, 5.25, -13.4, 0, false).name =
+      "doorway-inscription";
   }
   floor.group.traverse((object) => {
     if (

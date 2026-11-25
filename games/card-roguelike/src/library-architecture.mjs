@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { paintWorldMaterial } from "./painted-world-material.mjs";
 
 // Reuses the room/theme, paper-grain and shelf rhythm of this game's world.js.
 // Geometry, instancing, extrusion and material rendering are Three.js 0.181.2:
@@ -150,6 +151,10 @@ export function createLibraryFloor(requestedIndex = 0) {
       metalness: 0,
       flatShading: true,
       ...extra,
+    });
+    paintWorldMaterial(material, {
+      progress,
+      seed: materials[bucket].length * 1.73 + index * 0.8,
     });
     materials[bucket].push(material);
     return material;
