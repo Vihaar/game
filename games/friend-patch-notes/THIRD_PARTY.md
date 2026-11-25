@@ -1,0 +1,7 @@
+# Reuse and research
+
+Before new infrastructure, reviewed the official Vite vanilla starter at https://github.com/vitejs/vite/tree/v6.4.6/packages/create-vite/template-vanilla and this repository's existing Soup/Fold static game conventions. The vanilla template HTML is retained under vendor/upstream; create-vite's template/tooling license is in public/licenses/create-vite.txt (templates CC0, tooling MIT). Soup's MIT Vite config was adapted for GAME_BASE/relative static hosting and retained under vendor/upstream. The Fold seededRandom generator is reused verbatim; original project MIT notice retained in public/licenses/source-project.txt.
+
+The game has eight DOM portrait actors, so a physics/WebGL runtime would add weight without improving its deterministic small arena. Simulation, circular actor rendering, grid arena, UI and animations are original code using browser requestAnimationFrame. No external autobattler/game artwork, Hearthstone assets, real-money systems or market data were copied. Vite and its build dependencies preserve their installed package licenses.
+
+Portraits are copies of the existing requested server-kart/public/portraits images and original CREDITS.md. Torin/Jonah/Grant are requested Discord profile avatar regions; Mike is the requested server icon. These third-party visual assets are EXCLUDED from the code MIT license. No claim to underlying artwork/likeness rights is made. Replace them with images you have permission to use when remixing. No chat/account content or Discord connection exists in the game.
