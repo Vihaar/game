@@ -1,8 +1,8 @@
 // A connected, hand-authored route. Every doorway is physical and backtracking stays open.
 export const AREAS = [
   { id: 'intake', name: 'The Intake Hall', subtitle: 'Your name is already in the ledger.', x: 0, z: 0, size: 24, theme: 'stacks', wall: 0x7588a7, floor: 0x8d9bb1, accent: 0xe5bb7c, fog: 0x8ca3bb, enemies: ['inkling', 'warden'] },
-  { id: 'mycelium', name: 'The Mycelium Stacks', subtitle: 'Something has been reading in the dark.', x: 0, z: -34, size: 26, theme: 'fungus', wall: 0x466b68, floor: 0x657e77, accent: 0xc7e2a0, fog: 0x678c83, enemies: ['inkling', 'eater', 'scribe'] },
-  { id: 'flooded', name: 'The Flooded Index', subtitle: 'Every footstep revises the water.', x: 34, z: -34, size: 26, theme: 'water', wall: 0x42758b, floor: 0x658c9c, accent: 0xa1e7e3, fog: 0x7ba6b5, enemies: ['scribe', 'warden', 'inkling'] },
+  { id: 'mycelium', name: 'The Abandoned Stacks', subtitle: 'The lamps have gone cold. The dust holds your footprints.', x: 0, z: -34, size: 26, theme: 'fungus', wall: 0x466b68, floor: 0x657e77, accent: 0xc7e2a0, fog: 0x678c83, enemies: ['inkling', 'eater', 'scribe'] },
+  { id: 'flooded', name: 'The Mirror Archive', subtitle: 'Your reflection already knows the next spell.', x: 34, z: -34, size: 26, theme: 'water', wall: 0x42758b, floor: 0x658c9c, accent: 0xa1e7e3, fog: 0x7ba6b5, enemies: ['scribe', 'warden', 'inkling'] },
   { id: 'glasshouse', name: 'Glasshouse of Errata', subtitle: 'These flowers remember your mistakes.', x: 34, z: -68, size: 26, theme: 'glass', wall: 0x778d88, floor: 0x98ada0, accent: 0xefc1b2, fog: 0xb0c9c0, enemies: ['bell', 'eater', 'scribe'] },
   { id: 'observatory', name: 'The Astral Reading Room', subtitle: 'The stars are marginal notes.', x: 0, z: -68, size: 26, theme: 'stars', wall: 0x4b4d7b, floor: 0x777ba4, accent: 0xd5bcff, fog: 0x7777a7, enemies: ['scribe', 'bell', 'eater', 'inkling'] },
   { id: 'press', name: 'The Redaction Press', subtitle: 'Some words were never meant to leave.', x: -34, z: -68, size: 26, theme: 'press', wall: 0x865c60, floor: 0x9d7d7a, accent: 0xf4ae86, fog: 0xaf8581, enemies: ['warden', 'warden', 'scribe', 'eater'] },

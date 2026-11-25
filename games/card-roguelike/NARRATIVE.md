@@ -1,5 +1,13 @@
 # The Fold — the library before you
 
+## Current three-floor playtest
+
+The playable journey is now three floors: Language in the welcoming Intake Hall; Memory in the cold, abandoned Stacks; Self in the dark Mirror Archive. The final guardian carries the player's invented magic and a familiar face. Completing the third encounter ends this run immediately. Full permadeath remains; discovered recipe metadata can persist without carrying spell ownership or library learning into a new life.
+
+The escalating atmosphere is physical as well as lit: fewer lamps, missing books and shelves, hanging/torn pages and colder colors. Forged fire discoveries leave separate scorched shelf and ash layers in the world. Spell imprints are reusable; unlimited recursive fusion can continue between encounters. The library's observation/copying and the permanent loss from forgetting supply the danger behind knowledge.
+
+The eight-chapter outline below is retained for future expansion. The three-floor playtest uses the three truths above, rather than claiming its reader has learned every possible truth.
+
 ## Opening
 
 You wake on a blank page. You do not remember your name, who you were, or how you arrived. Before you stands a library. Its doors are open. There is nowhere else to go.

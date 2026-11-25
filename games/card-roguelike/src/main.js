@@ -6,6 +6,8 @@ import {
   GUIDED_CHARACTERS as CHARACTERS,
   GUIDED_FORGE_MODES as FORGE_MODES,
   newGuidedRun,
+  GUIDED_FLOOR_COUNT,
+  guidedRewardOptions,
   getCard,
   recipeFor,
   getDiscoveryCatalog,
@@ -29,6 +31,7 @@ import {
 import { requestCardDiscovery } from "./card-art.mjs";
 import { chapterBook, worldAvailable } from "./world-interactions.mjs";
 import { settleTransition } from "./presentation-transition.mjs";
+import { effectProfile } from "./effectprofile.mjs";
 import { spellIllustration } from "./spell-illustrations.mjs";
 import { bookIcon } from "./book-icons.mjs";
 import { playGlyph } from "./spell-glyphs.mjs";
@@ -45,25 +48,11 @@ const esc = (v) =>
       ],
   );
 const KNOWLEDGE = [
-  ["Language", "Meaning begins when one thing can stand for another."],
-  ["Life", "Life changes, adapts, and carries understanding forward."],
-  ["Memory", "Memory gives the past a place within the present."],
-  [
-    "Transformation",
-    "Change reveals what can become, not only what already is.",
-  ],
-  ["Cosmos", "Every small thing belongs to a greater connected whole."],
-  [
-    "Truth",
-    "You see what is true. The comforting answers can no longer shelter you.",
-  ],
+  ["Language", "You can name the world. It has begun to answer."],
+  ["Memory", "The dust holds your footprints. You have walked here before."],
   [
     "Self",
-    "Every guardian was a version of you. You have been fighting the answers you abandoned.",
-  ],
-  [
-    "Everything",
-    "Every truth is connected. You understand them all, and cannot unknow them.",
+    "Every guardian was an answer you abandoned. The library learned to become you.",
   ],
 ];
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -139,7 +128,7 @@ function seededRandom(value) {
   };
 }
 function say(text) {
-  $("#message").textContent = text;
+  $("#message").textContent = String(text).replace(/\bink\b/gi, "Focus");
   clearTimeout(messageTimer);
   messageTimer = setTimeout(() => ($("#message").textContent = ""), 6500);
 }
@@ -152,10 +141,15 @@ function dialog(id) {
 }
 function effects(c) {
   return [
-    c.damage ? `${c.damage}${c.all ? " to all" : ""} damage` : "",
+    c.damage
+      ? `${c.damage} damage${c.all ? " to all" : ""}${c.pierce ? ", bypasses guard" : ""}`
+      : "",
     c.block ? `${c.block} guard` : "",
     c.heal ? `${c.heal} heal` : "",
     c.draw ? `prepare ${c.draw}` : "",
+    c.replay ? "repeat last attack as flame" : "",
+    c.interrupt ? "interrupt next move" : "",
+    c.reflect ? `reflect up to ${c.reflect} guarded damage` : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -169,7 +163,7 @@ function runeMarkup(key, index, mode = "hand") {
     .replace(/briefly/g, "this turn")
     .replace(/nearby enemies/g, "all enemies")
     .replace(/Draw a card/g, "Prepare a rune");
-  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}${mode === "hand" && preparedIndex === index ? " prepared-selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : mode === "hand" ? `aria-pressed="${preparedIndex === index}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} ink. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellIllustration(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b>${bookIcon("ink")}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
+  return `<button class="rune ${esc(rune.kind)}${rune.fused ? " inscribed" : ""}${mode === "inventory" && selected.includes(index) ? " selected" : ""}${mode === "hand" && preparedIndex === index ? " prepared-selected" : ""}" data-index="${index}" ${disabled ? "disabled" : ""} ${mode === "inventory" ? `aria-pressed="${selected.includes(index)}"` : mode === "hand" ? `aria-pressed="${preparedIndex === index}"` : ""} aria-label="${esc(rune.name)}. ${esc(effects(rune))}. ${rune.cost} Focus. ${esc(description)}" title="${esc(rune.name)}: ${esc(description)}"><span class="rune-seal">${spellIllustration(rune)}</span><strong>${esc(rune.name)}</strong><span class="rune-effects">${esc(effects(rune))}</span><span class="rune-cost"><span><b>${rune.cost}</b>${bookIcon("focus")}</span>${mode === "hand" ? `<kbd>${index + 1}</kbd>` : ""}</span></button>`;
 }
 function renderPreparedSpell() {
   $("#spell-focus").classList.remove("glyph-casting", "glyph-lit");
@@ -182,17 +176,15 @@ function renderPreparedSpell() {
     ? effects(spell)
     : "Strike or guard, then end your turn.";
   $("#active-spell-description").textContent = spell
-    ? (spell.description || spell.text || "")
-        .replace(/briefly/g, "this turn")
-        .replace(/Draw a card/g, "Prepare a rune")
-    : "Fresh spells arrive when the page turns.";
+    ? spell.benefit || spell.description || ""
+    : "Fresh spells arrive next turn.";
   const button = $("#cast-prepared");
   button.innerHTML = spell
-    ? `Cast ${esc(spell.name)} <span>${spell.cost} ${bookIcon("ink")}</span>`
+    ? `Cast spell <span>${spell.cost} Focus ${bookIcon("focus")}</span>`
     : "No spell prepared";
   button.setAttribute(
     "aria-label",
-    spell ? `Cast ${spell.name}, ${spell.cost} ink` : "No spell prepared",
+    spell ? `Cast ${spell.name}, ${spell.cost} Focus` : "No spell prepared",
   );
   button.disabled =
     !spell ||
@@ -211,7 +203,7 @@ function renderCharacters() {
   $("#characters").innerHTML = Object.values(CHARACTERS)
     .map(
       (c) =>
-        `<button class="character-card${selectedCharacter === c.id ? " selected" : ""}" data-character="${c.id}" aria-pressed="${selectedCharacter === c.id}"><span class="character-fold ${c.id}"></span><strong>${esc(c.name)}</strong><span>${c.hp} HP · ${c.basicDamage} strike · ${c.blockAmount} guard</span><small>${c.id === "runner" ? 4 : 3} ink each turn</small></button>`,
+        `<button class="character-card${selectedCharacter === c.id ? " selected" : ""}" data-character="${c.id}" aria-pressed="${selectedCharacter === c.id}"><span class="character-fold ${c.id}"></span><strong>${esc(c.name)}</strong><span>${c.hp} HP · ${c.basicDamage} strike · ${c.blockAmount} guard</span><small>${c.id === "runner" ? 4 : 3} Focus each turn</small></button>`,
     )
     .join("");
   $("#character-summary").textContent =
@@ -242,9 +234,13 @@ function renderEnemies() {
 }
 function render() {
   document.body.dataset.phase = travelling ? "travel" : state.phase;
-  document.body.classList.toggle("deep-library", areaIndex >= 4);
+  document.body.classList.toggle("deep-library", areaIndex >= 1);
   const area = AREAS[areaIndex];
-  $("#area-label").textContent = `FLOOR ${areaIndex + 1} / 8`;
+  $("#run-floor").hidden = !started;
+  $("#run-floor").textContent =
+    `${areaIndex + 1} / ${GUIDED_FLOOR_COUNT} · ${area.name}`;
+  $("#area-label").textContent =
+    `FLOOR ${areaIndex + 1} / ${GUIDED_FLOOR_COUNT}`;
   $("#area-title").textContent = area.name;
   $("#journey-caption").textContent =
     state.floor >= 3 ? "A thirst for knowledge" : "The library awaits";
@@ -256,7 +252,7 @@ function render() {
   $("#knowledge-progress").textContent =
     state.floor >= 3 ? `${state.floor - 1} truths understood` : "";
   $("#stats").innerHTML =
-    `<span class="book-resource"><small>${bookIcon("vitality")}Vitality</small><strong>${state.hp}<span> / ${state.maxHp}</span></strong></span><span class="book-resource"><small>${bookIcon("guard")}Guard</small><strong>${state.block}</strong></span><span class="book-resource" id="energy"><small>${bookIcon("ink")}Ink</small><strong>${state.energy}<span> / ${state.maxEnergy}</span></strong></span>`;
+    `<span class="book-resource"><small>${bookIcon("vitality")}HP</small><strong>${state.hp}<span> / ${state.maxHp}</span></strong></span><span class="book-resource"><small>${bookIcon("guard")}Guard</small><strong>${state.block}</strong></span><span class="book-resource" id="energy" title="Focus powers spells. It refills when you end your turn."><small>${bookIcon("focus")}<span>Focus</span></small><strong>${state.energy}<span> / ${state.maxEnergy}</span></strong></span>`;
   $("#turn-number").textContent = `TURN ${state.turn}`;
   $("#grimoire-count").textContent =
     `${state.inventory.length} bound runes · ${state.hand.length} prepared · ${state.draw.length} unread · ${state.discard.length} resting`;
@@ -285,7 +281,6 @@ function render() {
     : `${state.character.blockAmount} guard · once`;
   $("#end-turn").disabled =
     state.phase !== "battle" || Boolean(state.forge) || travelling;
-  $("#book-journal-button").disabled = Boolean(casting) || travelling;
   $("#spells-tab").disabled = Boolean(casting) || travelling;
   $("#advance-button").hidden = state.phase !== "explore" || !started;
   $("#advance-button").disabled = travelling || Boolean(state.forge);
@@ -300,12 +295,22 @@ function render() {
   if (state.forge)
     $("#channel-copy").textContent =
       `Folding ${getCard(state.forge.output).name}…`;
+  diorama.setDiscoveries?.({
+    families: [
+      ...new Set(
+        state.inventory
+          .map((key) => getCard(key))
+          .filter((card) => card?.fused || card?.generated)
+          .flatMap((card) => effectProfile(card).families),
+      ),
+    ],
+  });
   renderEnemies();
   if (!$("#forge").hidden) renderForge();
   if (!$("#map").hidden) renderMap();
 }
 function renderMap() {
-  const learned = state.phase === "won" ? 8 : state.floor - 1;
+  const learned = state.phase === "won" ? GUIDED_FLOOR_COUNT : state.floor - 1;
   $("#map-content").innerHTML = KNOWLEDGE.map(
     (truth, i) =>
       `<li class="${i === areaIndex ? "current" : ""}"><span>${i + 1}</span><strong>${esc(truth[0])}</strong><small>${esc(AREAS[i].name)} · ${i < learned ? "Understood" : i === state.floor - 1 ? "A question awaits" : "Not yet learned"}</small><p>${i < learned ? esc(truth[1]) : "An unanswered page."}</p></li>`,
@@ -341,16 +346,19 @@ function libraryNotice() {
     .join(" ");
 }
 function renderForge() {
+  const inBattle = state.phase === "battle";
   $("#forge-mode").value = state.forgeMode;
   $("#forge-mode").disabled = Boolean(state.forge);
-  $("#mode-copy").textContent = FORGE_MODES[state.forgeMode].description;
-  $("#inventory-count").textContent =
-    `(${state.inventory.length} rune imprints)`;
+  $("#forge-options").hidden = !inBattle;
+  $("#mode-copy").textContent = inBattle
+    ? FORGE_MODES[state.forgeMode].description
+    : "Free between battles. Your source imprints stay in the grimoire.";
+  $("#inventory-count").textContent = `(${state.inventory.length})`;
   $("#inventory").innerHTML = state.inventory
     .map((k, i) => runeMarkup(k, i, "inventory"))
     .join("");
-  const first = selected.length ? state.inventory[selected[0]] : null,
-    second = selected.length > 1 ? state.inventory[selected[1]] : null;
+  const first = selected.length ? state.inventory[selected[0]] : null;
+  const second = selected.length > 1 ? state.inventory[selected[1]] : null;
   const preview = state.forge
     ? { ...state.forge, ok: false }
     : first && second
@@ -358,34 +366,51 @@ function renderForge() {
       : null;
   const output =
     preview?.output || (first && second ? recipeFor(first, second) : null);
-  const tile = (k, empty) => {
-    const c = k && getCard(k);
-    return c
-      ? `<span class="fusion-tile"><span class="rune-seal fusion-seal">${spellIllustration(c)}</span><strong>${esc(c.name)}</strong></span>`
-      : `<span class="fusion-tile empty">${empty}</span>`;
+  const card = output && getCard(output);
+  const tile = (key, empty, slot) => {
+    const rune = key && getCard(key);
+    const contents = rune
+      ? `<span class="rune-seal fusion-seal">${spellIllustration(rune)}</span><strong>${esc(rune.name)}</strong>`
+      : `<span>${empty}</span>`;
+    return slot === undefined
+      ? `<span class="fusion-tile${rune ? "" : " empty"}">${contents}</span>`
+      : `<button class="fusion-tile ingredient-well${rune ? "" : " empty"}" data-clear-ingredient="${slot}" aria-label="${rune ? `Remove ${esc(rune.name)} from ingredient ${slot + 1}` : empty}">${contents}</button>`;
   };
   $("#fusion-preview").innerHTML =
-    `${tile(first, "First rune")}<b>+</b>${tile(second, "Second rune")}<b>=</b>${tile(output, "New inscription")}`;
-  $("#cost-preview").textContent = preview?.output
-    ? `Consumes both runes + ${preview.inkCost} ink${preview.healthCost ? ` + ${preview.healthCost} HP` : ""}${preview.corruptionGain ? ` + 1 curse (enemy damage +${preview.enemyDamageBonusAfter})` : ""}. ${preview.enemyAction ? `${preview.enemyAction.name} immediately: ${preview.enemyAction.label}.` : "No extra enemy move."}`
-    : preview?.reason?.replace(
-        /Keep moving while it refills\./g,
-        "Enter a question or end your turn to refill ink.",
-      ) ||
-      "Choose two distinct rune imprints. A forged inscription can become an ingredient again.";
+    `${tile(first, "First spell", 0)}<b>+</b>${tile(second, "Second spell", 1)}<b>=</b>${tile(output, "New spell")}`;
+  $("#fusion-benefit").innerHTML = card
+    ? `<p class="fusion-powers">${esc(preview?.benefit || card.benefit || effects(card))}</p><small>Keep the originals. Combine this spell again.</small>`
+    : "<p>Pick two spells, or pick the same spell twice.</p>";
+  if (preview?.reason && !preview.ok && !state.forge)
+    $("#cost-preview").textContent = preview.reason;
+  else if (preview?.output)
+    $("#cost-preview").textContent =
+      preview.free || !inBattle
+        ? "Free. Originals kept. Ready next fight."
+        : `Originals kept. Cost: ${preview.inkCost} Focus${preview.healthCost ? ` + ${preview.healthCost} health` : ""}${preview.corruptionGain ? ` + ${preview.corruptionGain} curse` : ""}. ${preview.enemyAction ? `${preview.enemyAction.name} immediately: ${preview.enemyAction.label}.` : "No extra enemy move."}${preview.reason && !preview.ok ? ` ${preview.reason}` : ""}`;
+  else
+    $("#cost-preview").textContent =
+      preview?.reason ||
+      (inBattle
+        ? "Combining costs 1 Focus and the library's selected price. Check the result before confirming."
+        : "Combining is free between battles. There is no limit on how many new recipes you can discover.");
   $("#merge-button").disabled = !preview?.ok || Boolean(state.forge);
   $("#merge-button").textContent = state.forge
-    ? "Folding…"
-    : preview?.ok
-      ? `Forge ${getCard(preview.output).name}`
-      : "Choose two rune imprints";
+    ? "Inscribing..."
+    : preview?.forgotten
+      ? "Forgotten this run"
+      : preview?.alreadyOwned
+        ? "Already in your grimoire"
+        : preview?.ok
+          ? `Combine`
+          : "Choose two spells";
   $("#discoveries").textContent =
     getDiscoveryCatalog()
       .slice(-12)
       .map((c) => c.name)
-      .join(" · ") ||
-    "New discoveries stay in this browser. Your run does not.";
+      .join(" / ") || "Recipe knowledge survives. This run's imprints do not.";
 }
+
 function chooseTarget(index) {
   if (casting) return;
   if (state.phase !== "battle" || state.enemies[index]?.hp <= 0) return;
@@ -425,11 +450,23 @@ function cast(index) {
     spellEffects.cast(
       c,
       origin,
-      c.damage && target
+      (c.damage || c.interrupt) && target
         ? target
         : origin.clone().add(new THREE.Vector3(0, 0.3, -0.2)),
     );
-    say(`${c.name}: ${effects(c)}. ${libraryNotice()}`);
+    if (c.replay && target) {
+      const epoch = runEpoch;
+      setTimeout(
+        () => {
+          if (epoch === runEpoch && started)
+            spellEffects.cast(c, origin, target);
+        },
+        reducedMotion ? 0 : 130,
+      );
+    }
+    say(
+      `${c.name}: ${c.replay && Number.isFinite(result.resolvedDamage) ? `${result.resolvedDamage} damage with the repeated attack` : effects(c)}. ${libraryNotice()}`,
+    );
     casting = reducedMotion ? 0.08 : 0.52;
     for (const button of document.querySelectorAll(".grimoire button"))
       button.disabled = true;
@@ -550,6 +587,7 @@ async function beginRun() {
   areaIndex = 0;
   selected = [];
   lastPhase = "explore";
+  diorama.resetDiscoveries?.();
   diorama.setArea(0);
   renderModes();
   render();
@@ -561,10 +599,12 @@ async function beginRun() {
   $("#message").textContent = "";
 }
 function showReward() {
-  rewardOptions = shuffle(["ember", "stone", "dew", "gust"], random).slice(
-    0,
-    3,
-  );
+  if (state.floor >= GUIDED_FLOOR_COUNT) {
+    takeReward(state, null);
+    lastPhase = state.phase;
+    return;
+  }
+  rewardOptions = shuffle(guidedRewardOptions(state), random).slice(0, 3);
   $("#reward-title").textContent = `${KNOWLEDGE[areaIndex][0]}, understood.`;
   $("#reward-copy").textContent =
     `${KNOWLEDGE[areaIndex][1]} Choose a rune for your grimoire and recover 1 health.`;
@@ -576,13 +616,13 @@ function showReward() {
 function showEnding() {
   const won = state.phase === "won";
   $("#ending-label").textContent = won
-    ? "ALL EIGHT TRUTHS, UNDERSTOOD"
+    ? "THREE FLOORS. ONE REFLECTION."
     : "FULL PERMADEATH";
   $("#ending-title").textContent = won
-    ? "The last answer."
+    ? "The reader on the other side."
     : "The library keeps this life.";
   $("#ending-copy").textContent =
-    `${state.character.name} · ${won ? 8 : state.floor - 1} / 8 bindings · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "The hand that wrote your grimoire wrote every guardian. Their spells were yours. Their faces were yours. You have been fighting yourself the whole way up. Now you remember every life and understand every answer. You know everything, and you cannot unknow it. The library is silent. Your mind never will be." : "Your runes, forged inscriptions, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
+    `${state.character.name} · ${won ? GUIDED_FLOOR_COUNT : state.floor - 1} / ${GUIDED_FLOOR_COUNT} floors · ${state.merges} spells forged · curse ${state.corruption}. ${won ? "Your reflection traces the spell you invented. The hand that wrote this grimoire wrote every guardian. You came here to learn; the library learned you. Knowledge is a curse. You have completed this three-floor journey." : "Your runes, forged inscriptions, health and progress are gone. A new run starts from the first binding."} Recipe discoveries remain in this browser.`;
   dialog("#ending");
 }
 function togglePanel(id) {
@@ -619,7 +659,6 @@ $("#basic-attack").onclick = strike;
 $("#basic-block").onclick = guard;
 $("#end-turn").onclick = endTurn;
 $("#cast-prepared").onclick = () => cast(preparedIndex);
-$("#book-journal-button").onclick = () => togglePanel("map");
 $("#spells-tab").onclick = closePanels;
 $("#skip-journey").onclick = () => diorama.rail.update(0, true);
 $("#enemy-targets").onclick = (e) => {
@@ -661,11 +700,14 @@ $("#inventory").onclick = (e) => {
   const b = e.target.closest("[data-index]");
   if (!b || state.forge) return;
   const i = Number(b.dataset.index);
-  selected = selected.includes(i)
-    ? selected.filter((v) => v !== i)
-    : selected.length < 2
-      ? [...selected, i]
-      : [selected[1], i];
+  selected = selected.length < 2 ? [...selected, i] : [i];
+  renderForge();
+};
+$("#fusion-preview").onclick = (e) => {
+  const well = e.target.closest("[data-clear-ingredient]");
+  if (!well || state.forge) return;
+  const slot = Number(well.dataset.clearIngredient);
+  selected.splice(slot, 1);
   renderForge();
 };
 $("#merge-button").onclick = () => {
@@ -715,6 +757,7 @@ $("#restart-button").onclick = () => {
   selected = [];
   state = newGuidedRun(selectedCharacter);
   diorama.setEnemies([]);
+  diorama.resetDiscoveries?.();
   diorama.setArea(0);
   renderCharacters();
   renderModes();
@@ -899,6 +942,7 @@ renderer.setAnimationLoop((now) => {
   if (result.forged) {
     selected = [];
     const c = getCard(result.forged);
+    preparedIndex = Math.max(0, state.hand.indexOf(result.forged));
     if (result.action) showCopiedMagic([result.action]);
     const origin = camera.position
       .clone()
@@ -937,9 +981,15 @@ if (import.meta.env.DEV)
   window.__foldDebug = () => ({
     phase: state.phase,
     floor: state.floor,
+    totalFloors: state.totalFloors,
     hp: state.hp,
+    block: state.block,
+    lastAttack: state.lastAttack,
     maxHp: state.maxHp,
     energy: state.energy,
+    maxEnergy: state.maxEnergy,
+    merges: state.merges,
+    latestForgedKey: state.latestForgedKey,
     turn: state.turn,
     character: state.characterId,
     inventory: [...state.inventory],

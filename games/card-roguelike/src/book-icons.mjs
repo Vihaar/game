@@ -1,5 +1,6 @@
 // Original line illustrations, shared by the physical book's controls and counters.
 const ICONS = {
+  focus: "M12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9ZM12 7v10M7 12h10",
   vitality: "M12 20S3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 12-9 12Z",
   ink: "M12 3C10 7 5 11 5 15a7 7 0 0014 0c0-4-5-8-7-12ZM8 15q0 4 4 4",
   guard: "M12 3 21 6v6c0 5-9 9-9 9s-9-4-9-9V6ZM8 11l3 3 5-6",

@@ -72,12 +72,42 @@ const SHAPES = {
     fold: "M25 68 77 112 78 104C73 80 52 65 25 68ZM87 94 138 44C130 43 101 40 86 74Z",
     crease: "M25 68 77 112M87 94 138 44M83 40 79 148",
   },
+  memory: {
+    paper: "#9b7eaa",
+    light: "#e5cdae",
+    dark: "#584763",
+    outline:
+      "M40 35Q20 33 23 54Q25 68 39 65L43 129Q43 148 61 149H112Q135 143 129 124Q124 113 111 119L106 45Q104 30 89 29Z",
+    fold: "M40 35Q32 50 39 65L43 129Q43 148 61 149Q45 133 63 122H111L106 45Q94 56 79 52Z",
+    crease: "M53 66H95M56 82H93M57 98H85M63 122H111",
+  },
+  silence: {
+    paper: "#69788c",
+    light: "#c5c7cc",
+    dark: "#384b62",
+    outline:
+      "M80 25 121 49 121 112 80 145 38 112 38 49ZM53 62V104L80 124 106 104V62L80 45Z",
+    fold: "M80 25V45L53 62 38 49ZM106 62 121 49V112L106 104ZM38 112 80 145V124L53 104Z",
+    crease: "M55 85H105M65 72V98M80 68V102M95 72V98",
+  },
+  mirror: {
+    paper: "#6f999f",
+    light: "#e2e2cc",
+    dark: "#3d6070",
+    outline:
+      "M80 19 124 51 124 111 80 145 36 111 36 51ZM80 34 48 58 48 104 80 129 112 104 112 58Z",
+    fold: "M80 34 48 58V104L65 116 104 52ZM90 43 61 114 80 129 112 104V58Z",
+    crease:
+      "M80 19V34M36 51 48 58M124 51 112 58M36 111 48 104M80 145V129M124 111 112 104",
+  },
 };
+let illustrationSerial = 0;
 export function spellIllustration(card = {}, { detailed = false } = {}) {
   const glyph = glyphModel(card),
-    shape = SHAPES[glyph.family];
+    shape = SHAPES[card.key] || SHAPES[card.kind] || SHAPES[glyph.family];
+  const paintId = `spell-paint-${++illustrationSerial}`;
   const orbit = detailed
     ? `<g class="illustration-notes" fill="none" stroke="${shape.dark}" stroke-width=".7" opacity=".28"><circle cx="80" cy="88" r="64"/><circle cx="80" cy="88" r="70" stroke-dasharray="2 7"/><path d="M8 88H152M80 10V164M27 35 133 141M27 141 133 35"/></g>`
     : "";
-  return `<svg class="spell-illustration spell-glyph" data-family="${glyph.family}" viewBox="0 0 160 174" aria-hidden="true" focusable="false" style="--glyph-color:${shape.light}">${orbit}<g class="sculpture-shadow" transform="translate(3 5)"><path d="${shape.outline}" fill="${shape.dark}" stroke="${shape.dark}" stroke-width="2"/></g><g class="sculpture-paper"><path d="${shape.outline}" fill="${shape.paper}" stroke="${shape.dark}" stroke-width="1.8"/><path d="${shape.fold}" fill="${shape.light}" stroke="${shape.light}" stroke-width="1.2"/><path d="${shape.crease}" fill="none" stroke="${shape.dark}" opacity=".5" stroke-width="1"/></g><g class="glyph-light" fill="none" stroke="${shape.light}" stroke-width="2"><path d="${shape.outline}" pathLength="1" style="--segment:0"/><path d="${shape.crease}" pathLength="1" style="--segment:1"/></g></svg>`;
+  return `<svg class="spell-illustration spell-glyph" data-family="${glyph.family}" viewBox="0 0 160 174" aria-hidden="true" focusable="false" style="--glyph-color:${shape.light}"><defs><linearGradient id="${paintId}" x1=".15" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${shape.light}"/><stop offset=".35" stop-color="${shape.paper}"/><stop offset=".72" stop-color="${shape.paper}"/><stop offset="1" stop-color="${shape.dark}"/></linearGradient></defs>${orbit}<g class="sculpture-shadow" transform="translate(3 5)"><path d="${shape.outline}" fill="${shape.dark}" stroke="${shape.dark}" stroke-width="2"/></g><g class="sculpture-paper"><path d="${shape.outline}" fill="url(#${paintId})" stroke="${shape.dark}" stroke-width="1.8"/><path d="${shape.fold}" fill="${shape.light}" opacity=".58" stroke="${shape.light}" stroke-width="1.2"/><path d="${shape.crease}" fill="none" stroke="${shape.dark}" opacity=".5" stroke-width="1"/><path d="${shape.outline}" transform="translate(.5 -.4)" fill="none" stroke="${shape.light}" opacity=".25" stroke-width=".65"/></g><g class="glyph-light" fill="none" stroke="${shape.light}" stroke-width="2"><path d="${shape.outline}" pathLength="1" style="--segment:0"/><path d="${shape.crease}" pathLength="1" style="--segment:1"/></g></svg>`;
 }

@@ -6,7 +6,7 @@ A cursed library is consuming reality. Rooms, people and spells are being rebuil
 
 ## Signature
 
-**A spell is a tiny paper sculpture lifted from the page.** Show the folded construction, not a painting of the subject. Card art and enemies share the same sharp folds, layered cut edges and visible material thickness. Spells combine by visibly stacking and folding their ingredients.
+**A spell is a hand-drawn illustration lifted from the page.** Use painted shading, irregular ink lines and visible paper layers. Card art and enemies share the same sharp folds, layered cut edges and visible material thickness. Spells combine by visibly stacking and folding their ingredients.
 
 ## Mandatory construction rule: everything is layered
 
@@ -40,7 +40,7 @@ Keep colors as dyed paper, with slight fiber variation. Almendra is the calligra
 - A neutral paper ground; colored materials carry the element identity. No card border or lettering inside the bitmap.
 - Fire is folded coral/orange paper, water is layered pale teal paper, stone is folded gray-blue cardstock, wind is curled strips of violet paper. Light and smoke are paper shapes too.
 - Fused spells combine material and silhouette cues from both ingredients. They remain handmade, never become polished metal or glowing plastic.
-- No engraved/painted fantasy illustrations, photoreal people, glossy 3D toys, neon bloom, chrome, generic AI swirls, branded characters or ornamental typography.
+- Avoid photoreal people, glossy 3D toys, neon bloom, chrome, generic swirls and branded characters. The current direction welcomes hand-painted fantasy shading and hand-drawn ink over separate paper layers.
 
 ## World, enemies and interface
 
@@ -77,3 +77,13 @@ Use the Ravenswatch book-menu composition closely: bookmark navigation above two
 Almendra, a locally bundled calligraphic manuscript font by Ana Sanfelippo, replaces the ordinary display face for wizard headings, spell names, world labels and short passages. DM Sans remains the utility face for exact values, costs and effects, with tabular figures. World prompts use warm ivory `#FFF0C9` against a dark ink edge `#23343B`; manuscript text uses `#2D383A` against parchment. Avoid transparent-gradient text over detailed art. Never sacrifice legibility for calligraphy.
 
 Spell illustrations are assembled from separate original SVG silhouette, backing, fold, crease and animated edge layers. Fire reads as layered flame, water as a folded drop, stone as faceted rock, wind as curling paper strips. Keep consistent scale and construction across derived elemental families. The large preview adds separately coded diagram rings and frame corners. All cover, leaf, binding, ribbon, picture and control layers remain independent; no complete book image is used.
+
+## Three-floor atmosphere and Focus
+
+The current playable slice compresses the descent in mood into three floors. Floor1 is honey-lit, inhabited-looking and intact. Floor2 is colder, with extinguished lamps, missing shelf sections and dust. Floor3 is the Mirror Archive: dark teal and violet, abandoned, torn and threatening. Preserve enough ambient light to read the path and interact with books; HTML lettering retains its ivory/dark-ink contrast.
+
+The casting resource is named Focus. Use the original four-point crystal/star SVG and a visible Focus label, with exact values and spell costs. Do not use the water/ink drop for this resource, since it collides with the Dew spell's visual identity. Focus refills on End turn. Combination previews separate what the player gains from the full price; source imprints visibly remain reusable and a new result can itself become an ingredient.
+
+## Simpler pages and hand-drawn spell art
+
+The current player preference is a hand-drawn/painted fantasy feel inspired by Hearthstone's illustration, retaining this game's paper library. Spell silhouettes, colored pigment shading, imperfect ink edges and animated outlines are separate original SVG layers. Procedural grain supplies brush variation; no finished card picture replaces code layers. Keep the battle book to Spells and Combine tabs. The global journal remains outside the book. Combining is simply pick two spells, see one clear benefit, then Combine. Optional combat price choices stay collapsed. Prefer plain words such as spell, original, Focus and Combine to repeated inscription/imprint terminology.

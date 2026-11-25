@@ -1,4 +1,185 @@
 /* One book, one alignment system. Ink stays still until a spell is invoked. */
+.grimoire .stats > .book-resource {
+  grid-template-columns: 1fr;
+  grid-template-rows: 13px 17px;
+  justify-items: center;
+  gap: 0;
+}
+.grimoire .stats > .book-resource small {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font:
+    11px/1 "DM Sans",
+    sans-serif;
+  color: #4d4939;
+}
+.grimoire .stats .book-resource small .book-icon {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+}
+.run-floor {
+  margin-right: auto;
+  color: #fff1d4;
+  font: 19px/1.2 var(--font-wizard);
+  text-shadow:
+    0 1px 3px #142633,
+    0 0 4px #142633;
+}
+@media (max-width: 700px) {
+  .grimoire .stats > .book-resource {
+    grid-template-rows: 12px 15px;
+  }
+  .grimoire .stats > .book-resource small {
+    font-size: 9px;
+    gap: 2px;
+  }
+  .grimoire .stats .book-resource small .book-icon {
+    width: 10px;
+    height: 10px;
+  }
+  .run-floor {
+    font-size: 14px;
+    max-width: 66vw;
+  }
+}
+.paint-toolbox {
+  position: absolute;
+  pointer-events: none;
+}
+.spell-illustration .sculpture-paper {
+  filter: url(#hand-ink);
+}
+#spell-art .sculpture-paper {
+  filter: url(#painted-pigment);
+}
+.grimoire-page::after {
+  display: none;
+}
+.spell-picture-frame::before {
+  display: none;
+}
+.spell-picture-frame {
+  border-color: #96815a44;
+}
+.forge-options {
+  font-size: 12px;
+}
+#forge-options {
+  margin-bottom: 8px;
+  font:
+    12px/1.4 "DM Sans",
+    sans-serif;
+}
+#forge-options summary {
+  cursor: pointer;
+  color: #61503b;
+}
+#forge-options[open] {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #9b855a44;
+}
+.grimoire #energy.book-resource {
+  grid-template-columns: 1fr;
+  grid-template-rows: 13px 17px;
+  gap: 0;
+  justify-items: center;
+}
+.grimoire #energy.book-resource small {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font:
+    11px/1 "DM Sans",
+    sans-serif;
+  color: #4d4939;
+}
+.grimoire #energy .book-icon {
+  width: 13px;
+  height: 13px;
+  color: #725838;
+}
+.grimoire #energy strong {
+  align-self: center;
+}
+.grimoire #cast-prepared > span {
+  white-space: nowrap;
+  font-size: 11px;
+}
+.clear-ingredients {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #61503b;
+  padding: 4px 0;
+  font:
+    12px "DM Sans",
+    sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.fusion-benefit {
+  border-top: 1px solid #9b855a55;
+  margin-top: 8px;
+  padding-top: 10px;
+  color: #293f3c;
+}
+.fusion-benefit h3 {
+  font: 20px/1.2 var(--font-wizard);
+  margin: 0 0 7px;
+}
+.fusion-benefit p {
+  margin: 5px 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.fusion-benefit .fusion-powers {
+  color: #2c4c45;
+  font-weight: 600;
+}
+.fusion-benefit small {
+  display: block;
+  margin-top: 8px;
+  font:
+    12px/1.4 "DM Sans",
+    sans-serif;
+  color: #615139;
+}
+.ingredient-well.ingredient-well {
+  background: none;
+  border: 1px dashed #9b855a66;
+  box-shadow: none;
+  border-radius: 0;
+  cursor: pointer;
+  padding: 5px;
+}
+.ingredient-well:hover:not(:disabled) {
+  background: #fff4cf66;
+}
+.ingredient-well.empty {
+  font: 15px var(--font-wizard);
+}
+.forge-leaf .movement-note {
+  font-size: 13px;
+  line-height: 1.45;
+}
+@media (max-width: 700px) {
+  .grimoire #energy.book-resource small {
+    font-size: 10px;
+    gap: 2px;
+  }
+  .grimoire #energy .book-icon {
+    width: 11px;
+    height: 11px;
+  }
+  .fusion-benefit h3 {
+    font-size: 18px;
+  }
+  .fusion-benefit p {
+    font-size: 12px;
+  }
+}
 .library-memory {
   margin-top: 1.2rem;
   padding-top: 0.9rem;
@@ -232,8 +413,8 @@
 }
 .grimoire .stats > .book-resource {
   display: grid;
-  grid-template-columns: 19px 1fr;
-  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+  grid-template-rows: 13px 17px;
   align-items: center;
   gap: 5px;
 }
@@ -727,8 +908,9 @@ body[data-phase="explore"] #advance-button {
     padding-bottom: 5px;
   }
   .grimoire .stats > .book-resource {
-    grid-template-columns: 12px 1fr;
-    gap: 2px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 12px 15px;
+    gap: 0;
   }
   .book-resource .book-icon {
     width: 12px;
@@ -869,5 +1051,11 @@ body[data-phase="explore"] #advance-button {
   }
   .message.message {
     bottom: 350px;
+  }
+}
+
+@media (max-width: 700px) {
+  .grimoire #energy.book-resource {
+    grid-template-rows: 12px 15px;
   }
 }

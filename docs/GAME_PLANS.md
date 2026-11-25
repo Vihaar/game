@@ -18,9 +18,11 @@ First prototype: adapt Matter's compound-body, stacking, and dragging examples t
 
 ## The Fold: the library before you
 
-You wake without a name or memories before an open library and begin its climb. Eight floors reveal Language, Life, Memory, Transformation, Cosmos, Truth, Self and Everything. The urge to learn emerges during play. Every floor becomes darker, emptier and more eerie. At the summit, complete understanding reveals that knowledge is a curse. Full permadeath resets the run's spells, resources and progress; only recipe knowledge persists.
+The current playable slice is three floors: a welcoming IntakeHall, the AbandonedStacks and the threatening MirrorArchive. Guided paths connect exploration to turn-based fights. Learn Language, Memory and Self; the final guardian echoes the player's invented spells. Full permadeath resets owned power and learning while recipe metadata may persist.
 
-The selected warm storybook papercraft style becomes a guided interactive 2.5D world: actual folded path and book props against distinct illustrated rooms. Inspect a book, approach the forge or enter the next binding with visible controls. Smooth bounded camera rails settle before turn-based battles; no free walking or dodge timing. A clean open grimoire holds rune inscriptions. Combine any two owned rune imprints into a spell, including previously forged spells, and cast prepared runes on your turn. Strike/Guard and End turn remain explicit. Forge prices remain previewed, powers bounded and healing scarce. The renderer and rule engine are reused. See games/card-roguelike/NARRATIVE.md, ART_DIRECTION.md and docs/FOLD_3D_RESEARCH.md.
+Seven source spells are reusable. Pick two, preview a meaningful benefit and Combine. Same-spell inputs work, new spells remain ingredients, and there is no depth cap. Combining is free between encounters; during fights it uses Focus and a previewed price. Six concept synergies supply replay, interruption, reflection, preparation and piercing. Repeated casts teach later guardians; forgetting sacrifices that power for this life. Fire discoveries leave code-layered scorch/ash marks. The older eight-chapter outline remains in the narrative document for later expansion.
+
+The book and art use separate code-composed layers, hand-drawn/painted SVG spell illustrations, readable manuscript headings and explicit Focus labels. See games/card-roguelike/ART_DIRECTION.md, THREE_FLOOR_RULES.md and NARRATIVE.md.
 
 ## Shared constraints
 

@@ -19,6 +19,9 @@ const ALIASES = {
   lightning: "lightning",
   vine: "vine",
   nature: "vine",
+  memory: "light",
+  silence: "shadow",
+  mirror: "water",
 };
 const PALETTE = {
   fire: 0xda805b,
@@ -73,7 +76,16 @@ export function effectProfile(
         : includes("water", "wind")
           ? "light"
           : null;
-  const primary = derived || ALIASES[card.kind] || elements[0];
+  const semanticFamily = {
+    replay: "fire",
+    pierce: "fire",
+    interrupt: "shadow",
+    reflect: "water",
+    recall: "wind",
+    mirrorward: "stone",
+  }[card.effect];
+  const primary =
+    semanticFamily || derived || ALIASES[card.kind] || elements[0];
   const families = [...new Set([primary, ...elements])].slice(0, 3);
   const depth = Number.isFinite(card.depth)
     ? Math.max(0, Math.min(64, card.depth))

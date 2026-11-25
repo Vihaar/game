@@ -7,16 +7,16 @@ export const CHAPTER_BOOKS = Object.freeze([
       "On the open page, a mark becomes a sound, and a sound becomes an idea. You trace the shape of a word. The world is still unfamiliar, but now you can ask it a question.",
   },
   {
-    title: "Roots between pages",
-    question: "How does life connect?",
+    title: "Footprints in the dust",
+    question: "What does this place remember?",
     passage:
-      "Fine paper roots run from one book to another. A fallen leaf feeds a new shoot. Nothing here grows entirely alone. You follow one thread and find that it passes through your own shadow.",
+      "The lamps are cold. Empty shelves lean over dust that nobody has disturbed for years. Yet one line of footprints follows yours exactly. In the margin of a closed book, someone has written the name of your newest spell.",
   },
   {
-    title: "What the water keeps",
-    question: "What survives time?",
+    title: "The reader in the glass",
+    question: "Who taught the guardians?",
     passage:
-      "The flooded index reflects a room that no longer exists. A guardian stands in the water, practising the gesture you used upstairs. A note beside it has your handwriting. You cannot remember writing it, or the corridor you entered through.",
+      "Water covers the lowest shelves. In its reflection a guardian raises your hand, wearing the sleeve you woke in. Every keeper was an answer you left behind. The library did not learn your spells alone. It learned to become you.",
   },
   {
     title: "The shape of becoming",
