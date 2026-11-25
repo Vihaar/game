@@ -33,7 +33,7 @@ function emit(state, event) {
 }
 const bounded = (value, cap) =>
   Number.isFinite(value) ? Math.max(0, Math.min(cap, Math.floor(value))) : 0;
-function snapshot(card, characterId) {
+function snapshot(card, characterId, resolvedDamage) {
   return {
     key: card.key || card.id,
     name: String(card.name || "Unknown inscription").slice(0, 48),
@@ -41,7 +41,15 @@ function snapshot(card, characterId) {
     elements: [...(card.elements || [card.kind])],
     invented: Boolean(card.fused || card.generated),
     sourceCharacterId: characterId,
-    damage: bounded(card.damage, LIBRARY_LEARNING_POLICY.maxCopiedDamage),
+    damage: bounded(
+      card.replay ? resolvedDamage : card.damage,
+      LIBRARY_LEARNING_POLICY.maxCopiedDamage,
+    ),
+    effect: card.effect || null,
+    replay: Boolean(card.replay),
+    pierce: Boolean(card.pierce),
+    interrupt: bounded(card.interrupt, 1),
+    reflect: bounded(card.reflect, 4),
     block: bounded(card.block, LIBRARY_LEARNING_POLICY.maxCopiedBlock),
     heal: bounded(card.heal, LIBRARY_LEARNING_POLICY.maxCopiedHeal),
   };
@@ -70,7 +78,7 @@ export function recordSuccessfulCast(state, result) {
     lastFloor: state.floor,
     learnedAtFloor:
       previous?.learnedAtFloor ?? (justLearned ? state.floor : null),
-    spellSnapshot: snapshot(card, state.characterId),
+    spellSnapshot: snapshot(card, state.characterId, result.resolvedDamage),
   };
   learning.observations[result.card] = observation;
   return [
@@ -157,16 +165,25 @@ function copyDetails(state, spell) {
     block = bounded(spell.block, LIBRARY_LEARNING_POLICY.maxCopiedBlock),
     heal = bounded(spell.heal, LIBRARY_LEARNING_POLICY.maxCopiedHeal);
   const damage = amount ? amount + corruptionDamageBonus(state) : 0;
+  const reflect = bounded(spell.reflect, 4),
+    focusDrain = bounded(spell.interrupt, 1),
+    pierce = Boolean(spell.pierce);
   const effects = [
     damage ? `${damage} damage` : "",
     block ? `${block} guard` : "",
     heal ? `${heal} heal` : "",
+    reflect ? `reflect ${reflect} guarded damage` : "",
+    focusDrain ? `next turn -${focusDrain} Focus` : "",
+    pierce ? "ignores guard" : "",
   ].filter(Boolean);
   return {
     amount,
     damage,
     block,
     heal,
+    reflect,
+    focusDrain,
+    pierce,
     effectLabel: effects.join(" + ") || "no damage",
   };
 }
@@ -241,6 +258,12 @@ export function forgetLearnedRune(state, key, { travelling = false } = {}) {
     if (removed.has(id) || state.copyKeys[id] === key)
       delete state.copyKeys[id];
   delete state.libraryLearning.observations[key];
+  if (state.forgePolicy?.reusable) {
+    state.forgottenRuneKeys ||= [];
+    if (!state.forgottenRuneKeys.includes(key))
+      state.forgottenRuneKeys.push(key);
+    if (state.latestForgedKey === key) delete state.latestForgedKey;
+  }
   // Already queued observation/copy notices cannot contradict the completed sacrifice.
   state.libraryLearning.events = state.libraryLearning.events.filter(
     (event) => event.key !== key,

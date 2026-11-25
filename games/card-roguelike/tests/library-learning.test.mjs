@@ -306,5 +306,5 @@ test("forgetting cannot be refunded or revived by replay and a fresh life resets
   assert.deepEqual(learningSummary(next), []);
   assert.deepEqual(drainLibraryEvents(next), []);
   assert.equal(next.libraryLearning.lastRecordedCast, 0);
-  assert.equal(next.inventory.length, 8);
+  assert.equal(next.inventory.length, 7);
 });
