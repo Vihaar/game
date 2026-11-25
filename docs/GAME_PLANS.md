@@ -27,3 +27,15 @@ Play one nameless apprentice; all attack and defense comes from spells. Each flo
 ## Shared constraints
 
 Browser-first, clear controls, and a quick restart. Core games need no account or API key. Keep shared code small. Reuse proven game loops, physics, input, and build systems. Games are hosted at `vihaar.me/games`; optional runtime AI requires a separate configured provider.
+
+
+## Six friend-game prototypes
+
+- Friend Market: a five-day solo roster economy with interacting friend talents and seeded price events.
+- Group Chat Court: three fictional cases, evidence and closing arguments, named AI jurors, solo defense or two-person same-device hotseat.
+- One Brain Cell: shared roles controlling one physics character through a short delivery task, with AI filling unused roles.
+- Airport Impostor: behavior-based social deduction among thirty travelers. Objectives involve harmless fictional contraband; identity, religion and appearance never determine suspicion.
+- Friend Patch Notes: draft buffs and nerfs, then watch short deterministic animated battles between the friend cast.
+- Trust Me, Bro: a walker and a navigator solve short mazes with limited views and clearly announced unreliable-map twists.
+
+Each game is independently packaged under games/, with its own rules, controls, notices and validation. Keep first versions small and honest about solo, local co-op and online support. The website publishes only built, tested source pins.
