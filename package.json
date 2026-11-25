@@ -1,6 +1,6 @@
 {
   "name": "vihaar-game",
-  "description": "Four small open-source browser games, built on established engines and examples.",
+  "description": "An open-source browser arcade built on established engines and examples.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
@@ -24,7 +24,13 @@
     "dev:soup": "npm --prefix games/soup run dev",
     "dev:elevator": "npm --prefix games/elevator run dev",
     "setup:games": "node scripts/games.mjs install",
-    "test": "node scripts/games.mjs test"
+    "test": "node scripts/games.mjs test",
+    "dev:court": "npm --prefix games/group-chat-court run dev",
+    "dev:market": "npm --prefix games/friend-market run dev",
+    "dev:brain": "npm --prefix games/one-brain-cell run dev",
+    "dev:airport": "npm --prefix games/airport-impostor run dev",
+    "dev:patch": "npm --prefix games/friend-patch-notes run dev",
+    "dev:trust": "npm --prefix games/trust-me-bro run dev"
   },
   "devDependencies": {
     "@types/matter-js": "^0.20.2",

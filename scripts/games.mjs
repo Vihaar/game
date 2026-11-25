@@ -1,10 +1,15 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const games = ['server-kart', 'card-roguelike', 'soup', 'elevator'];
+const preferred = ['server-kart', 'card-roguelike', 'soup', 'elevator'];
+const discovered = readdirSync(path.join(root, 'games'), { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && existsSync(path.join(root, 'games', entry.name, 'package.json')))
+  .map(entry => entry.name);
+const games = [...preferred.filter(name => discovered.includes(name)),
+  ...discovered.filter(name => !preferred.includes(name)).sort()];
 const action = process.argv[2];
 if (!['install','build','check','test'].includes(action)) throw Error('Expected install, build, check, or test.');
 if (!process.env.npm_execpath) throw Error('Run this helper through the npm scripts in package.json.');

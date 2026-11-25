@@ -1,0 +1,7 @@
+TRUST ME BRO — PRODUCTION NOTICES
+Original game/UI/rules: MIT, see trust-me-bro.txt.
+Maze adaptation: Kees Meijer, MIT2017, maze-generator.txt; pinned upstream29da89fd5b43c9e5c521de3ec76d5069d405d76c retained in source.
+Matter.js0.20.0: Liam Brummitt/contributors, MIT, matter-js.txt.
+Unused source-only PeerJS transport experiment1.5.5: MIT, peerjs.txt. No remote multiplayer in this game.
+Full source and provenance: https://github.com/Vihaar/game/tree/main/games/trust-me-bro
+No third-party visual assets are used.

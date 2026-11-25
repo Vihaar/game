@@ -1,0 +1,6 @@
+FRIEND PATCH NOTES — NOTICES
+Original code: MIT, see friend-patch-notes.txt.
+Vite vanilla starter/build tool: create-vite.txt (templates CC0; tool MIT).
+Existing Vihaar/game configuration and seeded generator: source-project.txt.
+Portraits: requested third-party visual assets EXCLUDED from the code MIT license. No claim to underlying artwork/likeness rights. See ../portraits/CREDITS.md. Use assets you have permission to use in remixes.
+Full provenance/source: https://github.com/Vihaar/game/tree/main/games/friend-patch-notes

@@ -1,0 +1,1 @@
+These are the existing user-requested kart-game portraits: the Mike server icon and Torin, Jonah and Grant avatars. They are not covered by the code’s MIT license. See ../THIRD_PARTY.txt for provenance and rights. No private messages or account metadata are included.

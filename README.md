@@ -1,6 +1,6 @@
 # Small games. Very questionable decisions.
 
-Four open-source browser game prototypes. Play, break them, and help make them funnier.
+An open-source browser arcade. Play, break things, and help make the games funnier.
 
 | Game | What you do | Source |
 | --- | --- | --- |
@@ -8,22 +8,28 @@ Four open-source browser game prototypes. Play, break them, and help make them f
 | [The Fold](https://vihaar.me/games/the-fold/) | Follow a guided paper-library journey, face questions in turn-based battles, and forge new knowledge. | [games/card-roguelike](games/card-roguelike) |
 | [Don't Spill the Soup](https://vihaar.me/games/soup/) | Carry a full bowl through a short, inconvenient shift. | [games/soup](games/soup) |
 | [One More Person](https://vihaar.me/games/elevator/) | Drag and rotate passengers into an increasingly crowded elevator. | [games/elevator](games/elevator) |
+| [Friend Market](https://vihaar.me/games/friend-market/) | Build a goofy friend roster and survive five market closes. Solo. | [games/friend-market](games/friend-market) |
+| [Group Chat Court](https://vihaar.me/games/group-chat-court/) | Present evidence and persuade a deeply unqualified jury. Solo or same-device hotseat. | [games/group-chat-court](games/group-chat-court) |
+| [One Brain Cell](https://vihaar.me/games/one-brain-cell/) | Share control of one Mike and complete a chaotic physics delivery. Solo, local or online rooms. | [games/one-brain-cell](games/one-brain-cell) |
+| [Airport Impostor](https://vihaar.me/games/airport-impostor/) | Blend into thirty travelers or identify an impostor by suspicious behavior. | [games/airport-impostor](games/airport-impostor) |
+| [Friend Patch Notes](https://vihaar.me/games/friend-patch-notes/) | Draft ridiculous buffs and watch your friends battle. | [games/friend-patch-notes](games/friend-patch-notes) |
+| [Trust Me, Bro](https://vihaar.me/games/trust-me-bro/) | Follow unreliable directions through a maze. | [games/trust-me-bro](games/trust-me-bro) |
 
 These are small first playable versions, with room for better art, balance, tracks, cards, passengers, and jokes. The hub is at [vihaar.me/games](https://vihaar.me/games/).
 
 ## Run locally
 
-Use Node.js 22.12+ and npm. No API keys, database, or paid service is required to run the games. Kart rooms use PeerJS's public signaling service by default.
+Use Node.js 22.12+ and npm. The latest arcade prototype is on `codex/friends-arcade`; the hosted release records its exact source commit in [provenance.json](https://vihaar.me/games/provenance.json). No API keys, database, or paid service is required to run the games. Kart rooms use PeerJS's public signaling service by default.
 
 ```sh
-git clone https://github.com/Vihaar/game.git
+git clone --branch codex/friends-arcade https://github.com/Vihaar/game.git
 cd game
 npm ci
 npm run setup:games
 npm run dev
 ```
 
-The default dev command opens the kart project's server. Choose another with `npm run dev:fold`, `npm run dev:soup`, or `npm run dev:elevator`. Open the URL printed by Vite.
+The default dev command opens the kart project's server. Choose another with `npm run dev:fold`, `dev:soup`, `dev:elevator`, `dev:court`, `dev:market`, `dev:brain`, `dev:airport`, `dev:patch`, or `dev:trust` (prefix each with `npm run`). Open the URL printed by Vite.
 
 ```sh
 npm run typecheck
@@ -31,7 +37,7 @@ npm test
 npm run build
 ```
 
-These check and build every game. Each game produces its own static `dist/`. The website repository downloads a pinned public source commit and publishes those builds under `/games/`.
+These discover, check and build every game directory with a package manifest. Each game produces its own static `dist/`. The website repository downloads a pinned public source commit and publishes those builds under `/games/`.
 
 ## Playing kart with friends
 
@@ -40,6 +46,10 @@ Open **Play with friends**, choose a driver/name, and host a room. Share the inv
 Kart controls: WASD/arrows drive, Space/Shift drift, E uses an item, Q looks back, Esc opens the menu, and M mutes the original ice-cream-truck-style chime music. Kart targets desktop keyboard/gamepad. The Fold uses visible buttons for guided exploration and turn-based battles, with mouse, touch and keyboard support.
 
 The finish-line checkout is a **joke with imaginary MikeCoins**. It never collects card details or charges real money. The distraction item uses a nonsexual animated censor-card gag.
+
+## Friend arcade modes
+
+The new friend games are small first playable prototypes. Friend Market and Friend Patch Notes are solo. Group Chat Court has solo AI and two-person pass-and-play on the same device. Read each game's visible mode labels and README for local co-op controls; do not assume that a shared URL connects players online. One Brain Cell also offers PeerJS online rooms; the host tab must remain open and visible. Kart remains the established online racing game. All purchases, currencies, accusations and airport objectives are fictional; none collects money or private messages.
 
 ## Existing foundations first
 
