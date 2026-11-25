@@ -83,7 +83,14 @@ export function effectProfile(
     reflect: "water",
     recall: "wind",
     mirrorward: "stone",
+    ricochet: "fire",
+    stolensentence: "shadow",
+    borroweddawn: "light",
   }[card.effect];
+  const choreography =
+    ["ricochet", "stolensentence", "borroweddawn"].find(
+      (key) => card.effect === key || card.key === key || card.id === key,
+    ) ?? null;
   const primary =
     semanticFamily || derived || ALIASES[card.kind] || elements[0];
   const families = [...new Set([primary, ...elements])].slice(0, 3);
@@ -99,22 +106,33 @@ export function effectProfile(
   return Object.freeze({
     family: primary,
     families: Object.freeze(families),
-    colors: Object.freeze(families.map((v) => PALETTE[v])),
+    colors: Object.freeze(
+      choreography === "stolensentence"
+        ? [0x66577b, 0xc7b0d2, 0xe7ce8b]
+        : choreography === "borroweddawn"
+          ? [0xe7ce8b, 0xb7d1ca, 0xd8bb91]
+          : families.map((v) => PALETTE[v]),
+    ),
     seed: fnv1a(signature),
     cell: artCell(card),
     duration: reducedMotion
       ? 0.22
       : forge
         ? 0.8
-        : 0.82 + Math.min(3, Math.log2(depth + 1)) * 0.025,
+        : choreography
+          ? 1.0
+          : 0.82 + Math.min(3, Math.log2(depth + 1)) * 0.025,
     particles: reducedMotion
       ? 6
-      : Math.min(
-          EFFECT_LIMITS.particles,
-          18 + Math.ceil(Math.log2(depth + 1)) * 2,
-        ),
+      : choreography
+        ? 24
+        : Math.min(
+            EFFECT_LIMITS.particles,
+            18 + Math.ceil(Math.log2(depth + 1)) * 2,
+          ),
     forge,
     reducedMotion,
+    choreography,
   });
 }
 export function seededUnit(seed, index) {

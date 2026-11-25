@@ -58,6 +58,48 @@ function setCell(geometry, cell) {
     );
   uv.needsUpdate = true;
 }
+function pathFrame(points, progress, arc = 0, curl = 0) {
+  const scaled = Math.max(0, Math.min(1, progress)) * (points.length - 1);
+  const leg = Math.min(points.length - 2, Math.floor(scaled));
+  const local = Math.min(1, scaled - leg),
+    start = points[leg],
+    end = points[leg + 1];
+  const direction = end.clone().sub(start).normalize();
+  if (direction.lengthSq() < 0.001) direction.set(0, 0, -1);
+  const side = direction.clone().cross(UP).normalize();
+  if (side.lengthSq() < 0.001) side.set(1, 0, 0);
+  const center = start
+    .clone()
+    .lerp(end, local)
+    .addScaledVector(UP, Math.sin(local * Math.PI) * arc)
+    .addScaledVector(
+      side,
+      Math.sin(local * Math.PI) * curl * (leg % 2 ? -1 : 1),
+    );
+  return { center, direction, side, leg, local };
+}
+const HOURGLASS = [
+  [-0.24, 0.32],
+  [0.24, 0.32],
+  [0.15, 0.17],
+  [0.045, 0],
+  [0.15, -0.17],
+  [0.24, -0.32],
+  [-0.24, -0.32],
+  [-0.15, -0.17],
+  [-0.045, 0],
+  [-0.15, 0.17],
+  [-0.24, 0.32],
+];
+function hourglassPoint(t) {
+  const scaled = Math.max(0, Math.min(0.999999, t)) * (HOURGLASS.length - 1),
+    i = Math.floor(scaled),
+    u = scaled - i;
+  return {
+    x: HOURGLASS[i][0] * (1 - u) + HOURGLASS[i + 1][0] * u,
+    y: HOURGLASS[i][1] * (1 - u) + HOURGLASS[i + 1][1] * u,
+  };
+}
 export class SpellEffects {
   constructor(
     scene,
@@ -156,7 +198,7 @@ export class SpellEffects {
       progress: { t: 0 },
     };
   }
-  claim(card, origin, target, forge) {
+  claim(card, origin, target, forge, options = {}) {
     if (this.disposed || !valid(origin) || !valid(target)) return null;
     const slot =
       this.slots.find((s) => !s.active) ||
@@ -171,6 +213,11 @@ export class SpellEffects {
     });
     slot.origin.copy(origin);
     slot.target.copy(target);
+    slot.hitAnchors = (Array.isArray(options?.hits) ? options.hits : [])
+      .filter(valid)
+      .slice(0, 3)
+      .map((point) => new THREE.Vector3(point.x, point.y, point.z));
+    if (!slot.hitAnchors.length) slot.hitAnchors.push(slot.target.clone());
     slot.progress = { t: 0 };
     slot.group.visible = true;
     slot.particles.count = slot.profile.particles;
@@ -214,13 +261,17 @@ export class SpellEffects {
     this.paint(slot);
     return slot.order;
   }
-  cast(card, originVector3, targetVector3) {
-    return this.claim(card || {}, originVector3, targetVector3, false);
+  cast(card, originVector3, targetVector3, options = {}) {
+    return this.claim(card || {}, originVector3, targetVector3, false, options);
   }
   forge(card, originVector3) {
     return this.claim(card || {}, originVector3, originVector3, true);
   }
   paint(slot) {
+    if (slot.profile.choreography && !slot.profile.forge) {
+      this.paintSemantic(slot);
+      return;
+    }
     const p = slot.progress.t,
       profile = slot.profile,
       age = (this.clock - slot.started) / 1000;
@@ -401,6 +452,218 @@ export class SpellEffects {
       }
     });
   }
+  paintSemantic(slot) {
+    const profile = slot.profile,
+      kind = profile.choreography;
+    const t = Math.min(
+      1,
+      Math.max(0, (this.clock - slot.started) / (profile.duration * 1000)),
+    );
+    const fade = Math.max(0, Math.sin(t * Math.PI));
+    const forward =
+      this.camera?.getWorldDirection(new THREE.Vector3()) ??
+      new THREE.Vector3(0, 0, -1);
+    const points =
+      kind === "ricochet"
+        ? [slot.origin, ...slot.hitAnchors]
+        : [slot.target, slot.origin, slot.target];
+    const travel = Math.max(0, Math.min(1, (t - 0.1) / 0.74));
+    let frame = pathFrame(
+      points,
+      travel,
+      kind === "ricochet" ? 0.28 : 0.12,
+      kind === "stolensentence" ? 0.22 : 0,
+    );
+    if (kind === "borroweddawn") {
+      const side = forward.clone().cross(UP).normalize();
+      if (side.lengthSq() < 0.001) side.set(1, 0, 0);
+      frame = {
+        center: slot.origin
+          .clone()
+          .addScaledVector(forward, 1)
+          .addScaledVector(UP, 0.62),
+        direction: forward,
+        side,
+        leg: 0,
+        local: 0,
+      };
+    }
+    if (profile.reducedMotion) {
+      frame.direction = forward;
+      frame.side = forward.clone().cross(UP).normalize();
+      if (frame.side.lengthSq() < 0.001) frame.side.set(1, 0, 0);
+    }
+    const { center, direction, side } = frame;
+    slot.seals.forEach((seal) => (seal.visible = false));
+    slot.payload.visible = !profile.reducedMotion || kind === "borroweddawn";
+    slot.payload.position.copy(
+      profile.reducedMotion && kind !== "borroweddawn" ? slot.origin : center,
+    );
+    slot.payload.rotation.set(
+      profile.reducedMotion ? 0 : t * 2.4,
+      profile.reducedMotion ? 0 : t * 1.7,
+      0,
+    );
+    const scale =
+      kind === "borroweddawn" ? 0.25 : kind === "stolensentence" ? 0.32 : 0.65;
+    slot.payload.scale.set(
+      scale,
+      kind === "borroweddawn" ? scale * 1.8 : scale,
+      scale,
+    );
+    slot.payload.material.opacity = fade;
+    slot.payload.material.color.setHex(
+      kind === "stolensentence"
+        ? frame.leg === 0
+          ? 0x66577b
+          : 0xe7ce8b
+        : profile.colors[0],
+    );
+    slot.particles.material.opacity = fade * 0.9;
+    for (let i = 0; i < profile.particles; i++) {
+      const u = seededUnit(profile.seed, i),
+        v = seededUnit(profile.seed, i + 100);
+      let position = center.clone(),
+        sx = 0.055 + v * 0.035,
+        sy = sx * 1.6;
+      if (profile.reducedMotion) {
+        if (kind === "ricochet")
+          position
+            .copy(slot.hitAnchors[i % slot.hitAnchors.length])
+            .addScaledVector(side, (i % 2 ? 1 : -1) * 0.07);
+        else if (kind === "stolensentence")
+          position
+            .copy(i % 2 ? slot.origin : slot.target)
+            .addScaledVector(UP, (Math.floor(i / 2) - 1) * 0.09);
+        else {
+          const point = hourglassPoint(i / profile.particles);
+          position.addScaledVector(side, point.x).addScaledVector(UP, point.y);
+        }
+      } else if (kind === "ricochet") {
+        if (i < 12)
+          position
+            .addScaledVector(direction, -i * 0.035)
+            .addScaledVector(side, Math.sin(i * 2.4 + t * 5) * 0.065)
+            .addScaledVector(UP, v * 0.12);
+        else {
+          const hit = Math.max(0, frame.leg - 1),
+            point = slot.hitAnchors[hit];
+          position
+            .copy(frame.leg ? point : center)
+            .addScaledVector(
+              side,
+              Math.cos(i * 2.4) * (0.07 + frame.local * 0.22),
+            )
+            .addScaledVector(
+              UP,
+              Math.sin(i * 2.4) * (0.07 + frame.local * 0.22),
+            );
+          sx *= frame.leg ? 1 - frame.local * 0.65 : 0.4;
+        }
+        sy = sx * 2.3;
+      } else if (kind === "stolensentence") {
+        const q = Math.max(0, travel - 0.18 + (i / profile.particles) * 0.2),
+          thread = pathFrame(points, q, 0.12, 0.22);
+        position
+          .copy(thread.center)
+          .addScaledVector(UP, Math.sin(i * 1.7) * 0.07)
+          .addScaledVector(thread.side, ((i % 3) - 1) * 0.045);
+        sx = 0.024;
+        sy = 0.07 + v * 0.06;
+      } else {
+        if (i < 10) {
+          const phase = (t * 1.6 + i / 10) % 1;
+          position
+            .addScaledVector(UP, 0.25 - phase * 0.5)
+            .addScaledVector(
+              side,
+              (u - 0.5) * (0.04 + Math.abs(0.5 - phase) * 0.32),
+            );
+          sx = 0.025;
+          sy = 0.05;
+        } else {
+          const angle = ((i - 10) / 14) * TAU + t * TAU * 1.2,
+            radius = 0.42 * (1 - Math.max(0, (t - 0.65) / 0.35) * 0.65);
+          position
+            .addScaledVector(side, Math.cos(angle) * radius)
+            .addScaledVector(UP, Math.sin(angle) * radius * 0.72);
+          sx = 0.043;
+          sy = 0.11;
+        }
+      }
+      this.dummy.position.copy(position);
+      this.dummy.rotation.set(
+        0,
+        0,
+        profile.reducedMotion
+          ? 0
+          : kind === "borroweddawn"
+            ? t * TAU + i
+            : i * 1.7 + t * 2,
+      );
+      this.dummy.scale.set(
+        sx * Math.max(0.05, fade),
+        sy * Math.max(0.05, fade),
+        sx,
+      );
+      this.dummy.updateMatrix();
+      slot.particles.setMatrixAt(i, this.dummy.matrix);
+    }
+    slot.particles.instanceMatrix.needsUpdate = true;
+    slot.ribbon.visible = !profile.reducedMotion;
+    if (slot.ribbon.visible) {
+      const attr = slot.ribbon.geometry.getAttribute("position");
+      for (let i = 0; i <= EFFECT_LIMITS.ribbonSegments; i++) {
+        const u = i / EFFECT_LIMITS.ribbonSegments;
+        let point, width;
+        if (kind === "borroweddawn") {
+          const hour = hourglassPoint(u);
+          point = center
+            .clone()
+            .addScaledVector(side, hour.x)
+            .addScaledVector(UP, hour.y);
+          width = 0.012;
+        } else {
+          point = pathFrame(
+            points,
+            Math.max(0, travel - 0.22 * (1 - u)),
+            kind === "ricochet" ? 0.28 : 0.12,
+            kind === "stolensentence" ? 0.22 : 0,
+          ).center;
+          point.addScaledVector(UP, Math.sin(u * TAU * 2 + t * TAU) * 0.025);
+          width =
+            kind === "ricochet"
+              ? 0.012 + Math.sin(u * Math.PI) * 0.055
+              : 0.012 + Math.sin(u * Math.PI) * 0.018;
+        }
+        for (let edge = 0; edge < 2; edge++) {
+          const sign = edge ? 1 : -1,
+            p = point.clone();
+          if (kind === "borroweddawn") {
+            const before = hourglassPoint(Math.max(0, u - 0.015)),
+              after = hourglassPoint(Math.min(0.99999, u + 0.015));
+            const dx = after.x - before.x,
+              dy = after.y - before.y,
+              length = Math.max(0.001, Math.hypot(dx, dy));
+            p.addScaledVector(
+              side,
+              (-dy / length) * width * sign,
+            ).addScaledVector(UP, (dx / length) * width * sign);
+          } else p.addScaledVector(side, width * sign);
+          attr.setXYZ(i * 2 + edge, p.x, p.y, p.z);
+        }
+      }
+      attr.needsUpdate = true;
+      slot.ribbon.material.opacity = fade * 0.75;
+      slot.ribbon.material.color.setHex(
+        kind === "stolensentence"
+          ? frame.leg === 0
+            ? 0x66577b
+            : 0xe7ce8b
+          : profile.colors[0],
+      );
+    }
+  }
   update(dt, _elapsed) {
     if (this.disposed || !Number.isFinite(dt) || dt <= 0) return;
     this.clock += dt * 1000;
@@ -413,6 +676,7 @@ export class SpellEffects {
       slot.tween = null;
     }
     slot.active = false;
+    slot.hitAnchors = [];
     slot.group.visible = false;
   }
   get stats() {
