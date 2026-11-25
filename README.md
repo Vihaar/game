@@ -10,7 +10,7 @@ An open-source browser arcade. Play, break things, and help make the games funni
 | [One More Person](https://vihaar.me/games/elevator/) | Drag and rotate passengers into an increasingly crowded elevator. | [games/elevator](games/elevator) |
 | [Friend Market](https://vihaar.me/games/friend-market/) | Build a goofy friend roster and survive five market closes. Solo. | [games/friend-market](games/friend-market) |
 | [Group Chat Court](https://vihaar.me/games/group-chat-court/) | Present evidence and persuade a deeply unqualified jury. Solo or same-device hotseat. | [games/group-chat-court](games/group-chat-court) |
-| [One Brain Cell](https://vihaar.me/games/one-brain-cell/) | Share control of one Mike and complete a chaotic physics delivery. | [games/one-brain-cell](games/one-brain-cell) |
+| [One Brain Cell](https://vihaar.me/games/one-brain-cell/) | Share control of one Mike and complete a chaotic physics delivery. Solo, local or online rooms. | [games/one-brain-cell](games/one-brain-cell) |
 | [Airport Impostor](https://vihaar.me/games/airport-impostor/) | Blend into thirty travelers or identify an impostor by suspicious behavior. | [games/airport-impostor](games/airport-impostor) |
 | [Friend Patch Notes](https://vihaar.me/games/friend-patch-notes/) | Draft ridiculous buffs and watch your friends battle. | [games/friend-patch-notes](games/friend-patch-notes) |
 | [Trust Me, Bro](https://vihaar.me/games/trust-me-bro/) | Follow unreliable directions through a maze. | [games/trust-me-bro](games/trust-me-bro) |
@@ -49,7 +49,7 @@ The finish-line checkout is a **joke with imaginary MikeCoins**. It never collec
 
 ## Friend arcade modes
 
-The new friend games are small first playable prototypes. Friend Market and Friend Patch Notes are solo. Group Chat Court has solo AI and two-person pass-and-play on the same device. Read each game's visible mode labels and README for local co-op controls; do not assume that a shared URL connects players online. Kart remains the established online room-code game. All purchases, currencies, accusations and airport objectives are fictional; none collects money or private messages.
+The new friend games are small first playable prototypes. Friend Market and Friend Patch Notes are solo. Group Chat Court has solo AI and two-person pass-and-play on the same device. Read each game's visible mode labels and README for local co-op controls; do not assume that a shared URL connects players online. One Brain Cell also offers PeerJS online rooms; the host must remain open. Kart remains the established online racing game. All purchases, currencies, accusations and airport objectives are fictional; none collects money or private messages.
 
 ## Existing foundations first
 
